@@ -290,6 +290,11 @@ Requires Token
 *Response*  
 `Event`
 
+#### Delete Event
+
+`DELETE /classes/{uuid}/events/{uuid}`  
+Requires Token  
+
 ### Timetable
 
 #### GET Timetable
