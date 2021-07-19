@@ -5,6 +5,9 @@ version = 3
 [[package]]
 name = "bot"
 version = "0.1.0"
+dependencies = [
+ "dao",
+]
 
 [[package]]
 name = "dao"
@@ -13,3 +16,6 @@ version = "0.1.0"
 [[package]]
 name = "server"
 version = "0.1.0"
+dependencies = [
+ "dao",
+]
