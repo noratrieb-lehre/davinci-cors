@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate diesel;
 
-use crate::handlers::{class_config, other_config, user_config};
+use crate::handlers::config;
 use actix_web::{web, App, HttpServer};
-use actix_web_httpauth::middleware::HttpAuthentication;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use std::io;
+
 mod actions;
 mod error;
 mod handlers;
@@ -26,12 +26,9 @@ async fn main() -> io::Result<()> {
         .expect("Failed to create pool.");
 
     HttpServer::new(move || {
-        App::new().data(pool.clone()).service(
-            web::scope("/api")
-                .configure(class_config)
-                .configure(user_config)
-                .configure(other_config),
-        )
+        App::new()
+            .data(pool.clone())
+            .service(web::scope("/api").configure(config))
     })
     .bind("127.0.0.1:8080")?
     .run()

@@ -1,5 +1,4 @@
 use crate::schema::*;
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Queryable)]
