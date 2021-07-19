@@ -2,6 +2,8 @@ use actix_web::{web, HttpResponse};
 
 mod class;
 
+pub type HttpResult = Result<HttpResponse, actix_web::Error>;
+
 pub fn class_config(cfg: &mut web::ServiceConfig) {
 
 }

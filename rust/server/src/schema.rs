@@ -1,33 +1,33 @@
 table! {
     class (id) {
         id -> Uuid,
-        owner -> Nullable<Uuid>,
-        name -> Nullable<Varchar>,
-        description -> Nullable<Varchar>,
-        timetable -> Nullable<Json>,
+        owner -> Uuid,
+        name -> Varchar,
+        description -> Varchar,
+        timetable -> Text,
     }
 }
 
 table! {
-    member (users, class) {
-        users -> Uuid,
+    member (user, class) {
+        user -> Uuid,
         class -> Uuid,
-        display_name -> Nullable<Varchar>,
-        role -> Nullable<Int4>,
+        display_name -> Varchar,
+        role -> Int4,
     }
 }
 
 table! {
     member_role (id) {
         id -> Int4,
-        display -> Nullable<Varchar>,
+        display -> Varchar,
     }
 }
 
 table! {
     users (id) {
         id -> Uuid,
-        name -> Nullable<Varchar>,
+        email -> Nullable<Varchar>,
         password -> Nullable<Text>,
         description -> Nullable<Varchar>,
     }
@@ -36,7 +36,7 @@ table! {
 joinable!(class -> users (owner));
 joinable!(member -> class (class));
 joinable!(member -> member_role (role));
-joinable!(member -> users (users));
+joinable!(member -> users (user));
 
 allow_tables_to_appear_in_same_query!(
     class,
