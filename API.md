@@ -228,7 +228,7 @@ Requires Token
 
 #### See join request users
 
-`POST /classes/{uuid}/requests`  
+`GET /classes/{uuid}/requests`  
 Requires Token  
 *Request*
 
