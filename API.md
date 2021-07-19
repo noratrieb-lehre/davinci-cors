@@ -42,7 +42,7 @@
 ```json
 {
   "id": "uuid",
-  "name": "string",
+  "email": "string",
   "description": "string",
   "classes?": [
     "Class"
