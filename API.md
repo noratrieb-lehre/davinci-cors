@@ -27,7 +27,7 @@
 
 ```json
 {
-  "uuid": "uuid",
+  "id": "uuid",
   "owner": "User",
   "members": [
     "User"
@@ -41,7 +41,7 @@
 
 ```json
 {
-  "uuid": "uuid",
+  "id": "uuid",
   "name": "string",
   "description": "string",
   "classes?": [
