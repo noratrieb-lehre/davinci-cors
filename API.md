@@ -136,7 +136,7 @@ Refresh-Token: Bearer token Token: Bearer token
 
 #### Token
 
-`POST /token`
+`GET /token`
 
 *Request*
 
