@@ -213,7 +213,7 @@ Requires Token
 ### Class member
 
 ### Put class member
-`PUT /classes/members/{uuid}`  
+`PUT /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
 *Response*  
