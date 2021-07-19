@@ -86,7 +86,13 @@ pub struct Lesson {
 }
 
 /// Response of /token
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RefreshResponse {
     pub expires: i64,
+}
+
+/// Request body of /classes/{uuid}/requests/{uuid}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberAcceptDao {
+    accept: bool,
 }
