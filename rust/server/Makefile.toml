@@ -1,0 +1,3 @@
+[tasks.create-db]
+command = "docker"
+args = ["run", "-d", "-p", "5432:5432", "--name", "POSTGRES_PASSWORD=hugo58hugo", "postgres"]

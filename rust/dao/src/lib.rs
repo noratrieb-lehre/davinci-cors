@@ -45,7 +45,7 @@ struct Class {
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 struct User {
     id: UUID,
-    name: String,
+    email: String,
     description: String,
     #[serde(default)]
     classes: Vec<Class>,
@@ -71,16 +71,22 @@ enum MemberRole {
 }
 
 /// The timetable of a class
-type Timetable = [TimeTableDay; 7];
+pub type Timetable = [TimeTableDay; 7];
 
 /// A day in the timetable of a class
-type TimeTableDay = Vec<Lesson>;
+pub type TimeTableDay = Vec<Lesson>;
 
 /// A lesson in a timetable
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
-struct Lesson {
+pub struct Lesson {
     subject: String,
     description: String,
     start: DayTimestamp,
     end: DayTimestamp,
+}
+
+/// Response of /token
+#[derive(Debug, Clone, Serialize)]
+pub struct RefreshResponse {
+    pub expires: i64,
 }

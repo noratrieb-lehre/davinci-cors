@@ -42,7 +42,7 @@
 ```json
 {
   "id": "uuid",
-  "name": "string",
+  "email": "string",
   "description": "string",
   "classes?": [
     "Class"
@@ -136,7 +136,7 @@ Refresh-Token: Bearer token Token: Bearer token
 
 #### Token
 
-`POST /token`
+`GET /token`
 
 *Request*
 
