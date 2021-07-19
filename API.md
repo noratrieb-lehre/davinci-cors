@@ -196,12 +196,12 @@ Requires Token
 
 #### Put class
 
-`PUT /classes/{uuid}`  
-Requires Token  
-*Request*  
-`Class`  (`members` field ignored)
-*Response*  
-`Class`
+`PUT /classes/{uuid}`   
+Requires Token    
+*Request*    
+`Class`  (`members` field ignored)  
+*Response*    
+`Class`  
 
 #### Delete Class
 
