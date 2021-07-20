@@ -9,7 +9,7 @@ use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use std::io;
 
-mod actions;
+pub mod actions;
 mod error;
 mod handlers;
 mod models;

@@ -63,13 +63,17 @@ pub fn validate_token(token: &str) -> Result<Claims, actix_web::Error> {
     }
 }
 
+/// Returns the token and the expiration date
+/// Create a JWT
 pub fn create_normal_jwt(user: Uuid) -> Result<(String, i64), ServiceErr> {
     create_jwt(user, false)
 }
+
+/// Create a refresh JWT
+/// Returns the token and the expiration date
 pub fn create_refresh_jwt(user: Uuid) -> Result<(String, i64), ServiceErr> {
     create_jwt(user, true)
 }
-
 fn create_jwt(uid: Uuid, refresh: bool) -> Result<(String, i64), ServiceErr> {
     let lifetime = if refresh {
         chrono::Duration::weeks(10)

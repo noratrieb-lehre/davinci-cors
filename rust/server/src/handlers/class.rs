@@ -1,5 +1,9 @@
+use crate::actions::{self, Pool};
+use crate::handlers::auth::Claims;
 use crate::handlers::HttpResult;
+use actix_web::http::header::http_percent_encode;
 use actix_web::web;
+use std::str::FromStr;
 
 pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
     cfg.route("/classes", web::post().to(create_class)).service(
@@ -21,7 +25,11 @@ pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-async fn get_class() -> HttpResult {
+async fn get_class(params: web::Path<String>, db: web::Data<Pool>, claims: Claims) -> HttpResult {
+    let uuid = uuid::Uuid::from_str(&params)?;
+
+    let class = web::block(move || actions::class::get_class(&db, uuid)).await??;
+
     http_todo!()
 }
 

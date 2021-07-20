@@ -1,15 +1,17 @@
 use actix_web::{HttpResponse, ResponseError};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::option::NoneError;
 
 #[derive(Debug)]
 pub enum ServiceErr {
     ConnectionNotFound(r2d2::Error),
     DbActionFailed(diesel::result::Error),
-    NotFound(diesel::result::Error),
+    NotFound,
     JWTCreationError(jsonwebtoken::errors::Error),
     TokenExpiredError,
     JWTokenError,
+    ActixError(actix_web::Error),
 }
 
 impl std::error::Error for ServiceErr {
@@ -34,7 +36,8 @@ impl Display for ServiceErr {
                 ServiceErr::JWTCreationError(err) => format!("Could not create JWT: {}", err),
                 ServiceErr::TokenExpiredError => "Token expired.".to_string(),
                 ServiceErr::JWTokenError => "Invalid JWT".to_string(),
-                ServiceErr::NotFound(err) => format!("Not found: {}", err),
+                ServiceErr::NotFound => "Not found".to_string(),
+                ServiceErr::ActixError(err) => format!("Actix error: {}", err),
             }
         )
     }
@@ -45,16 +48,23 @@ impl ResponseError for ServiceErr {
         match self {
             ServiceErr::TokenExpiredError => HttpResponse::Unauthorized().body("Token expired."),
             ServiceErr::JWTokenError => HttpResponse::BadRequest().body("Invalid JWT."),
-            ServiceErr::NotFound(_) => HttpResponse::NotFound().body("Not Found"),
+            ServiceErr::NotFound => HttpResponse::NotFound().body("Not Found"),
+            ServiceErr::ActixError(err) => ResponseError::error_response(err),
             err => HttpResponse::InternalServerError().body(format!("{}", err)),
         }
+    }
+}
+
+impl From<actix_web::Error> for ServiceErr {
+    fn from(err: actix_web::Error) -> Self {
+        Self::ActixError(err)
     }
 }
 
 impl From<diesel::result::Error> for ServiceErr {
     fn from(err: diesel::result::Error) -> Self {
         match err {
-            diesel::result::Error::NotFound => Self::NotFound(err),
+            diesel::result::Error::NotFound => Self::NotFound,
             _ => Self::DbActionFailed(err),
         }
     }
@@ -63,5 +73,12 @@ impl From<diesel::result::Error> for ServiceErr {
 impl From<r2d2::Error> for ServiceErr {
     fn from(err: r2d2::Error) -> Self {
         Self::ConnectionNotFound(err)
+    }
+}
+
+#[feature(try_trait)]
+impl From<NoneError> for ServiceErr {
+    fn from(_: NoneError) -> Self {
+        ServiceErr::NotFound
     }
 }

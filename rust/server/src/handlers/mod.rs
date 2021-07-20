@@ -1,8 +1,12 @@
+use crate::error::ServiceErr;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::http::header::Header;
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
+
+mod auth;
+mod class;
 
 macro_rules! http_todo {
     () => {
@@ -13,10 +17,7 @@ macro_rules! http_todo {
     };
 }
 
-mod auth;
-mod class;
-
-pub type HttpResult = Result<HttpResponse, actix_web::Error>;
+pub type HttpResult = Result<HttpResponse, ServiceErr>;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     other_config(cfg);
