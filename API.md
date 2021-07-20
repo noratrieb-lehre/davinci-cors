@@ -21,7 +21,7 @@
 
 ### Timestamp
 
-`number`, UTC Unix Timestamp in seconds
+`number`, UTC Unix Timestamp in milliseconds
 
 ### Class Dao
 
@@ -96,7 +96,7 @@
 
 ### DayTimestamp
 
-`number`, UTC, seconds since 00:00
+`number`, UTC, milliseconds since 00:00
 
 ## Routes
 
