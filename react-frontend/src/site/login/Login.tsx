@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
     Alert,
     Button,
@@ -12,7 +12,9 @@ import {
 } from "react-bootstrap";
 import {useFormik} from "formik";
 import * as Yup from 'yup'
-import {Link} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
+import UserService from "../../service/UserService";
+import {UserServiceContext} from "../Router";
 
 const LoginSchema = Yup.object().shape({
     email: Yup.string()
@@ -24,8 +26,11 @@ const LoginSchema = Yup.object().shape({
 })
 
 const Login = () => {
+    const history = useHistory()
+    const userService = useContext<UserService>(UserServiceContext)
     const handleSumbit = ({email, password}: { email: string, password: string }) => {
-        console.log(email, password)
+        userService.login(email, password).then(() => history.push('/account'));
+
     }
     const formik = useFormik({
         initialValues: {
@@ -33,16 +38,19 @@ const Login = () => {
             'password': ''
         },
         onSubmit: handleSumbit,
-        validationSchema: LoginSchema
+        validationSchema: LoginSchema,
+        validateOnBlur: true,
+        validateOnChange: false
     })
     return (
         <Container>
             <ModalTitle>Log In</ModalTitle>
+            <br/>
             <Form>
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'text'} name={'email'} onChange={formik.handleChange}
-                                 value={formik.values.email} isInvalid={!!formik.errors.email}/>
+                                 value={formik.values.email} isInvalid={!!formik.errors.email} placeholder={'E-Mail Adresse'}/>
                     <br/>
                     <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                 </FormGroup>
@@ -51,6 +59,7 @@ const Login = () => {
                     <FormControl type={'password'} name={'password'} onChange={formik.handleChange}
                                  value={formik.values.password}
                                  isInvalid={!!formik.errors.password}
+                                 placeholder={'Passwort'}
                     />
                     <br/>
                     <Alert variant={'danger'} show={!!formik.errors.password}>{formik.errors.password}</Alert>

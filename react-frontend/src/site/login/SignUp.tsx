@@ -25,11 +25,14 @@ const SignUp = () => {
             password: '',
             confirmPassword: ''
         },
-        onSubmit: onSubmit
+        onSubmit: onSubmit,
+        validateOnChange: false,
+        validateOnBlur: true
     })
     return (
         <Container>
             <ModalTitle>Registrieren</ModalTitle>
+            <br/>
             <Form>
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
@@ -38,6 +41,7 @@ const SignUp = () => {
                                  onChange={formik.handleChange}/>
                     <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                 </FormGroup>
+                <br/>
                 <FormGroup>
                     <FormLabel>Passwort</FormLabel>
                     <FormControl type={'password'} placeholder={'Passwort (Mindestens 6 Zeichen)'} name={'password'}
@@ -45,6 +49,7 @@ const SignUp = () => {
                                  onChange={formik.handleChange}/>
                     <Alert variant={'danger'} show={!!formik.errors.password}>{formik.errors.password}</Alert>
                 </FormGroup>
+                <br/>
                 <FormGroup>
                     <FormLabel>Passwort bestätigen</FormLabel>
                     <FormControl type={'password'} placeholder={'Passwort bestätigen'} name={'confirmPassword'}

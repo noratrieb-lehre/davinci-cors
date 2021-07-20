@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MainSite = () => {
+const Timetable = () => {
     return (
         <div>
 
@@ -8,4 +8,4 @@ const MainSite = () => {
     );
 };
 
-export default MainSite;
+export default Timetable;
