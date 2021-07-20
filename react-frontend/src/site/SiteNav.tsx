@@ -22,7 +22,7 @@ const SiteNav = () => {
                             <>
                                 <NavLink to={'/'} exact className={'nav-link'}>Über</NavLink>
                                 <NavLink to={'/account'} className={'nav-link'}>Account</NavLink>
-                                <NavLink to={'/classes'} className={'nav-link'}>Klassenansicht</NavLink>
+                                <NavLink to={'/class'} className={'nav-link'}>Klassenansicht</NavLink>
                             </>
 
                         ) : (

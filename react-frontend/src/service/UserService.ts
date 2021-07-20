@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from "axios";
-import User from "../data/user/User";
+import User, {PostUser} from "../data/user/User";
 import getClasses from "../mockup/ClassMockUp";
 import Class from "../data/class/Class";
 import Member from "../data/user/Member";
@@ -34,6 +34,10 @@ export default class UserService {
         this.triggerOnAuthStateChange();
     }
 
+    public async createAccount(user: PostUser): Promise<void> {
+        console.log(user)
+    }
+
     public getClass(id: string): Class {
         return getClasses().filter(val => val.id === id)[0]
     }
@@ -48,6 +52,10 @@ export default class UserService {
 
     public getClasses(): Array<{ name: string, id: string }> {
         return getClasses().map(val => ({name: val.name, id: val.id}))
+    }
+
+    public getTimeTable(classId: string) {
+
     }
 
 

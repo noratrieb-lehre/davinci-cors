@@ -22,8 +22,8 @@ const Router = () => {
                     isLoggedIn ? (
                         <Switch>
                             <Route path={'/account'} component={Account}/>
-                            <Route path={'/classes'} component={MainSite}/>
-                            <Route path={'/classes/:id'} component={MainSite}/>
+                            <Route exact path={'/class'} component={MainSite}/>
+                            <Route path={'/class/:id'} component={MainSite}/>
                         </Switch>
                     ) : (
                         <Switch>
