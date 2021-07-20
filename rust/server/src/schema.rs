@@ -1,5 +1,5 @@
 table! {
-    class (id) {
+    classes (id) {
         id -> Uuid,
         owner -> Uuid,
         name -> Varchar,
@@ -9,18 +9,37 @@ table! {
 }
 
 table! {
-    member (user, class) {
-        user -> Uuid,
-        class -> Uuid,
-        display_name -> Varchar,
-        role -> Int4,
+    event_types (id) {
+        id -> Int4,
+        display -> Varchar,
     }
 }
 
 table! {
-    member_role (id) {
+    events (id) {
+        id -> Uuid,
+        class -> Uuid,
+        e_type -> Int4,
+        name -> Varchar,
+        start -> Timestamp,
+        end -> Nullable<Timestamp>,
+        description -> Varchar,
+    }
+}
+
+table! {
+    member_roles (id) {
         id -> Int4,
         display -> Varchar,
+    }
+}
+
+table! {
+    members (user, class) {
+        user -> Uuid,
+        class -> Uuid,
+        display_name -> Varchar,
+        role -> Int4,
     }
 }
 
@@ -33,14 +52,18 @@ table! {
     }
 }
 
-joinable!(class -> users (owner));
-joinable!(member -> class (class));
-joinable!(member -> member_role (role));
-joinable!(member -> users (user));
+joinable!(classes -> users (owner));
+joinable!(events -> classes (class));
+joinable!(events -> event_types (e_type));
+joinable!(members -> classes (class));
+joinable!(members -> member_roles (role));
+joinable!(members -> users (user));
 
 allow_tables_to_appear_in_same_query!(
-    class,
-    member,
-    member_role,
+    classes,
+    event_types,
+    events,
+    member_roles,
+    members,
     users,
 );
