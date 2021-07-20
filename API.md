@@ -126,7 +126,8 @@
 
 *Response*
 
-Refresh-Token: Bearer token Token: Bearer token
+Refresh-Token: Bearer token   
+Token: Bearer token
 
 ```json
 {
@@ -169,6 +170,21 @@ Requires Token
 *Response*  
 `User`
 
+#### Post myself (not hugo)
+
+`POST /users`           
+*Request*           
+`User` with password           
+*Response*           
+Refresh-Token: Bearer token              
+Token: Bearer token         
+`User`
+
+#### Delete myself (not hugo)
+
+Requires Token
+`DELETE /users/me`
+
 ### Classes
 
 #### Get class
@@ -201,24 +217,25 @@ Requires Token
 *Request*    
 `Class`  (`members` field ignored)  
 *Response*    
-`Class`  
+`Class`
 
 #### Delete Class
 
 `DELETE /classes/{uuid}`  
 Requires Token  
 *Response*  
-"Deleted class."  
+"Deleted class."
 
 ### Class member
 
 ### Put class member
+
 `PUT /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
 *Response*  
-`Member`  
-  
+`Member`
+
 #### Request join
 
 `POST /classes/{uuid}/join`    
@@ -293,7 +310,7 @@ Requires Token
 #### Delete Event
 
 `DELETE /classes/{uuid}/events/{uuid}`  
-Requires Token  
+Requires Token
 
 ### Timetable
 
