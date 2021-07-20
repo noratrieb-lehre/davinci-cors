@@ -7,6 +7,7 @@
 
 ```json
 {
+  "id": "uuid",
   "type": "EventType",
   "name": "string",
   "start": "Timestamp",

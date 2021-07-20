@@ -1,10 +1,10 @@
 import React, {useContext} from 'react';
 import {Container, ModalBody, ModalTitle, Table} from "react-bootstrap";
-import useClassContext from "../useClassContext";
 import {UserServiceContext} from "../../Router";
+import {CurrentClass} from "./ClassView";
 
 const ClassInfo = () => {
-    const [currentClass] = useClassContext();
+    const currentClass = useContext(CurrentClass);
     const userService = useContext(UserServiceContext);
     return (
         <Container className={'text-center'}>

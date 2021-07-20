@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Alert, Button, Container, Form, FormControl, FormGroup, FormLabel, ModalTitle} from "react-bootstrap";
 import {useFormik} from "formik";
 import * as Yup from 'yup'
+import {UserServiceContext} from "../Router";
 
 const ValidationScheme = Yup.object().shape({
     email: Yup.string()
@@ -15,9 +16,17 @@ const ValidationScheme = Yup.object().shape({
 })
 
 const SignUp = () => {
-    const onSubmit = ({ email, password }: {email: string, password: string}) => {
+    const userService = useContext(UserServiceContext);
 
+    const onSubmit = ({ email, password }: {email: string, password: string}) => {
+        userService.createAccount({
+            description: '',
+            id: '',
+            email,
+            password
+        })
     }
+
     const formik = useFormik({
         validationSchema: ValidationScheme,
         initialValues: {

@@ -6,3 +6,5 @@ export default interface User {
     "description": string,
     "classes"?: Array<Class>
 }
+
+export type PostUser = User & { password: string }

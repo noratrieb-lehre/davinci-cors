@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useContext} from 'react';
+import {CurrentClass} from "./ClassView";
 
 const Events = () => {
+    const currentClass = useContext(CurrentClass);
     return (
         <div>
 
