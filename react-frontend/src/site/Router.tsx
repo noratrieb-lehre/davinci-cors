@@ -5,24 +5,25 @@ import UserService from "../service/UserService";
 import Login from "./login/Login";
 import {Route, Switch} from 'react-router-dom';
 import Account from "./Account";
-import MainSite from "./MainSite";
+import MainSite from "./mainsite/MainSite";
 import SignUp from "./login/SignUp";
 
 const userService = new UserService();
-const UserServerContext = React.createContext<UserService>(userService);
+const UserServiceContext = React.createContext<UserService>(userService);
 
 const Router = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
     userService.onAuthStateChange((user) => setIsLoggedIn(!!user))
     return (
         <Container fluid>
-            <UserServerContext.Provider value={userService}>
+            <UserServiceContext.Provider value={userService}>
                 <SiteNav/>
                 {
                     isLoggedIn ? (
                         <Switch>
                             <Route path={'/account'} component={Account}/>
                             <Route path={'/classes'} component={MainSite}/>
+                            <Route path={'/classes/:id'} component={MainSite}/>
                         </Switch>
                     ) : (
                         <Switch>
@@ -31,10 +32,10 @@ const Router = () => {
                         </Switch>
                     )
                 }
-            </UserServerContext.Provider>
+            </UserServiceContext.Provider>
         </Container>
     );
 };
 
 export default Router;
-export {UserServerContext}
+export {UserServiceContext}
