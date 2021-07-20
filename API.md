@@ -323,6 +323,14 @@ Requires Token
 *Response*  
 `Timetable`
 
+#### POST Timetable
+
+`POST /classes/{uuid}/timetable`  
+Requires Token  
+*Response*  
+`Timetable`
+
+
 #### PUT Timetable
 
 `PUT /classes/{uuid}/timetable`  
