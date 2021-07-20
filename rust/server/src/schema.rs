@@ -4,7 +4,6 @@ table! {
         owner -> Uuid,
         name -> Varchar,
         description -> Varchar,
-        timetable -> Text,
     }
 }
 
@@ -44,6 +43,13 @@ table! {
 }
 
 table! {
+    timetables (class) {
+        class -> Uuid,
+        timetable -> Text,
+    }
+}
+
+table! {
     users (id) {
         id -> Uuid,
         email -> Varchar,
@@ -58,6 +64,7 @@ joinable!(events -> event_types (e_type));
 joinable!(members -> classes (class));
 joinable!(members -> member_roles (role));
 joinable!(members -> users (user));
+joinable!(timetables -> classes (class));
 
 allow_tables_to_appear_in_same_query!(
     classes,
@@ -65,5 +72,6 @@ allow_tables_to_appear_in_same_query!(
     events,
     member_roles,
     members,
+    timetables,
     users,
 );

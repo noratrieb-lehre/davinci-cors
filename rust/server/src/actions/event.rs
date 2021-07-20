@@ -4,7 +4,7 @@ use crate::models::{Event, EventType, NewEvent};
 
 use crate::schema::event_types::dsl::event_types;
 use crate::schema::events::dsl::*;
-use diesel::{insert_into, ExpressionMethods, SaveChangesDsl};
+use diesel::{delete, insert_into, ExpressionMethods, SaveChangesDsl};
 use uuid::Uuid;
 
 pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> DbResult<Vec<(Event, EventType)>> {
@@ -36,4 +36,8 @@ pub fn insert_event(db: &Pool, new_event: NewEvent) -> DbResult<Event> {
     Ok(insert_into(events).values(&new_event).get_result(&conn)?)
 }
 
-//pub fn delete_event(db: &Pool, new_event: )
+pub fn delete_event(db: &Pool, event_id: Uuid) -> DbResult<usize> {
+    let conn = db.get()?;
+
+    Ok(delete(events).filter(id.eq(event_id)).execute(&conn)?)
+}

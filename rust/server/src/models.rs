@@ -32,7 +32,7 @@ pub struct Class {
     pub owner: Uuid,
     pub name: String,
     pub description: String,
-    pub timetable: String, // todo note: this should be JSON
+    // pub timetable: String, // todo note: this should be JSON
 }
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
@@ -42,7 +42,7 @@ pub struct NewClass<'a> {
     pub owner: &'a Uuid,
     pub name: &'a str,
     pub description: &'a str,
-    pub timetable: &'a str,
+    //pub timetable: &'a str,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -80,4 +80,17 @@ pub struct NewEvent<'a> {
 pub struct EventType {
     pub id: i32,
     pub display: String,
+}
+
+#[derive(Debug, Clone, Queryable)]
+pub struct Timetable {
+    pub class: Uuid,
+    pub timetable: String,
+}
+
+#[derive(Debug, Insertable)]
+#[table_name = "timetables"]
+pub struct NewTimetable<'a> {
+    pub class: &'a Uuid,
+    pub timetable: &'a str,
 }

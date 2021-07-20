@@ -20,10 +20,18 @@ CREATE TABLE classes
     owner       UUID        NOT NULL,
     name        VARCHAR(50) NOT NULL,
     description VARCHAR(50) NOT NULL DEFAULT '',
-    timetable   TEXT        NOT NULL DEFAULT '[[], [], [], [], [], [], []]', -- no reason to have like 100 joins for one single timetable, something like json fits best
     CONSTRAINT classOwnerFK
         FOREIGN KEY (owner)
             REFERENCES users (id)
+);
+
+CREATE TABLE timetables
+(
+    class     UUID PRIMARY KEY,
+    timetable TEXT NOT NULL DEFAULT '[[], [], [], [], [], [], []]',
+    CONSTRAINT timetable_class_fk
+        FOREIGN KEY (class)
+            REFERENCES classes (id)
 );
 
 INSERT INTO member_roles (id, display)

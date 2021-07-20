@@ -32,8 +32,8 @@ impl Display for ServiceErr {
                 ServiceErr::ConnectionNotFound(err) => format!("Db Connection not found: {}", err),
                 ServiceErr::DbActionFailed(err) => format!("Db Action Failed: {}", err),
                 ServiceErr::JWTCreationError(err) => format!("Could not create JWT: {}", err),
-                ServiceErr::TokenExpiredError => format!("Token expired."),
-                ServiceErr::JWTokenError => format!("Invalid JWT"),
+                ServiceErr::TokenExpiredError => "Token expired.".to_string(),
+                ServiceErr::JWTokenError => "Invalid JWT".to_string(),
                 ServiceErr::NotFound(err) => format!("Not found: {}", err),
             }
         )
