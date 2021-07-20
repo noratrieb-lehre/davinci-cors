@@ -1,31 +1,43 @@
-use crate::actions::DbResult;
+use crate::actions::{DbResult, Pool};
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::models::{Class, Member, MemberRole, NewClass, User};
-use crate::Pool;
-use diesel::{delete, insert_into, update, BoolExpressionMethods, ExpressionMethods};
+use crate::models::{Class, Member, MemberRole, NewClass};
+use crate::schema::classes::dsl::*;
+use diesel::{delete, insert_into, ExpressionMethods, SaveChangesDsl};
 use uuid::Uuid;
 
 pub fn insert_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
-    use crate::schema::class::dsl::*;
     let conn = db.get()?;
 
-    Ok(insert_into(class).values(&new_class).get_result(&conn)?)
+    Ok(insert_into(classes).values(&new_class).get_result(&conn)?)
 }
 
 type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
 
 pub fn get_class(db: &Pool, class_id: Uuid) -> DbResult<Option<ClassMemberData>> {
-    use crate::schema::class::dsl::{class, id};
-    use crate::schema::member::dsl::member;
-    use crate::schema::member_role::dsl::member_role;
+    use crate::schema::member_roles::dsl::member_roles;
+    use crate::schema::members::dsl::{display_name, members, role};
     let conn = db.get()?;
 
-    let vec: Vec<(Class, (Member, MemberRole))> = class
+    let vec: Vec<(Class, (Member, MemberRole))> = classes
         .filter(id.eq(class_id))
-        .inner_join(member.inner_join(member_role))
+        .inner_join(members.inner_join(member_roles))
+        .order_by((role, display_name))
         .load(&conn)?;
 
     Ok(map_class_join_members(vec))
+}
+
+fn update_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
+    let conn = db.get()?;
+
+    Ok(new_class.save_changes(&*conn)?)
+}
+
+fn delete_class(db: &Pool, class_id: Uuid) -> DbResult<()> {
+    let conn = db.get()?;
+
+    delete(classes).filter(id.eq(class_id)).execute(&conn)?;
+    Ok(())
 }
 
 fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {
