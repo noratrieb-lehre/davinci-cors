@@ -27,9 +27,9 @@ table! {
 table! {
     users (id) {
         id -> Uuid,
-        email -> Nullable<Varchar>,
-        password -> Nullable<Text>,
-        description -> Nullable<Varchar>,
+        email -> Varchar,
+        password -> Text,
+        description -> Varchar,
     }
 }
 
