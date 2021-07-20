@@ -12,6 +12,7 @@ type Uuid = String;
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct EventDao {
+    id: Uuid,
     r#type: String,
     name: String,
     start: Timestamp,

@@ -53,6 +53,16 @@ pub struct Member {
     pub role: i32,
 }
 
+#[derive(Debug, Clone, Insertable, Identifiable, AsChangeset)]
+#[table_name = "members"]
+#[primary_key(user, class)]
+pub struct NewMember<'a> {
+    pub user: &'a Uuid,
+    pub class: &'a Uuid,
+    pub display_name: &'a String,
+    pub role: &'a i32,
+}
+
 #[derive(Debug, Clone, Queryable)]
 pub struct Event {
     pub id: Uuid,

@@ -37,7 +37,8 @@ CREATE TABLE timetables
 INSERT INTO member_roles (id, display)
 VALUES (0, 'owner'),
        (1, 'admin'),
-       (2, 'member');
+       (2, 'member'),
+       (3, 'pending');
 
 
 CREATE TABLE members

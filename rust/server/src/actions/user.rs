@@ -51,7 +51,7 @@ pub fn delete_user(db: &Pool, user_id: Uuid) -> DbResult<usize> {
     Ok(delete(users).filter(id.eq(user_id)).execute(&conn)?)
 }
 
-pub fn update_user_description(db: &Pool, user: User) -> DbResult<User> {
+pub fn update_user(db: &Pool, user: User) -> DbResult<User> {
     let conn = db.get()?;
 
     Ok(update(users.filter(id.eq(user.id)))

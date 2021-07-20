@@ -1,9 +1,9 @@
 use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
 
-mod class;
-mod event;
-mod user;
+pub mod class;
+pub mod event;
+pub mod user;
 
 pub type DbResult<T> = Result<T, crate::error::ServiceErr>;
 
