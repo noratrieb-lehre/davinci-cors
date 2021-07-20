@@ -3,9 +3,9 @@ CREATE EXTENSION pgcrypto;
 CREATE TABLE users
 (
     id          UUID PRIMARY KEY,
-    email       VARCHAR(50),
-    password    TEXT,
-    description VARCHAR(1000)
+    email       VARCHAR(50) NOT NULL,
+    password    TEXT NOT NULL,
+    description VARCHAR(1000) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE member_role
@@ -26,10 +26,16 @@ CREATE TABLE class
             REFERENCES users (id)
 );
 
+INSERT INTO member_role (id, display)
+VALUES (0, 'owner'),
+       (1, 'admin'),
+       (2, 'member');
+
+
 CREATE TABLE member
 (
-    "user"       UUID,
-    class        UUID,
+    "user"       UUID NOT NULL,
+    class        UUID NOT NULL,
     display_name VARCHAR(50) NOT NULL,
     role         INT NOT NULL DEFAULT 2,
     PRIMARY KEY ("user", class),
@@ -43,8 +49,3 @@ CREATE TABLE member
         FOREIGN KEY (role)
             REFERENCES member_role (id)
 );
-
-INSERT INTO member_role (id, display) VALUES
-(0, 'owner'),
-(1, 'admin'),
-(2, 'member')

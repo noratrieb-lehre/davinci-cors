@@ -4,24 +4,38 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
 
+macro_rules! http_todo {
+    () => {
+        std::result::Result::Ok(actix_web::HttpResponse::Ok().body("Unimplemented"))
+    };
+    ($str:literal) => {
+        std::result::Result::Ok(actix_web::HttpResponse::Ok().body($str))
+    };
+}
+
 mod auth;
 mod class;
 
 pub type HttpResult = Result<HttpResponse, actix_web::Error>;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    class::class_config(cfg);
     other_config(cfg);
+    class::class_config(cfg);
 }
 
-pub fn user_config(cfg: &mut web::ServiceConfig) {}
-
 pub fn other_config(cfg: &mut web::ServiceConfig) {
-    cfg.route(
-        "/hugo",
-        web::get().to(|| HttpResponse::Ok().body("Hugo Boss")),
-    )
-    .route("/token", web::get().to(refresh_token));
+    cfg.route("/hugo", web::get().to(get_hugo))
+        .route("/token", web::get().to(refresh_token))
+        .route("/login", web::post().to(login))
+        .service(
+            web::scope("/users/me")
+                .route("", web::get().to(get_own_user))
+                .route("", web::put().to(edit_own_user)),
+        );
+}
+
+async fn get_hugo() -> HttpResponse {
+    HttpResponse::Ok().body("Hugo Boss")
 }
 
 async fn refresh_token(req: HttpRequest) -> HttpResult {
@@ -42,4 +56,16 @@ async fn refresh_token(req: HttpRequest) -> HttpResult {
             "Normal token cannot be used to get a new token",
         ))
     }
+}
+
+async fn login() -> HttpResult {
+    http_todo!()
+}
+
+async fn get_own_user() -> HttpResult {
+    http_todo!()
+}
+
+async fn edit_own_user() -> HttpResult {
+    http_todo!()
 }

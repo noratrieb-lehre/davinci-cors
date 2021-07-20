@@ -196,12 +196,12 @@ Requires Token
 
 #### Put class
 
-`PUT /classes/{uuid}`  
-Requires Token  
-*Request*  
-`Class`  (`members` field ignored)
-*Response*  
-`Class`
+`PUT /classes/{uuid}`   
+Requires Token    
+*Request*    
+`Class`  (`members` field ignored)  
+*Response*    
+`Class`  
 
 #### Delete Class
 
@@ -213,7 +213,7 @@ Requires Token
 ### Class member
 
 ### Put class member
-`PUT /classes/members/{uuid}`  
+`PUT /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
 *Response*  
@@ -228,7 +228,7 @@ Requires Token
 
 #### See join request users
 
-`POST /classes/{uuid}/requests`  
+`GET /classes/{uuid}/requests`  
 Requires Token  
 *Request*
 
@@ -289,6 +289,11 @@ Requires Token
 `Event`  
 *Response*  
 `Event`
+
+#### Delete Event
+
+`DELETE /classes/{uuid}/events/{uuid}`  
+Requires Token  
 
 ### Timetable
 
