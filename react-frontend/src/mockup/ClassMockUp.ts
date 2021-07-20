@@ -4,15 +4,47 @@ const classRepo: Array<Class> = [
     {
         "id": "hugo",
         "name": "Hugos Flugklasse",
-        "owner": "Hugo Boss",
-        "members": [],
+        "owner": "hugo",
+        "members": [
+            {
+                "user": "hugo",
+                "displayName": "Hugo Boss",
+                "class": "hugo",
+                "role": "owner"
+            }
+        ],
         "description": 'Hugo hat eine Flugklasse'
     },
     {
         "id": "bbw",
         "name": "5IA20a",
-        "owner": "Luigi Cavouti",
-        "members": [],
+        "owner": "luigi",
+        "members": [
+            {
+                "user": "luigi",
+                "displayName": "Luigi Cavouti",
+                "class": "bbw",
+                "role": "owner"
+            },
+            {
+                "user": "hennet",
+                "displayName": "Michel Hennet",
+                "class": "bbw",
+                "role": "admin"
+            },
+            {
+                "user": "hugo",
+                "displayName": "Hugo Boss",
+                "class": "bbw",
+                "role": "member"
+            },
+            {
+                "user": "corsi",
+                "displayName": "Corsin Ragettli",
+                "class": "bbw",
+                "role": "member"
+            }
+        ],
         "description": 'Die beste Klasse '
     },
     {

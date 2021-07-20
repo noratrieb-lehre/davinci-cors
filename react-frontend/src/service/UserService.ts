@@ -1,6 +1,9 @@
 import axios, {AxiosInstance} from "axios";
 import User from "../data/user/User";
 import getClasses from "../mockup/ClassMockUp";
+import Class from "../data/class/Class";
+import Member from "../data/user/Member";
+import MemberRole from "../data/user/MemberRole";
 
 
 export default class UserService {
@@ -31,6 +34,14 @@ export default class UserService {
         this.triggerOnAuthStateChange();
     }
 
+    public getClass(id: string): Class {
+        return getClasses().filter(val => val.id === id)[0]
+    }
+
+    public getMember(memberList: Array<Member>, userID: string): Member | undefined {
+        return memberList.filter(val => val.user === userID)[0];
+    }
+
     public onAuthStateChange(handler: (user: User | null) => void) {
         this.onAuthStateChangeHandler.push(handler)
     }
@@ -42,5 +53,16 @@ export default class UserService {
 
     get currentUser(): User | null {
         return this._currentUser;
+    }
+
+    public getMemberRole(role: MemberRole): string {
+        switch (role) {
+            case "admin":
+                return 'Administrator';
+            case "member":
+                return 'Mitglied';
+            case "owner":
+                return 'Eigentümer'
+        }
     }
 }

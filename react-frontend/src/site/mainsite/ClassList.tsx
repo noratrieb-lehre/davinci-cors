@@ -5,13 +5,19 @@ import {ListGroup} from "react-bootstrap";
 
 const ClassList = () => {
     const [allClasses, setAllClasses] = useState<Array<{name: string, id: string}>>([]);
-    const [currentClass, setCurrentClass] = useClassContext();
+    const [, setCurrentClass] = useClassContext();
     const userService = useContext(UserServiceContext);
     useEffect(() => {
         setAllClasses(userService.getClasses());
-    }, [])
+    }, [userService])
+
+    const selectUserClass = (e: string | null) => {
+        if(e) {
+            setCurrentClass(userService.getClass(e));
+        }
+    }
     return (
-        <ListGroup onSelect={(e) => setCurrentClass(e || '')}>
+        <ListGroup onSelect={selectUserClass}>
             {
                 allClasses.map((val) => <ListGroup.Item eventKey={val.id} key={val.id}>{val.name}</ListGroup.Item>)
             }
