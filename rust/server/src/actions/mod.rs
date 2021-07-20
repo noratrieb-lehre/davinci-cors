@@ -64,8 +64,8 @@ mod user {
         use crate::schema::users::dsl::*;
         let conn = db.get()?;
 
-        Ok(update(users.filter(email.eq(user.email)))
-            .set(description.eq(user.description))
+        Ok(update(users.filter(id.eq(user.id)))
+            .set((description.eq(user.description), (email.eq(user.email))))
             .get_result(&conn)?)
     }
 
@@ -75,15 +75,6 @@ mod user {
 
         Ok(update(users.filter(email.eq(user.email)))
             .set(password.eq(crypt(user.password, gen_salt("bf", 8))))
-            .get_result(&conn)?)
-    }
-
-    pub fn change_user_email(db: &Pool, user: User) -> DbResult<User> {
-        use crate::schema::users::dsl::*;
-        let conn = db.get()?;
-
-        Ok(update(users.filter(id.eq(user.id)))
-            .set(email.eq(user.email))
             .get_result(&conn)?)
     }
 }

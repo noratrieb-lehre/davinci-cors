@@ -2,7 +2,7 @@ use crate::schema::*;
 use diesel::{Insertable, Queryable};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Queryable, Insertable)]
+#[derive(Debug, Clone, Queryable, Insertable, Identifiable)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -28,7 +28,7 @@ pub struct MemberRole {
 #[derive(Debug, Clone, Queryable)]
 pub struct Class {
     pub id: Uuid,
-    pub owner: User,
+    pub owner: Uuid,
     pub name: String,
     pub description: String,
     pub timetable: String, // todo note: this should be JSON
