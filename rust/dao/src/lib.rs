@@ -7,7 +7,7 @@ type Timestamp = u64;
 type DayTimestamp = u32;
 
 /// A Unique User Id
-type UUID = String;
+type Uuid = String;
 
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,7 +34,7 @@ enum EventType {
 /// A Class
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 struct Class {
-    id: UUID,
+    id: Uuid,
     owner: User,
     members: Vec<Member>,
     name: String,
@@ -44,19 +44,28 @@ struct Class {
 /// A User
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 struct User {
-    id: UUID,
+    id: Uuid,
     email: String,
     description: String,
     #[serde(default)]
     classes: Vec<Class>,
 }
 
+/// The user for the `POST /users` route, with a password
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+struct PostUser {
+    id: Uuid,
+    email: String,
+    description: String,
+    password: String,
+}
+
 /// A member (User in a class)
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Member {
-    user: UUID,
-    class: UUID,
+    user: Uuid,
+    class: Uuid,
     display_name: String,
     role: MemberRole,
 }

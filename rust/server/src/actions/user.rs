@@ -45,11 +45,10 @@ pub fn insert_user(db: &Pool, new_user: NewUser) -> DbResult<User> {
         .get_result(&conn)?)
 }
 
-pub fn delete_user(db: &Pool, user_id: Uuid) -> DbResult<()> {
+pub fn delete_user(db: &Pool, user_id: Uuid) -> DbResult<usize> {
     let conn = db.get()?;
 
-    delete(users).filter(id.eq(user_id)).execute(&conn)?;
-    Ok(())
+    Ok(delete(users).filter(id.eq(user_id)).execute(&conn)?)
 }
 
 pub fn update_user_description(db: &Pool, user: User) -> DbResult<User> {
