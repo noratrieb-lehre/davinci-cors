@@ -5,3 +5,5 @@ DROP TABLE members;
 DROP TABLE classes;
 DROP TABLE member_roles;
 DROP TABLE users;
+
+DROP EXTENSION pgcrypto;

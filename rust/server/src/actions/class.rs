@@ -1,5 +1,6 @@
-use crate::actions::{DbResult, Pool};
+use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
+use crate::error::ServiceResult;
 use crate::models::{Class, Member, MemberRole, NewClass, NewMember, Timetable, PENDING};
 use crate::schema::classes::dsl::*;
 use diesel::{
@@ -7,7 +8,7 @@ use diesel::{
 };
 use uuid::Uuid;
 
-pub fn insert_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
+pub fn insert_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
     let conn = db.get()?;
 
     Ok(insert_into(classes).values(&new_class).get_result(&conn)?)
@@ -15,7 +16,7 @@ pub fn insert_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
 
 type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
 
-pub fn get_class(db: &Pool, class_id: Uuid) -> DbResult<Option<ClassMemberData>> {
+pub fn get_class(db: &Pool, class_id: Uuid) -> ServiceResult<Option<ClassMemberData>> {
     use crate::schema::member_roles::dsl::member_roles;
     use crate::schema::members::dsl::{display_name, members, role};
     let conn = db.get()?;
@@ -29,7 +30,7 @@ pub fn get_class(db: &Pool, class_id: Uuid) -> DbResult<Option<ClassMemberData>>
     Ok(map_class_join_members(vec))
 }
 
-pub fn get_pending_members(db: &Pool, class_id: Uuid) -> DbResult<Vec<Member>> {
+pub fn get_pending_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Member>> {
     use crate::schema::members::dsl::{class, members, role};
     let conn = db.get()?;
 
@@ -38,39 +39,39 @@ pub fn get_pending_members(db: &Pool, class_id: Uuid) -> DbResult<Vec<Member>> {
         .load(&conn)?)
 }
 
-pub fn update_member(db: &Pool, member: NewMember) -> DbResult<Member> {
+pub fn update_member(db: &Pool, member: NewMember) -> ServiceResult<Member> {
     let conn = db.get()?;
 
     Ok(member.save_changes(&*conn)?)
 }
 
-pub fn create_member(db: &Pool, member: NewMember) -> DbResult<Member> {
+pub fn create_member(db: &Pool, member: NewMember) -> ServiceResult<Member> {
     use crate::schema::members::dsl::members;
     let conn = db.get()?;
 
     Ok(insert_into(members).values(&member).get_result(&conn)?)
 }
 
-pub fn update_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
+pub fn update_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
     let conn = db.get()?;
 
     Ok(new_class.save_changes(&*conn)?)
 }
 
-pub fn delete_class(db: &Pool, class_id: Uuid) -> DbResult<usize> {
+pub fn delete_class(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
     let conn = db.get()?;
 
     Ok(delete(classes).filter(id.eq(class_id)).execute(&conn)?)
 }
 
-pub fn get_timetable(db: &Pool, class_id: Uuid) -> DbResult<Timetable> {
+pub fn get_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<Timetable> {
     use crate::schema::timetables::dsl::*;
     let conn = db.get()?;
 
     Ok(timetables.find(class_id).get_result(&conn)?)
 }
 
-pub fn create_timetable(db: &Pool, class_id: Uuid) -> DbResult<Timetable> {
+pub fn create_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<Timetable> {
     use crate::schema::timetables::dsl::*;
     let conn = db.get()?;
 
@@ -79,7 +80,7 @@ pub fn create_timetable(db: &Pool, class_id: Uuid) -> DbResult<Timetable> {
         .get_result(&conn)?)
 }
 
-pub fn update_timetable(db: &Pool, new_timetable: Timetable) -> DbResult<Timetable> {
+pub fn update_timetable(db: &Pool, new_timetable: Timetable) -> ServiceResult<Timetable> {
     use crate::schema::timetables::dsl::*;
     let conn = db.get()?;
 
@@ -89,7 +90,7 @@ pub fn update_timetable(db: &Pool, new_timetable: Timetable) -> DbResult<Timetab
         .get_result(&conn)?)
 }
 
-pub fn delete_timetable(db: &Pool, class_id: Uuid) -> DbResult<usize> {
+pub fn delete_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
     use crate::schema::timetables::dsl::*;
     let conn = db.get()?;
 

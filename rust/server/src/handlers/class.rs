@@ -10,9 +10,6 @@ macro_rules! http_todo {
     () => {
         std::result::Result::Ok(actix_web::HttpResponse::Ok().body("Unimplemented"))
     };
-    ($str:literal) => {
-        std::result::Result::Ok(actix_web::HttpResponse::Ok().body($str))
-    };
 }
 
 pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
