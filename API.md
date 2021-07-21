@@ -176,11 +176,11 @@ Requires Token
 
 `POST /users`           
 *Request*           
-`User` with password           
+`User` with password, id optional (will be overriden) and description optional
 *Response*           
 Refresh-Token: Bearer token              
 Token: Bearer token         
-`User`
+`User` & `{"expires": "Timestamp"}`
 
 #### Delete myself (not hugo)
 
