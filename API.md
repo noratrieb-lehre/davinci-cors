@@ -132,7 +132,8 @@ Token: Bearer token
 
 ```json
 {
-  "userid": "uuid"
+  "userid": "uuid",
+  "expires": "Timestamp"
 }
 ```
 
