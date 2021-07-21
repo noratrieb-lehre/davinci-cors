@@ -4,7 +4,6 @@ const classRepo: Array<Class> = [
     {
         "id": "hugo",
         "name": "Hugos Flugklasse",
-        "owner": "hugo",
         "members": [
             {
                 "user": "hugo",
@@ -18,7 +17,6 @@ const classRepo: Array<Class> = [
     {
         "id": "bbw",
         "name": "5IA20a",
-        "owner": "luigi",
         "members": [
             {
                 "user": "luigi",
@@ -50,7 +48,6 @@ const classRepo: Array<Class> = [
     {
         "name": '2j',
         "id": 'BMS',
-        "owner": "Christoph Benz",
         "members": [],
         "description": "Auch die beste Klasse"
     }

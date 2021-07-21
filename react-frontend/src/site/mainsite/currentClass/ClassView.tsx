@@ -1,9 +1,9 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {Container, Tab, Tabs} from "react-bootstrap";
-import {useParams} from 'react-router-dom';
+import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
 import ClassInfo from "./ClassInfo";
 import Timetable from "./Timetable";
-import Events from "./Events";
+import Calendar from "./calendar/Calendar";
 import {UserServiceContext} from "../../Router";
 import Class from "../../../data/class/Class";
 
@@ -12,26 +12,53 @@ const CurrentClass = React.createContext<Class | undefined>(undefined)
 const ClassView = () => {
     const {id} = useParams<{ id: string }>();
     const [currentClass, setCurrentClass] = useState<Class>();
+    const [selectedSite, setSelectedSite] = useState<string>('info');
+    const history = useHistory();
     const userService = useContext(UserServiceContext);
     useEffect(() => {
-        console.log(id)
         if (id) {
-            setCurrentClass(userService.getClass(id));
+            const currentClass = userService.getClass(id)
+            setCurrentClass(currentClass);
+            console.log(currentClass)
         }
-    }, [id])
+    }, [id, userService])
+
+    const onTabSelect = (key: string | null) => {
+        if (key) {
+            setSelectedSite(key);
+        }
+    }
+    useEffect(() => {
+        if (id && currentClass) {
+            history.push(`/class/${id}/${selectedSite}`);
+        }
+    }, [selectedSite, currentClass])
+
     return (
         <Container>
-            {
-                currentClass && (
-                    <CurrentClass.Provider value={currentClass}>
-                        <Tabs id={'classview-tab'} className={'mb-3'}>
-                            <Tab eventKey={'info'} title={'Info'}><ClassInfo/></Tab>
-                            <Tab eventKey={"timetable"} title={'Stundenplan'}><Timetable/></Tab>
-                            <Tab eventKey={'calendar'} title={'Kalender'}><Events/></Tab>
-                        </Tabs>
-                    </CurrentClass.Provider>
-                )
-            }
+
+
+            <CurrentClass.Provider value={currentClass}>
+                <Tabs id={'classview-tab'} className={'mb-3'} activeKey={selectedSite}
+                      onSelect={onTabSelect}>
+                    <Tab eventKey={'info'} title={'Info'}/>
+                    <Tab eventKey={"timetable"} title={'Stundenplan'}/>
+                    <Tab eventKey={'calendar'} title={'Kalender'}/>
+                </Tabs>
+                {
+                    currentClass && (
+                        <>
+                            <Switch>
+                                <Route path={'/class/:id/info'} component={ClassInfo}/>
+                                <Route path={'/class/:id/calendar'} component={Calendar}/>
+                                <Route path={'/class/:id/timetable'} component={Timetable}/>
+                            </Switch>
+
+                            <Redirect exact from={'/class/:id/'} to={`/class/${id}/info`}/>
+                        </>
+                    )
+                }
+            </CurrentClass.Provider>
         </Container>
     );
 };

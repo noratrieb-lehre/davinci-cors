@@ -13,7 +13,7 @@ const ClassList = () => {
 
     const selectUserClass = (e: string | null) => {
         if(e) {
-           history.push(`/class/${e}`)
+           history.push(`/class/${e}/`)
         }
     }
     return (

@@ -4,6 +4,8 @@ import getClasses from "../mockup/ClassMockUp";
 import Class from "../data/class/Class";
 import Member from "../data/user/Member";
 import MemberRole from "../data/user/MemberRole";
+import getEvents from "../mockup/EventMockup";
+import Event from "../data/event/Event";
 
 
 export default class UserService {
@@ -56,6 +58,10 @@ export default class UserService {
 
     public getTimeTable(classId: string) {
 
+    }
+
+    public getCalendar(classId: string): Array<Event> {
+        return getEvents();
     }
 
 
