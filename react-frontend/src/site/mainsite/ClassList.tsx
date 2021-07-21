@@ -4,16 +4,19 @@ import {ListGroup} from "react-bootstrap";
 import {useHistory} from "react-router-dom";
 
 const ClassList = () => {
-    const [allClasses, setAllClasses] = useState<Array<{name: string, id: string}>>([]);
+    const [allClasses, setAllClasses] = useState<Array<{ name: string, id: string }>>([]);
     const userService = useContext(UserServiceContext);
     const history = useHistory();
     useEffect(() => {
-        setAllClasses(userService.getClasses());
+        userService.getClasses()
+            .then(val => val
+                .map(c => ({name: c.name, id: c.id})))
+            .then((setAllClasses));
     }, [userService])
 
     const selectUserClass = (e: string | null) => {
-        if(e) {
-           history.push(`/class/${e}`)
+        if (e) {
+            history.push(`/class/${e}/`)
         }
     }
     return (

@@ -8,9 +8,9 @@ const ClassInfo = () => {
     const userService = useContext(UserServiceContext);
     return (
         <Container className={'text-center'}>
-            <ModalTitle>{currentClass!.name}</ModalTitle>
+            <ModalTitle>{currentClass?.name || 'Aktuell keine Informationen'}</ModalTitle>
             <ModalBody>{currentClass?.description}</ModalBody>
-            <ModalBody>Besitzer: {userService.getMember(currentClass!.members, currentClass!.owner)?.displayName || 'Aktuell keine Information'}</ModalBody>
+            <ModalBody>Besitzer: {currentClass?.members.filter(val => val.role === 'owner')[0]?.displayName || ''}</ModalBody>
             <Table>
                 <thead>
                 <tr>
@@ -20,8 +20,8 @@ const ClassInfo = () => {
                 </thead>
                 <tbody>
                 {
-                    currentClass!.members.map(val => (
-                        <tr>
+                    currentClass?.members.map(val => (
+                        <tr key={val.user}>
                             <td>{val.displayName}</td>
                             <td>{userService.getMemberRole(val.role)}</td>
                         </tr>

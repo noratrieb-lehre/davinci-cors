@@ -56,7 +56,6 @@
 ```json
 {
   "user": "uuid",
-  "class": "uuid",
   "displayName": "string",
   "role": "owner | admin | member"
 }

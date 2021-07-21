@@ -3,8 +3,8 @@ import {Container} from 'react-bootstrap';
 import SiteNav from "./SiteNav";
 import UserService from "../service/UserService";
 import Login from "./login/Login";
-import {Route, Switch} from 'react-router-dom';
-import Account from "./Account";
+import {Redirect, Route, Switch} from 'react-router-dom';
+import Account from "./account/Account";
 import MainSite from "./mainsite/MainSite";
 import SignUp from "./login/SignUp";
 
@@ -13,7 +13,7 @@ const UserServiceContext = React.createContext<UserService>(userService);
 
 const Router = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
-    userService.onAuthStateChange((user) => setIsLoggedIn(!!user))
+    userService.onUserChange((user) => setIsLoggedIn(!!user))
     return (
         <Container fluid>
             <UserServiceContext.Provider value={userService}>
@@ -23,12 +23,17 @@ const Router = () => {
                         <Switch>
                             <Route path={'/account'} component={Account}/>
                             <Route exact path={'/class'} component={MainSite}/>
-                            <Route path={'/class/:id'} component={MainSite}/>
+                            <Route exact path={'/class/:id'} component={MainSite}/>
+                            <Route path={'/class/:id/info'} component={MainSite}/>
+                            <Route path={'/class/:id/calendar'} component={MainSite}/>
+                            <Route path={'/class/:id/timetable'} component={MainSite}/>
+                            <Route component={() => (<Redirect to={'/'}/>)}/>
                         </Switch>
                     ) : (
                         <Switch>
                             <Route exact path={'/'} component={Login}/>
                             <Route path={'/signup'} component={SignUp}/>
+                            <Route component={() => (<Redirect to={'/'}/>)}/>
                         </Switch>
                     )
                 }

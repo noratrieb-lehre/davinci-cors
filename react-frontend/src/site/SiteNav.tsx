@@ -9,7 +9,7 @@ import CORS from '../img/mainlogo.svg';
 const SiteNav = () => {
     const userService = useContext<UserService>(UserServiceContext);
     const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
-    userService.onAuthStateChange((user) => setIsLoggedIn(!!user));
+    userService.onUserChange((user) => setIsLoggedIn(!!user));
 
     return (
         <Navbar expand={'lg'}>

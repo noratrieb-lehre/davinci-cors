@@ -4,12 +4,15 @@ import getClasses from "../mockup/ClassMockUp";
 import Class from "../data/class/Class";
 import Member from "../data/user/Member";
 import MemberRole from "../data/user/MemberRole";
+import getEvents from "../mockup/EventMockup";
+import Event from "../data/event/Event";
+import TimeTable from "../data/timetable/TimeTable";
 
 
 export default class UserService {
     private axiosInstance: AxiosInstance;
     private _currentUser: User | null;
-    private onAuthStateChangeHandler: Array<(user: User | null) => void> = []
+    private onUserChangeHandler: Array<(user: User | null) => void> = []
 
     public constructor() {
         this._currentUser = null;
@@ -17,7 +20,7 @@ export default class UserService {
     }
 
     private triggerOnAuthStateChange() {
-        this.onAuthStateChangeHandler.forEach(handler => handler(this._currentUser))
+        this.onUserChangeHandler.forEach(handler => handler(this._currentUser))
     }
 
     public async logout(): Promise<void> {
@@ -38,7 +41,7 @@ export default class UserService {
         console.log(user)
     }
 
-    public getClass(id: string): Class {
+    public async getClass(id: string): Promise<Class> {
         return getClasses().filter(val => val.id === id)[0]
     }
 
@@ -46,16 +49,20 @@ export default class UserService {
         return memberList.filter(val => val.user === userID)[0];
     }
 
-    public onAuthStateChange(handler: (user: User | null) => void) {
-        this.onAuthStateChangeHandler.push(handler)
+    public onUserChange(handler: (user: User | null) => void) {
+        this.onUserChangeHandler.push(handler)
     }
 
-    public getClasses(): Array<{ name: string, id: string }> {
-        return getClasses().map(val => ({name: val.name, id: val.id}))
+    public async getClasses(): Promise<Array<Class>> {
+        return getClasses();
     }
 
-    public getTimeTable(classId: string) {
+    public async getTimeTable(classId: string): Promise<TimeTable> {
+        return [[], [], [], [], [], [], []]
+    }
 
+    public async getCalendar(classId: string): Promise<Array<Event>> {
+        return getEvents();
     }
 
 
