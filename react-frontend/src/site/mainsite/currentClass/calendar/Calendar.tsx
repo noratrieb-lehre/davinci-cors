@@ -19,8 +19,7 @@ const Calendar = () => {
     const [events, setEvents] = useState<Array<Event>>([]);
     const [selectedEvent, setSelectedEvent] = useState<Event>();
     useEffect(() => {
-        setEvents(userService.getCalendar(currentClass!.id))
-
+        userService.getCalendar(currentClass!.id).then(setEvents);
     }, [currentClass, userService])
 
     const handleEventClick = (event: EventClickArg) => {
@@ -44,12 +43,14 @@ const Calendar = () => {
                     headerToolbar={{
                         start: 'prev,next today',
                         center: 'title',
-                        right: 'dayGridMonth,timeGrid'
+                        right: 'dayGridMonth,timeGridWeek,timeGrid'
                     }}
+
                     events={[...events.map((val): EventInput => ({
                         title: val.name,
                         ...val
                     }))]}
+
                     editable={true}
                     selectable={true}
                     selectMirror={true}

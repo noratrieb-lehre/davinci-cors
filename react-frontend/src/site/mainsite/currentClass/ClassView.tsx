@@ -17,9 +17,7 @@ const ClassView = () => {
     const userService = useContext(UserServiceContext);
     useEffect(() => {
         if (id) {
-            const currentClass = userService.getClass(id)
-            setCurrentClass(currentClass);
-            console.log(currentClass)
+            userService.getClass(id).then(setCurrentClass);
         }
     }, [id, userService])
 
