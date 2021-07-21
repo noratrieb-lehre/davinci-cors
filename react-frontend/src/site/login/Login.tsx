@@ -21,7 +21,6 @@ const LoginSchema = Yup.object().shape({
         .email('Ungültige E-Mail Adresse')
         .required('E-Mail-Feld darf nicht leer sein.'),
     password: Yup.string()
-        .min(6, 'Das Passwort muss mindestens 6 Zeichen lang sein')
         .required('Passwort-Feld darf nicht leer sein')
 })
 

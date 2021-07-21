@@ -7,16 +7,13 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import Account from "./account/Account";
 import MainSite from "./mainsite/MainSite";
 import SignUp from "./login/SignUp";
-import ClassInfo from "./mainsite/currentClass/ClassInfo";
-import Calendar from "./mainsite/currentClass/calendar/Calendar";
-import Timetable from "./mainsite/currentClass/Timetable";
 
 const userService = new UserService();
 const UserServiceContext = React.createContext<UserService>(userService);
 
 const Router = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
-    userService.onAuthStateChange((user) => setIsLoggedIn(!!user))
+    userService.onUserChange((user) => setIsLoggedIn(!!user))
     return (
         <Container fluid>
             <UserServiceContext.Provider value={userService}>
