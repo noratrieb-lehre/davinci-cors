@@ -1,10 +1,13 @@
+use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
+use crate::handlers::HttpResult;
 use actix_web::dev::Payload;
 use actix_web::http::header::Header;
-use actix_web::{FromRequest, HttpRequest};
+use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
 use chrono::Utc;
+use dao::{LoginResponse, UserLogin};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::future;
@@ -21,6 +24,52 @@ pub struct Claims {
     pub uid: Uuid,
     /// If the field is true, the token can only be used to get another token
     pub refresh: bool,
+}
+
+pub fn auth_config(cfg: &mut web::ServiceConfig) {
+    cfg.route("/token", web::get().to(refresh_token))
+        .route("/login", web::post().to(login));
+}
+
+async fn refresh_token(req: HttpRequest) -> HttpResult {
+    let claims = match authorization::Authorization::<Bearer>::parse(&req) {
+        Ok(auth) => validate_token(auth.into_scheme().token()),
+        Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
+    }?;
+
+    if claims.refresh {
+        let new_token = create_normal_jwt(claims.uid)?;
+        Ok(HttpResponse::Ok()
+            .header("Token", new_token.0)
+            .json(dao::RefreshResponse {
+                expires: new_token.1,
+            }))
+    } else {
+        Err(ServiceErr::Unauthorized(
+            "Normal token cannot be used to get a new token",
+        ))
+    }
+}
+
+async fn login(body: web::Json<UserLogin>, db: web::Data<Pool>) -> HttpResult {
+    let user =
+        web::block(move || actions::user::validate_user_password(&db, &body.email, &body.password))
+            .await?;
+
+    match user {
+        Some(user) => {
+            let refresh_token = create_refresh_jwt(user.id.clone())?;
+            let (token, expires) = create_normal_jwt(user.id.clone())?;
+            Ok(HttpResponse::Ok()
+                .header("Token", token)
+                .header("Refresh-Token", refresh_token)
+                .json(LoginResponse {
+                    userid: user.id,
+                    expires,
+                }))
+        }
+        None => Ok(HttpResponse::Forbidden().body("Incorrect email or password")),
+    }
 }
 
 impl FromRequest for Claims {
@@ -71,12 +120,12 @@ pub fn create_normal_jwt(user: Uuid) -> Result<(String, i64), ServiceErr> {
 
 /// Create a refresh JWT
 /// Returns the token and the expiration date
-pub fn create_refresh_jwt(user: Uuid) -> Result<(String, i64), ServiceErr> {
-    create_jwt(user, true)
+pub fn create_refresh_jwt(user: Uuid) -> Result<String, ServiceErr> {
+    create_jwt(user, true).map(|(token, _)| token)
 }
 fn create_jwt(uid: Uuid, refresh: bool) -> Result<(String, i64), ServiceErr> {
     let lifetime = if refresh {
-        chrono::Duration::weeks(10)
+        chrono::Duration::weeks(1000) // several years, kind of a hack but ok
     } else {
         chrono::Duration::hours(1)
     };

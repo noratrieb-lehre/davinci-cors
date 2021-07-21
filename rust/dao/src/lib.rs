@@ -100,8 +100,22 @@ pub struct RefreshResponse {
     pub expires: i64,
 }
 
+/// Response of /token
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginResponse {
+    pub userid: Uuid,
+    pub expires: i64,
+}
+
 /// Request body of /classes/{uuid}/requests/{uuid}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemberAcceptDao {
     pub accept: bool,
+}
+
+/// Request body of /login
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserLogin {
+    pub email: String,
+    pub password: String,
 }

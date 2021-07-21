@@ -1,8 +1,8 @@
-use crate::actions::DbResult;
+use super::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
+use crate::error::ServiceResult;
 use crate::models::{NewUser, User};
 use crate::schema::users::dsl::*;
-use crate::Pool;
 use diesel::sql_types::{Integer, Text};
 use diesel::{delete, insert_into, update, BoolExpressionMethods, ExpressionMethods};
 use uuid::Uuid;
@@ -10,27 +10,30 @@ use uuid::Uuid;
 sql_function!(fn crypt(pwd: Text, salt: Text) -> Text);
 sql_function!(fn gen_salt(kind: Text, number: Integer) -> Text);
 
-pub fn get_user_by_id(db: &Pool, user_id: Uuid) -> DbResult<User> {
+pub fn get_user_by_id(db: &Pool, user_id: Uuid) -> ServiceResult<User> {
     let conn = db.get()?;
     Ok(users.find(user_id).get_result::<User>(&conn)?)
 }
 
-pub fn validate_user_password(db: &Pool, u_email: &str, u_password: &str) -> DbResult<bool> {
+pub fn validate_user_password(
+    db: &Pool,
+    u_email: &str,
+    u_password: &str,
+) -> ServiceResult<Option<User>> {
     let conn = db.get()?;
 
-    let user: Vec<String> = users
-        .select(email)
+    let found_user: Vec<User> = users
         .filter(
             email
                 .eq(u_email)
                 .and(password.eq(crypt(u_password, password))),
         )
-        .get_results::<String>(&conn)?;
+        .get_results::<User>(&conn)?;
 
-    Ok(user.len() == 1)
+    Ok(found_user.into_iter().next())
 }
 
-pub fn insert_user(db: &Pool, new_user: NewUser) -> DbResult<User> {
+pub fn insert_user(db: &Pool, new_user: NewUser) -> ServiceResult<User> {
     let conn = db.get()?;
 
     let new_uuid = uuid::Uuid::new_v4();
@@ -45,13 +48,13 @@ pub fn insert_user(db: &Pool, new_user: NewUser) -> DbResult<User> {
         .get_result(&conn)?)
 }
 
-pub fn delete_user(db: &Pool, user_id: Uuid) -> DbResult<usize> {
+pub fn delete_user(db: &Pool, user_id: Uuid) -> ServiceResult<usize> {
     let conn = db.get()?;
 
     Ok(delete(users).filter(id.eq(user_id)).execute(&conn)?)
 }
 
-pub fn update_user(db: &Pool, user: User) -> DbResult<User> {
+pub fn update_user(db: &Pool, user: User) -> ServiceResult<User> {
     let conn = db.get()?;
 
     Ok(update(users.filter(id.eq(user.id)))
@@ -59,7 +62,7 @@ pub fn update_user(db: &Pool, user: User) -> DbResult<User> {
         .get_result(&conn)?)
 }
 
-pub fn change_user_password(db: &Pool, user: User) -> DbResult<User> {
+pub fn change_user_password(db: &Pool, user: User) -> ServiceResult<User> {
     let conn = db.get()?;
 
     Ok(update(users.filter(email.eq(user.email)))
