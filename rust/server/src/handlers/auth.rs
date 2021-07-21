@@ -1,16 +1,14 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::HttpResult;
-use actix_web::dev::Payload;
 use actix_web::http::header::Header;
-use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
 use chrono::Utc;
 use dao::{LoginResponse, UserLogin};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use std::future;
 use uuid::Uuid;
 
 /// The claims of the JWT
@@ -78,32 +76,6 @@ async fn login(
                 }))
         }
         None => Ok(HttpResponse::Forbidden().body("Incorrect email or password")),
-    }
-}
-
-impl FromRequest for Claims {
-    type Error = actix_web::Error;
-    type Future = std::future::Ready<Result<Self, Self::Error>>;
-    type Config = ();
-
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let key = req
-            .app_data::<DecodingKey>()
-            .expect("no decoding key found");
-
-        future::ready(
-            match authorization::Authorization::<Bearer>::parse(req) {
-                Ok(auth) => validate_token(auth.into_scheme().token(), key),
-                Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
-            }
-            .and_then(|claims| match claims.refresh {
-                true => Err(ServiceErr::Unauthorized(
-                    "A refresh token can't be used for authentication",
-                )),
-                false => Ok(claims),
-            })
-            .map_err(|err| err.into()),
-        )
     }
 }
 

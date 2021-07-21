@@ -1,9 +1,12 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::auth::Claims;
-use crate::handlers::HttpResult;
+use crate::handlers::{HttpResult, PathUuid};
 use crate::models::conversion::IntoDao;
+use crate::models::{NewClass, NewMember};
 use actix_web::{web, HttpResponse};
+use dao::{Class, MemberRole};
+use std::convert::TryInto;
 use std::str::FromStr;
 
 macro_rules! http_todo {
@@ -47,16 +50,76 @@ async fn get_class(params: web::Path<String>, db: web::Data<Pool>, claims: Claim
     }
 }
 
-async fn create_class() -> HttpResult {
-    http_todo!()
+async fn create_class(class: web::Json<Class>, db: web::Data<Pool>, claims: Claims) -> HttpResult {
+    let id = uuid::Uuid::new_v4();
+    let uid = claims.uid;
+    let class = class.into_inner();
+
+    let new_class = NewClass {
+        id,
+        owner: claims.uid,
+        name: class.name,
+        description: class.description,
+    };
+
+    let (result_class, owner) = web::block::<_, _, ServiceErr>(move || {
+        let class = actions::class::insert_class(&db, new_class)?;
+        let user = actions::user::get_user_by_id(&db, uid)?;
+        let new_member = NewMember {
+            user: user.id,
+            class: class.id,
+            display_name: user.email.clone(),
+            role: 0, // OWNER
+        };
+        let member = actions::class::create_member(&db, new_member)?;
+        Ok((class, member))
+    })
+    .await?;
+
+    let mut result_class = result_class.into_dao()?;
+
+    result_class.members = vec![owner.into_dao()?];
+    Ok(HttpResponse::Created().json(result_class))
 }
 
-async fn edit_class() -> HttpResult {
-    http_todo!()
+async fn edit_class(
+    class_id: PathUuid,
+    new_class: web::Json<Class>,
+    db: web::Data<Pool>,
+    claims: Claims,
+) -> HttpResult {
+    let class = web::block(move || {
+        let member = actions::class::get_member(&db, claims.uid, class_id.0)?.into_dao()?;
+
+        if member.role.has_rights() {
+            actions::class::update_class(&db, new_class.into_inner().try_into()?)
+        } else {
+            Err(ServiceErr::Unauthorized("Is not an Administrator"))
+        }
+    })
+    .await?
+    .into_dao()?;
+
+    Ok(HttpResponse::Ok().json(class))
 }
 
-async fn delete_class() -> HttpResult {
-    http_todo!()
+async fn delete_class(class_id: PathUuid, db: web::Data<Pool>, claims: Claims) -> HttpResult {
+    let deleted_amount = web::block(move || {
+        let member = actions::class::get_member(&db, claims.uid, class_id.0)?.into_dao()?;
+
+        if member.role == MemberRole::Owner {
+            Ok(actions::class::delete_class(&db, class_id.0)?)
+        } else {
+            Err(ServiceErr::Unauthorized("Is not the Owner"))
+        }
+    })
+    .await?;
+
+    Ok(match deleted_amount {
+        0 => HttpResponse::NotFound().body("Class not found"),
+        1 => HttpResponse::Ok().body("Deleted class."),
+        _ => unreachable!(),
+    })
 }
 
 async fn edit_member() -> HttpResult {

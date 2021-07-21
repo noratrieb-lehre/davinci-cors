@@ -8,9 +8,12 @@ use actix_web::{web, HttpResponse};
 use dao::{PostUser, User, UserPostResponse};
 use diesel::result::DatabaseErrorKind;
 use jsonwebtoken::EncodingKey;
+use std::ops::Deref;
+use uuid::Uuid;
 
 mod auth;
 mod class;
+mod extractors;
 
 pub type HttpResult = Result<HttpResponse, ServiceErr>;
 
@@ -62,9 +65,21 @@ async fn create_user(
 }
 
 async fn get_own_user(claims: Claims, db: web::Data<Pool>) -> HttpResult {
-    let user = web::block(move || actions::user::get_user_by_id(&db, claims.uid))
-        .await?
-        .into_dao()?;
+    let (mut user, classes) = web::block::<_, _, ServiceErr>(move || {
+        let user = actions::user::get_user_by_id(&db, claims.uid)?;
+        let classes = actions::class::get_classes_by_user(&db, claims.uid)?;
+
+        Ok((
+            user.into_dao()?,
+            classes
+                .into_iter()
+                .map(IntoDao::into_dao)
+                .collect::<Result<Vec<_>, _>>()?,
+        ))
+    })
+    .await?;
+
+    user.classes = Some(classes);
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -90,4 +105,15 @@ async fn delete_own_user(claims: Claims, db: web::Data<Pool>) -> HttpResult {
         1 => HttpResponse::Ok().body("Deleted user."),
         _ => unreachable!(),
     })
+}
+
+pub struct PathUuid(Uuid);
+pub struct PathUuid2(Uuid, Uuid);
+
+impl Deref for PathUuid {
+    type Target = Uuid;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }

@@ -36,11 +36,11 @@ pub struct Class {
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
 #[table_name = "classes"]
-pub struct NewClass<'a> {
-    pub id: &'a Uuid,
-    pub owner: &'a Uuid,
-    pub name: &'a str,
-    pub description: &'a str,
+pub struct NewClass {
+    pub id: Uuid,
+    pub owner: Uuid,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -54,11 +54,11 @@ pub struct Member {
 #[derive(Debug, Clone, Insertable, Identifiable, AsChangeset)]
 #[table_name = "members"]
 #[primary_key(user, class)]
-pub struct NewMember<'a> {
-    pub user: &'a Uuid,
-    pub class: &'a Uuid,
-    pub display_name: &'a String,
-    pub role: &'a i32,
+pub struct NewMember {
+    pub user: Uuid,
+    pub class: Uuid,
+    pub display_name: String,
+    pub role: i32,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -108,9 +108,21 @@ pub const PENDING: i32 = 3;
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
     use crate::models::{Class, Member, MemberRole, User, PENDING};
+    use std::convert::TryFrom;
 
     pub trait IntoDao<T> {
         fn into_dao(self) -> ServiceResult<T>;
+    }
+
+    impl IntoDao<dao::Class> for Class {
+        fn into_dao(self) -> ServiceResult<dao::Class> {
+            Ok(dao::Class {
+                id: self.id,
+                members: vec![],
+                name: self.name,
+                description: self.description,
+            })
+        }
     }
 
     impl IntoDao<dao::Class> for (Class, Vec<(Member, MemberRole)>) {
@@ -126,8 +138,8 @@ pub mod conversion {
             Ok(dao::Class {
                 id: class.id,
                 members: actual_members,
-                name: "".to_string(),
-                description: "".to_string(),
+                name: class.name,
+                description: class.description,
             })
         }
     }
@@ -137,7 +149,6 @@ pub mod conversion {
             let (member, role) = self;
             Ok(dao::Member {
                 user: member.user,
-                class: member.class,
                 display_name: member.display_name,
                 role: role.into_dao()?,
             })
@@ -150,6 +161,20 @@ pub mod conversion {
                 "owner" => dao::MemberRole::Owner,
                 "admin" => dao::MemberRole::Admin,
                 "member" => dao::MemberRole::Member,
+                role => Err(ServiceErr::InvalidDao(format!(
+                    "Invalid member role {}",
+                    role
+                )))?,
+            })
+        }
+    }
+
+    impl IntoDao<dao::MemberRole> for i32 {
+        fn into_dao(self) -> ServiceResult<dao::MemberRole> {
+            Ok(match self {
+                0 => dao::MemberRole::Owner,
+                1 => dao::MemberRole::Admin,
+                2 => dao::MemberRole::Member,
                 role => Err(ServiceErr::InvalidDao(format!(
                     "Invalid member role {}",
                     role
@@ -181,6 +206,16 @@ pub mod conversion {
         }
     }
 
+    impl IntoDao<dao::Member> for Member {
+        fn into_dao(self) -> ServiceResult<dao::Member> {
+            Ok(dao::Member {
+                user: self.user,
+                display_name: self.display_name,
+                role: self.role.into_dao()?,
+            })
+        }
+    }
+
     ////// from dao
 
     impl From<dao::User> for User {
@@ -191,6 +226,26 @@ pub mod conversion {
                 password: "".to_string(),
                 description: user.description,
             }
+        }
+    }
+
+    ////// new _
+
+    impl TryFrom<dao::Class> for Class {
+        type Error = ServiceErr;
+
+        fn try_from(class: dao::Class) -> Result<Self, Self::Error> {
+            Ok(Self {
+                id: class.id,
+                owner: class
+                    .members
+                    .into_iter()
+                    .find(|member| member.role == dao::MemberRole::Owner)
+                    .ok_or(ServiceErr::BadRequest("No Owner provided".to_string()))?
+                    .user,
+                name: class.name,
+                description: class.description,
+            })
         }
     }
 }

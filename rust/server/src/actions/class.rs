@@ -14,7 +14,7 @@ pub fn insert_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
     Ok(insert_into(classes).values(&new_class).get_result(&conn)?)
 }
 
-type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
+pub type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
 
 pub fn get_class(db: &Pool, class_id: Uuid) -> ServiceResult<Option<ClassMemberData>> {
     use crate::schema::member_roles::dsl::member_roles;
@@ -28,6 +28,18 @@ pub fn get_class(db: &Pool, class_id: Uuid) -> ServiceResult<Option<ClassMemberD
         .load(&conn)?;
 
     Ok(map_class_join_members(vec))
+}
+
+pub fn get_classes_by_user(db: &Pool, user_id: Uuid) -> ServiceResult<Vec<Class>> {
+    use crate::schema::members::dsl::{members, user as member_user};
+    let conn = db.get()?;
+
+    let class_vec: Vec<(Class, Member)> = classes
+        .inner_join(members)
+        .filter(member_user.eq(user_id))
+        .load(&conn)?;
+
+    Ok(class_vec.into_iter().map(|(class, _)| class).collect())
 }
 
 pub fn get_pending_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Member>> {
@@ -52,10 +64,27 @@ pub fn create_member(db: &Pool, member: NewMember) -> ServiceResult<Member> {
     Ok(insert_into(members).values(&member).get_result(&conn)?)
 }
 
-pub fn update_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
+pub fn update_class(db: &Pool, new_class: Class) -> ServiceResult<Class> {
     let conn = db.get()?;
 
-    Ok(new_class.save_changes(&*conn)?)
+    Ok(update(classes)
+        .filter(id.eq(new_class.id))
+        .set((
+            name.eq(new_class.name),
+            description.eq(new_class.description),
+        ))
+        .get_result(&conn)?)
+}
+
+pub fn get_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<(Member, MemberRole)> {
+    use crate::schema::member_roles::dsl::member_roles;
+    use crate::schema::members::dsl::{class, members, user};
+    let conn = db.get()?;
+
+    Ok(members
+        .filter(class.eq(class_id).and(user.eq(user_id)))
+        .inner_join(member_roles)
+        .get_result::<(Member, MemberRole)>(&conn)?)
 }
 
 pub fn delete_class(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
@@ -99,7 +128,7 @@ pub fn delete_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
         .execute(&conn)?)
 }
 
-fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {
+pub fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {
     match vec
         .into_iter()
         .fold((None, vec![]), |(_, mut vec), (class, member)| {

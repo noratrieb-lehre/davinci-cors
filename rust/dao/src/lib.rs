@@ -35,7 +35,9 @@ pub enum EventType {
 /// A Class
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Class {
+    #[serde(default)]
     pub id: Uuid,
+    #[serde(default)]
     pub members: Vec<Member>,
     pub name: String,
     pub description: String,
@@ -69,7 +71,6 @@ pub struct PostUser {
 #[serde(rename_all = "camelCase")]
 pub struct Member {
     pub user: Uuid,
-    pub class: Uuid,
     pub display_name: String,
     pub role: MemberRole,
 }
@@ -81,6 +82,16 @@ pub enum MemberRole {
     Owner,
     Admin,
     Member,
+}
+
+impl MemberRole {
+    pub fn has_rights(&self) -> bool {
+        match self {
+            MemberRole::Owner => true,
+            MemberRole::Admin => true,
+            _ => false,
+        }
+    }
 }
 
 /// The timetable of a class
