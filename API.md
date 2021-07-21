@@ -120,7 +120,7 @@
 
 ```json  
 {
-  "name": "string",
+  "email": "string",
   "password": "string"
 }
 ```
@@ -132,7 +132,8 @@ Token: Bearer token
 
 ```json
 {
-  "userid": "uuid"
+  "userid": "uuid",
+  "expires": "Timestamp"
 }
 ```
 
