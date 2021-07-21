@@ -31,7 +31,7 @@
   "id": "uuid",
   "owner": "User",
   "members": [
-    "User"
+    "Member"
   ],
   "name": "string",
   "description": "string"
