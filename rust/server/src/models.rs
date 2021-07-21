@@ -32,7 +32,6 @@ pub struct Class {
     pub owner: Uuid,
     pub name: String,
     pub description: String,
-    // pub timetable: String, // todo note: this should be JSON
 }
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
@@ -42,7 +41,6 @@ pub struct NewClass<'a> {
     pub owner: &'a Uuid,
     pub name: &'a str,
     pub description: &'a str,
-    //pub timetable: &'a str,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -103,4 +101,60 @@ pub struct Timetable {
 pub struct NewTimetable<'a> {
     pub class: &'a Uuid,
     pub timetable: &'a str,
+}
+
+pub const PENDING: i32 = 3;
+
+pub mod conversion {
+    use crate::error::{ServiceErr, ServiceResult};
+    use crate::models::{Class, Member, MemberRole, PENDING};
+
+    pub trait IntoDao<T> {
+        fn into_dao(self) -> ServiceResult<T>;
+    }
+
+    impl IntoDao<dao::Class> for (Class, Vec<(Member, MemberRole)>) {
+        fn into_dao(self) -> ServiceResult<dao::Class> {
+            let (class, members) = self;
+
+            let actual_members = members
+                .into_iter()
+                .filter(|(_, role)| role.id != PENDING)
+                .map(IntoDao::into_dao)
+                .collect::<Result<Vec<_>, _>>()?;
+
+            Ok(dao::Class {
+                id: class.id,
+                members: actual_members,
+                name: "".to_string(),
+                description: "".to_string(),
+            })
+        }
+    }
+
+    impl IntoDao<dao::Member> for (Member, MemberRole) {
+        fn into_dao(self) -> ServiceResult<dao::Member> {
+            let (member, role) = self;
+            Ok(dao::Member {
+                user: member.user,
+                class: member.class,
+                display_name: member.display_name,
+                role: role.into_dao()?,
+            })
+        }
+    }
+
+    impl IntoDao<dao::MemberRole> for MemberRole {
+        fn into_dao(self) -> ServiceResult<dao::MemberRole> {
+            Ok(match &*self.display {
+                "owner" => dao::MemberRole::Owner,
+                "admin" => dao::MemberRole::Admin,
+                "member" => dao::MemberRole::Member,
+                role => Err(ServiceErr::InvalidDao(format!(
+                    "Invalid member role {}",
+                    role
+                )))?,
+            })
+        }
+    }
 }

@@ -1,6 +1,5 @@
 use crate::error::ServiceErr;
 use actix_web::dev::Payload;
-use actix_web::error::ErrorUnauthorized;
 use actix_web::http::header::Header;
 use actix_web::{FromRequest, HttpRequest};
 use actix_web_httpauth::headers::authorization;
@@ -33,19 +32,20 @@ impl FromRequest for Claims {
         future::ready(
             match authorization::Authorization::<Bearer>::parse(req) {
                 Ok(auth) => validate_token(auth.into_scheme().token()),
-                Err(_) => Err(ErrorUnauthorized("No Bearer token present")),
+                Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
             }
             .and_then(|claims| match claims.refresh {
-                true => Err(ErrorUnauthorized(
+                true => Err(ServiceErr::Unauthorized(
                     "A refresh token can't be used for authentication",
                 )),
                 false => Ok(claims),
-            }),
+            })
+            .map_err(|err| err.into()),
         )
     }
 }
 
-pub fn validate_token(token: &str) -> Result<Claims, actix_web::Error> {
+pub fn validate_token(token: &str) -> Result<Claims, ServiceErr> {
     let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET env var");
 
     let decoded = jsonwebtoken::decode::<Claims>(

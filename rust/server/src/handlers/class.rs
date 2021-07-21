@@ -1,9 +1,19 @@
 use crate::actions::{self, Pool};
+use crate::error::ServiceErr;
 use crate::handlers::auth::Claims;
 use crate::handlers::HttpResult;
-use actix_web::http::header::http_percent_encode;
-use actix_web::web;
+use crate::models::conversion::IntoDao;
+use actix_web::{web, HttpResponse};
 use std::str::FromStr;
+
+macro_rules! http_todo {
+    () => {
+        std::result::Result::Ok(actix_web::HttpResponse::Ok().body("Unimplemented"))
+    };
+    ($str:literal) => {
+        std::result::Result::Ok(actix_web::HttpResponse::Ok().body($str))
+    };
+}
 
 pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
     cfg.route("/classes", web::post().to(create_class)).service(
@@ -28,9 +38,16 @@ pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
 async fn get_class(params: web::Path<String>, db: web::Data<Pool>, claims: Claims) -> HttpResult {
     let uuid = uuid::Uuid::from_str(&params)?;
 
-    let class = web::block(move || actions::class::get_class(&db, uuid)).await??;
+    let class = web::block(move || actions::class::get_class(&db, uuid))
+        .await?
+        .ok_or(ServiceErr::NotFound)?
+        .into_dao()?;
 
-    http_todo!()
+    if class.members.iter().any(|member| member.user == claims.uid) {
+        Ok(HttpResponse::Ok().json(class))
+    } else {
+        Err(ServiceErr::Unauthorized("Cannot access other class"))
+    }
 }
 
 async fn create_class() -> HttpResult {

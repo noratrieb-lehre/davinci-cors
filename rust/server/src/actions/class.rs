@@ -1,6 +1,6 @@
 use crate::actions::{DbResult, Pool};
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::models::{Class, Member, MemberRole, NewClass, NewMember, Timetable};
+use crate::models::{Class, Member, MemberRole, NewClass, NewMember, Timetable, PENDING};
 use crate::schema::classes::dsl::*;
 use diesel::{
     delete, insert_into, update, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl,
@@ -14,8 +14,6 @@ pub fn insert_class(db: &Pool, new_class: NewClass) -> DbResult<Class> {
 }
 
 type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
-
-const PENDING: i32 = 3;
 
 pub fn get_class(db: &Pool, class_id: Uuid) -> DbResult<Option<ClassMemberData>> {
     use crate::schema::member_roles::dsl::member_roles;
@@ -32,7 +30,7 @@ pub fn get_class(db: &Pool, class_id: Uuid) -> DbResult<Option<ClassMemberData>>
 }
 
 pub fn get_pending_members(db: &Pool, class_id: Uuid) -> DbResult<Vec<Member>> {
-    use crate::schema::members::dsl::{class, display_name, members, role};
+    use crate::schema::members::dsl::{class, members, role};
     let conn = db.get()?;
 
     Ok(members
@@ -41,14 +39,13 @@ pub fn get_pending_members(db: &Pool, class_id: Uuid) -> DbResult<Vec<Member>> {
 }
 
 pub fn update_member(db: &Pool, member: NewMember) -> DbResult<Member> {
-    use crate::schema::members::dsl::{class, display_name, members, role, user};
     let conn = db.get()?;
 
     Ok(member.save_changes(&*conn)?)
 }
 
 pub fn create_member(db: &Pool, member: NewMember) -> DbResult<Member> {
-    use crate::schema::members::dsl::{class, display_name, members, role, user};
+    use crate::schema::members::dsl::members;
     let conn = db.get()?;
 
     Ok(insert_into(members).values(&member).get_result(&conn)?)

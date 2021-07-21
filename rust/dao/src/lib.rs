@@ -7,25 +7,25 @@ type Timestamp = u64;
 type DayTimestamp = u32;
 
 /// A Unique User Id
-type Uuid = String;
+type Uuid = uuid::Uuid;
 
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct EventDao {
-    id: Uuid,
-    r#type: String,
-    name: String,
-    start: Timestamp,
+pub struct EventDao {
+    pub id: Uuid,
+    pub r#type: String,
+    pub name: String,
+    pub start: Timestamp,
     #[serde(default)]
-    end: Timestamp,
-    description: String,
+    pub end: Timestamp,
+    pub description: String,
 }
 
 /// The type of a class event
 /// unused until i find out how to use it
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-enum EventType {
+pub enum EventType {
     Homework,
     Exam,
     Holidays,
@@ -34,47 +34,46 @@ enum EventType {
 
 /// A Class
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
-struct Class {
-    id: Uuid,
-    owner: User,
-    members: Vec<Member>,
-    name: String,
-    description: String,
+pub struct Class {
+    pub id: Uuid,
+    pub members: Vec<Member>,
+    pub name: String,
+    pub description: String,
 }
 
 /// A User
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
-struct User {
-    id: Uuid,
-    email: String,
-    description: String,
+pub struct User {
+    pub id: Uuid,
+    pub email: String,
+    pub description: String,
     #[serde(default)]
-    classes: Vec<Class>,
+    pub classes: Vec<Class>,
 }
 
 /// The user for the `POST /users` route, with a password
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
-struct PostUser {
-    id: Uuid,
-    email: String,
-    description: String,
-    password: String,
+pub struct PostUser {
+    pub id: Uuid,
+    pub email: String,
+    pub description: String,
+    pub password: String,
 }
 
 /// A member (User in a class)
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Member {
-    user: Uuid,
-    class: Uuid,
-    display_name: String,
-    role: MemberRole,
+pub struct Member {
+    pub user: Uuid,
+    pub class: Uuid,
+    pub display_name: String,
+    pub role: MemberRole,
 }
 
 /// The role of a member
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-enum MemberRole {
+pub enum MemberRole {
     Owner,
     Admin,
     Member,
@@ -89,10 +88,10 @@ pub type TimeTableDay = Vec<Lesson>;
 /// A lesson in a timetable
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Lesson {
-    subject: String,
-    description: String,
-    start: DayTimestamp,
-    end: DayTimestamp,
+    pub subject: String,
+    pub description: String,
+    pub start: DayTimestamp,
+    pub end: DayTimestamp,
 }
 
 /// Response of /token
@@ -104,5 +103,5 @@ pub struct RefreshResponse {
 /// Request body of /classes/{uuid}/requests/{uuid}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemberAcceptDao {
-    accept: bool,
+    pub accept: bool,
 }

@@ -1,7 +1,6 @@
 use crate::error::ServiceErr;
-use actix_web::error::ErrorUnauthorized;
 use actix_web::http::header::Header;
-use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
 
@@ -42,7 +41,7 @@ async fn get_hugo() -> HttpResponse {
 async fn refresh_token(req: HttpRequest) -> HttpResult {
     let claims = match authorization::Authorization::<Bearer>::parse(&req) {
         Ok(auth) => auth::validate_token(auth.into_scheme().token()),
-        Err(_) => Err(ErrorUnauthorized("No Bearer token present")),
+        Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
     }?;
 
     if claims.refresh {
@@ -53,7 +52,7 @@ async fn refresh_token(req: HttpRequest) -> HttpResult {
                 expires: new_token.1,
             }))
     } else {
-        Err(ErrorUnauthorized(
+        Err(ServiceErr::Unauthorized(
             "Normal token cannot be used to get a new token",
         ))
     }
