@@ -8,8 +8,6 @@ use actix_web::{web, HttpResponse};
 use dao::{PostUser, User, UserPostResponse};
 use diesel::result::DatabaseErrorKind;
 use jsonwebtoken::EncodingKey;
-use std::ops::Deref;
-use uuid::Uuid;
 
 mod auth;
 mod class;
@@ -105,15 +103,4 @@ async fn delete_own_user(claims: Claims, db: web::Data<Pool>) -> HttpResult {
         1 => HttpResponse::Ok().body("Deleted user."),
         _ => unreachable!(),
     })
-}
-
-pub struct PathUuid(Uuid);
-pub struct PathUuid2(Uuid, Uuid);
-
-impl Deref for PathUuid {
-    type Target = Uuid;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
 }

@@ -23,7 +23,7 @@ pub struct EventDao {
 
 /// The type of a class event
 /// unused until i find out how to use it
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum EventType {
     Homework,
@@ -33,7 +33,7 @@ pub enum EventType {
 }
 
 /// A Class
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Class {
     #[serde(default)]
     pub id: Uuid,
@@ -44,7 +44,7 @@ pub struct Class {
 }
 
 /// A User
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct User {
     #[serde(default)]
     pub id: Uuid,
@@ -56,7 +56,7 @@ pub struct User {
 }
 
 /// The user for the `POST /users` route, with a password
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostUser {
     #[serde(default)]
     pub id: Uuid,
@@ -67,7 +67,7 @@ pub struct PostUser {
 }
 
 /// A member (User in a class)
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Member {
     pub user: Uuid,
@@ -76,7 +76,7 @@ pub struct Member {
 }
 
 /// The role of a member
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum MemberRole {
     Owner,
@@ -101,7 +101,7 @@ pub type Timetable = [TimeTableDay; 7];
 pub type TimeTableDay = Vec<Lesson>;
 
 /// A lesson in a timetable
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Lesson {
     pub subject: String,
     pub description: String,

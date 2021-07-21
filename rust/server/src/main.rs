@@ -33,6 +33,7 @@ async fn main() -> io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .app_data(pool.clone())
             .data(pool.clone())
             .app_data(encoding_key.clone())
             .data(encoding_key.clone())
