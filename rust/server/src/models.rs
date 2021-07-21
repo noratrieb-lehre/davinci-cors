@@ -107,7 +107,7 @@ pub const PENDING: i32 = 3;
 
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
-    use crate::models::{Class, Member, MemberRole, PENDING};
+    use crate::models::{Class, Member, MemberRole, User, PENDING};
 
     pub trait IntoDao<T> {
         fn into_dao(self) -> ServiceResult<T>;
@@ -155,6 +155,42 @@ pub mod conversion {
                     role
                 )))?,
             })
+        }
+    }
+
+    impl IntoDao<dao::User> for User {
+        fn into_dao(self) -> ServiceResult<dao::User> {
+            Ok(dao::User {
+                id: self.id,
+                email: self.email,
+                description: self.description,
+                classes: None,
+            })
+        }
+    }
+
+    impl IntoDao<dao::User> for (User, Vec<dao::Class>) {
+        fn into_dao(self) -> ServiceResult<dao::User> {
+            let (user, classes) = self;
+            Ok(dao::User {
+                id: user.id,
+                email: user.email,
+                description: user.description,
+                classes: Some(classes),
+            })
+        }
+    }
+
+    ////// from dao
+
+    impl From<dao::User> for User {
+        fn from(user: dao::User) -> Self {
+            Self {
+                id: user.id,
+                email: user.email,
+                password: "".to_string(),
+                description: user.description,
+            }
         }
     }
 }

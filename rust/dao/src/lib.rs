@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A UTC Unix timestamp in seconds
-type Timestamp = u64;
+type Timestamp = i64;
 
 /// A UTC seconds after 00:00
 type DayTimestamp = u32;
@@ -44,18 +44,22 @@ pub struct Class {
 /// A User
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct User {
+    #[serde(default)]
     pub id: Uuid,
     pub email: String,
     pub description: String,
     #[serde(default)]
-    pub classes: Vec<Class>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub classes: Option<Vec<Class>>,
 }
 
 /// The user for the `POST /users` route, with a password
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostUser {
+    #[serde(default)]
     pub id: Uuid,
     pub email: String,
+    #[serde(default)]
     pub description: String,
     pub password: String,
 }
@@ -118,4 +122,13 @@ pub struct MemberAcceptDao {
 pub struct UserLogin {
     pub email: String,
     pub password: String,
+}
+
+/// Response body of POST /users
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPostResponse {
+    pub id: Uuid,
+    pub email: String,
+    pub description: String,
+    pub expires: Timestamp,
 }

@@ -17,6 +17,7 @@ pub enum ServiceErr {
     JWTokenError,
     Unauthorized(&'static str),
     InvalidDao(String),
+    Conflict(String),
 }
 
 impl std::error::Error for ServiceErr {
@@ -46,6 +47,7 @@ impl Display for ServiceErr {
                 ServiceErr::Unauthorized(msg) => format!("Unauthorized: {}", msg),
                 ServiceErr::InvalidDao(msg) => format!("Invalid Data for DAO: {}", msg),
                 ServiceErr::BadRequest(msg) => format!("Bad Request: {}", msg),
+                ServiceErr::Conflict(msg) => format!("Conflict: {}", msg),
             }
         )
     }
@@ -59,6 +61,7 @@ impl ResponseError for ServiceErr {
             ServiceErr::BadRequest(msg) => HttpResponse::BadRequest().body(msg),
             ServiceErr::NotFound => HttpResponse::NotFound().body("Not Found"),
             ServiceErr::Unauthorized(msg) => HttpResponse::Unauthorized().body(*msg),
+            ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg),
             err => HttpResponse::InternalServerError().body(format!("{}", err)),
         }
     }

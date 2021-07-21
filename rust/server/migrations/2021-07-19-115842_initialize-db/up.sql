@@ -5,7 +5,9 @@ CREATE TABLE users
     id          UUID PRIMARY KEY,
     email       VARCHAR(50)   NOT NULL,
     password    TEXT          NOT NULL,
-    description VARCHAR(1000) NOT NULL DEFAULT ''
+    description VARCHAR(1000) NOT NULL DEFAULT '',
+    CONSTRAINT unique_email
+        UNIQUE (email)
 );
 
 CREATE TABLE member_roles
@@ -20,7 +22,7 @@ CREATE TABLE classes
     owner       UUID        NOT NULL,
     name        VARCHAR(50) NOT NULL,
     description VARCHAR(50) NOT NULL DEFAULT '',
-    CONSTRAINT classOwnerFK
+    CONSTRAINT class_owner_fK
         FOREIGN KEY (owner)
             REFERENCES users (id)
 );

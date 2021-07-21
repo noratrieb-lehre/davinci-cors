@@ -33,14 +33,20 @@ pub fn validate_user_password(
     Ok(found_user.into_iter().next())
 }
 
-pub fn insert_user(db: &Pool, new_user: NewUser) -> ServiceResult<User> {
+pub fn insert_user(db: &Pool, user: &dao::PostUser) -> ServiceResult<User> {
     let conn = db.get()?;
 
-    let new_uuid = uuid::Uuid::new_v4();
+    let uuid = uuid::Uuid::new_v4();
+    let new_user = NewUser {
+        id: &uuid,
+        email: &user.email,
+        password: &user.password,
+        description: &user.description,
+    };
 
     Ok(insert_into(users)
         .values((
-            id.eq(new_uuid),
+            id.eq(uuid),
             email.eq(new_user.email),
             password.eq(crypt(new_user.password, gen_salt("bf", 8))),
             description.eq(new_user.description),
