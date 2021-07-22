@@ -21,12 +21,13 @@ const Router = () => {
                 {
                     isLoggedIn ? (
                         <Switch>
-                            <Route path={'/account'} component={Account}/>
                             <Route exact path={'/class'} component={MainSite}/>
                             <Route exact path={'/class/:id'} component={MainSite}/>
                             <Route path={'/class/:id/info'} component={MainSite}/>
                             <Route path={'/class/:id/calendar'} component={MainSite}/>
                             <Route path={'/class/:id/timetable'} component={MainSite}/>
+                            <Route path={'/class/:id/wielangenoch'} component={MainSite}/>
+                            <Route path={'/account'} component={Account}/>
                             <Route component={() => (<Redirect to={'/'}/>)}/>
                         </Switch>
                     ) : (

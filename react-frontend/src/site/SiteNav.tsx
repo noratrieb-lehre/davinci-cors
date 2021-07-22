@@ -21,8 +21,8 @@ const SiteNav = () => {
                         isLoggedIn ? (
                             <>
                                 <NavLink to={'/'} exact className={'nav-link'}>Über</NavLink>
-                                <NavLink to={'/account'} className={'nav-link'}>Account</NavLink>
                                 <NavLink to={'/class'} className={'nav-link'}>Klassenansicht</NavLink>
+                                <NavLink to={'/account'} className={'nav-link'}>Account</NavLink>
                             </>
 
                         ) : (

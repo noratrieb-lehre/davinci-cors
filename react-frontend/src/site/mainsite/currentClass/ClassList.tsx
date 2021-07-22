@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {UserServiceContext} from "../Router";
+import {UserServiceContext} from "../../Router";
 import {ListGroup} from "react-bootstrap";
 import {useHistory} from "react-router-dom";
 
@@ -8,9 +8,7 @@ const ClassList = () => {
     const userService = useContext(UserServiceContext);
     const history = useHistory();
     useEffect(() => {
-        userService.getClasses()
-            .then(val => val
-                .map(c => ({name: c.name, id: c.id})))
+        userService.getClasses().then(val => val.map(c => ({name: c.name, id: c.id})))
             .then((setAllClasses));
     }, [userService])
 

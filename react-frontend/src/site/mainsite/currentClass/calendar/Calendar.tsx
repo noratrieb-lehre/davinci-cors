@@ -35,7 +35,11 @@ const Calendar = () => {
     return (
         <Container fluid>
             {
-                selectedEvent && <EventPopup event={selectedEvent} onClose={() => setSelectedEvent(undefined)}/>
+                selectedEvent && (
+                    <>
+                        <EventPopup event={selectedEvent} onClose={() => setSelectedEvent(undefined)}/>
+                    </>
+                )
             }
             <Container>
                 <FullCalendar
@@ -43,36 +47,61 @@ const Calendar = () => {
                     headerToolbar={{
                         start: 'prev,next today',
                         center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGrid'
+                        right: 'dayGridMonth,timeGridWeek,timeGrid',
                     }}
-
+                    buttonText={{
+                        today: 'Heute',
+                        month: 'Monat',
+                        week: 'Woche',
+                        day: 'Tag',
+                        timeGrid: 'Tag'
+                    }}
                     events={[...events.map((val): EventInput => ({
                         title: val.name,
-                        ...val
+                        ...val,
+                        allDay: val.type === 'holidays',
+                        backgroundColor: getColorOfEvent(val.type),
+                        borderColor: getColorOfEvent(val.type),
                     }))]}
-
                     editable={true}
                     selectable={true}
                     selectMirror={true}
                     eventClick={handleEventClick}
-                    eventContent={renderEventContext}
+                    eventContent={renderEventContent}
                     firstDay={1}
                     themeSystem={'bootstrap'}
                     locale={'de'}
+                    allDayText={'Ganztägig'}
+                    allDaySlot={false}
                 />
             </Container>
         </Container>
     );
 };
 
-const renderEventContext = (eventContent: EventContentArg) => {
+const renderEventContent = (eventContent: EventContentArg) => {
     return (
         <>
-            <span>{eventContent.event.title}</span>
-            <span>| {formatType(eventContent.event.extendedProps.type)}</span>
+            <div className="fc-daygrid-event-dot" style={{
+                borderColor: eventContent.borderColor
+            }}/>
+            <div className="fc-event-title">
+                {
+                    eventContent.event.title.substr(0, 14) + (eventContent.event.title.length > 17 ? '...' : '')
+                }
+            </div>
         </>
     )
 }
+
+const color = {
+    'homework': '#b1b3fa',
+    'exam': '#eed850',
+    'holidays': '#05c61c',
+    'other': '#a5a5a5'
+}
+
+const getColorOfEvent = (event: EventType) => color[event]
 
 const formatType = (eventType: EventType): string => {
     switch (eventType) {

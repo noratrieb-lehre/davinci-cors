@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, Col, Container, Form, FormControl, Row} from "react-bootstrap";
+import {Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import * as Yup from 'yup';
 import {useFormik} from "formik";
 
@@ -14,7 +14,7 @@ const validationScheme = Yup.object().shape({
 })
 
 const ChangePassword = () => {
-    const onSubmit = ({oldPassword, password}: {oldPassword: string, password: string}) => {
+    const onSubmit = ({oldPassword, password}: { oldPassword: string, password: string }) => {
 
     }
     const formik = useFormik({
@@ -33,14 +33,37 @@ const ChangePassword = () => {
             <br/>
             <h3>Passwort ändern</h3>
             <br/>
-            <Form>
+            <Form onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e);
+            }}>
                 <Row>
-                    <Col><FormControl name={'oldPassword'} placeholder={'Altes Passwort'}/></Col>
+                    <Col>
+                        <FormGroup>
+                            <FormLabel>Altes Passwort</FormLabel>
+                            <FormControl name={'oldPassword'} placeholder={'Altes Passwort'}
+                                         onChange={formik.handleChange}/>
+                        </FormGroup>
+                    </Col>
                 </Row>
+                <br/>
                 <Row>
-                    <Col><FormControl name={'password'} placeholder={'Neues Passwort'}/></Col>
-                    <Col><FormControl name={'confirmPassword'} placeholder={'Passwort bestätigen'}/></Col>
+                    <Col>
+                        <FormGroup>
+                            <FormLabel>Neues Passwort</FormLabel>
+                            <FormControl name={'password'} placeholder={'Neues Passwort'}
+                                         onChange={formik.handleChange}/>
+                        </FormGroup>
+                    </Col>
+                    <Col>
+                        <FormGroup>
+                            <FormLabel>Neues Passwort bestätigen</FormLabel>
+                            <FormControl name={'confirmPassword'} placeholder={'Passwort bestätigen'}
+                                         onChange={formik.handleChange}/>
+                        </FormGroup>
+                    </Col>
                 </Row>
+                <br/>
                 <Row>
                     <Col><Button>Passwort ändern</Button></Col>
                 </Row>

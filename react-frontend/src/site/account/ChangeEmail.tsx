@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {Alert, Button, Col, Container, Form, FormControl, Row} from "react-bootstrap";
+import {Alert, Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import {UserServiceContext} from "../Router";
 import * as Yup from 'yup';
 import {useFormik} from "formik";
@@ -34,11 +34,15 @@ const ChangeEmail = () => {
             }} inline>
                 <Row>
                     <Col>
-                        <FormControl name={'email'} placeholder={'E-Mail Adresse ändern'}
-                                     onChange={formik.handleChange} isInvalid={!!formik.errors.email}/>
+                        <FormGroup>
+                            <FormLabel>E-Mail Adresse</FormLabel>
+                            <FormControl name={'email'} placeholder={'E-Mail Adresse ändern'}
+                                         onChange={formik.handleChange} isInvalid={!!formik.errors.email}/>
+                        </FormGroup>
                         <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                     </Col>
                     <Col>
+                        <br/>
                         <Button type={'submit'}>E-Mail ändern</Button>
                     </Col>
                 </Row>

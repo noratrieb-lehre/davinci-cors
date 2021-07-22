@@ -7,11 +7,11 @@ import MemberRole from "../data/user/MemberRole";
 import getEvents from "../mockup/EventMockup";
 import Event from "../data/event/Event";
 import TimeTable from "../data/timetable/TimeTable";
+import getTimeTable from "../mockup/TimeTableMockUp";
 
 
 export default class UserService {
     private axiosInstance: AxiosInstance;
-    private _currentUser: User | null;
     private onUserChangeHandler: Array<(user: User | null) => void> = []
 
     public constructor() {
@@ -19,8 +19,10 @@ export default class UserService {
         this.axiosInstance = axios.create({});
     }
 
-    private triggerOnAuthStateChange() {
-        this.onUserChangeHandler.forEach(handler => handler(this._currentUser))
+    private _currentUser: User | null;
+
+    get currentUser(): User | null {
+        return this._currentUser;
     }
 
     public async logout(): Promise<void> {
@@ -58,16 +60,11 @@ export default class UserService {
     }
 
     public async getTimeTable(classId: string): Promise<TimeTable> {
-        return [[], [], [], [], [], [], []]
+        return getTimeTable();
     }
 
     public async getCalendar(classId: string): Promise<Array<Event>> {
         return getEvents();
-    }
-
-
-    get currentUser(): User | null {
-        return this._currentUser;
     }
 
     public getMemberRole(role: MemberRole): string {
@@ -79,5 +76,9 @@ export default class UserService {
             case "owner":
                 return 'Eigentümer'
         }
+    }
+
+    private triggerOnAuthStateChange() {
+        this.onUserChangeHandler.forEach(handler => handler(this._currentUser))
     }
 }
