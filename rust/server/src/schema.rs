@@ -4,6 +4,7 @@ table! {
         owner -> Uuid,
         name -> Varchar,
         description -> Varchar,
+        discord_id -> Nullable<Varchar>,
     }
 }
 
@@ -55,6 +56,7 @@ table! {
         email -> Varchar,
         password -> Text,
         description -> Varchar,
+        discord_id -> Nullable<Varchar>,
     }
 }
 

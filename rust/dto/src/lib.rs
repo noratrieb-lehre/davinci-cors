@@ -143,3 +143,8 @@ pub struct UserPostResponse {
     pub description: String,
     pub expires: Timestamp,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Snowflake {
+    pub snowflake: String,
+}

@@ -363,3 +363,17 @@ Requires token and Owner
   "snowflake": "snowflakeid (string)"
 }
 ```
+
+#### Get class with discord snowflake
+
+`GET /classes/discord/{snowflake}`  
+Requires Token  
+*Response*  
+`Class`
+
+#### Get user with discord snowflake
+
+`GET /users/discord/{snowflake}`  
+Requires Token  
+*Response*  
+`User`

@@ -1,0 +1,5 @@
+ALTER TABLE classes
+    ADD COLUMN discord_id VARCHAR(20) NULL;
+
+ALTER TABLE users
+    ADD COLUMN discord_id VARCHAR(20) NULL;

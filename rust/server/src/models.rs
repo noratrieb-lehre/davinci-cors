@@ -8,6 +8,7 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub description: String,
+    pub discord_id: Option<String>,
 }
 
 #[derive(Debug, Insertable)]
@@ -17,6 +18,7 @@ pub struct NewUser<'a> {
     pub email: &'a str,
     pub password: &'a str,
     pub description: &'a str,
+    pub discord_id: Option<&'a str>,
 }
 
 #[derive(Debug, Clone, Queryable, Identifiable)]
@@ -32,15 +34,17 @@ pub struct Class {
     pub owner: Uuid,
     pub name: String,
     pub description: String,
+    pub discord_id: Option<String>,
 }
 
-#[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
+#[derive(Debug, Insertable, Queryable, Identifiable)]
 #[table_name = "classes"]
 pub struct NewClass<'a> {
     pub id: Uuid,
     pub owner: Uuid,
     pub name: &'a str,
     pub description: &'a str,
+    pub discord_id: Option<&'a str>,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -269,6 +273,7 @@ pub mod conversion {
                 email: user.email,
                 password: "".to_string(),
                 description: user.description,
+                discord_id: None,
             }
         }
     }
