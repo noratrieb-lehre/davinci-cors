@@ -87,6 +87,13 @@ pub fn get_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<(Me
         .get_result::<(Member, MemberRole)>(&conn)?)
 }
 
+pub fn delete_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<usize> {
+    use crate::schema::members::dsl::{class, members, user};
+    let conn = db.get()?;
+
+    Ok(delete(members.filter(class.eq(class_id).and(user.eq(user_id)))).execute(&conn)?)
+}
+
 pub fn delete_class(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
     let conn = db.get()?;
 

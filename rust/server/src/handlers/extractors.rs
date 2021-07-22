@@ -15,6 +15,9 @@ use std::ops::Deref;
 use std::pin::Pin;
 use uuid::Uuid;
 
+/// Extract the role of a member in a class
+/// - Validate that a user belongs to a class
+/// Also makes sure that a user is logged in
 #[derive(Debug, Clone)]
 pub struct Role(MemberRole);
 
@@ -44,7 +47,7 @@ impl Claims {
 
         match authorization::Authorization::<Bearer>::parse(req) {
             Ok(auth) => validate_token(auth.into_scheme().token(), key),
-            Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
+            Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
         }
         .and_then(|claims| match claims.refresh {
             true => Err(ServiceErr::Unauthorized(
@@ -65,24 +68,31 @@ impl FromRequest for Role {
 
         let class_id = req
             .match_info()
-            .get("class_id")
-            .ok_or(ServiceErr::BadRequest("Class Id not provided".to_string()))
-            .and_then(|id| uuid::Uuid::parse_str(id).map_err(|e| e.into()));
+            .get("classid")
+            .ok_or(ServiceErr::BadRequest("request/no-class-id"))
+            .and_then(|id| uuid::Uuid::parse_str(id).map_err(|e| e.into()))
+            .unwrap();
 
-        let claims = Claims::from_request_sync(req)
-            .map_err(|_| ServiceErr::InternalServerError("wtf".to_string()));
+        let claims = Claims::from_request_sync(req);
 
-        Box::pin(async move { get_member_role(db, class_id, claims).await })
+        Box::pin(async move {
+            get_member_role(db, Ok(class_id), claims)
+                .await
+                .map_err(|err| match err {
+                    ServiceErr::NotFound => ServiceErr::Unauthorized("auth/no-access"),
+                    err => err,
+                })
+        })
     }
 }
 
 async fn get_member_role(
     db: Pool,
-    user_id: Result<Uuid, ServiceErr>,
-    class_id: Result<Claims, ServiceErr>,
+    class_id: Result<Uuid, ServiceErr>,
+    claims: Result<Claims, ServiceErr>,
 ) -> Result<Role, ServiceErr> {
     Ok(Role(
-        web::block(move || crate::actions::class::get_member(&db, user_id?, class_id?.uid))
+        web::block(move || crate::actions::class::get_member(&db, claims?.uid, class_id?))
             .await?
             .into_dto()?
             .role,

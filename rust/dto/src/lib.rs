@@ -11,9 +11,9 @@ type Uuid = uuid::Uuid;
 
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventDto {
+pub struct Event {
     pub id: Uuid,
-    pub r#type: String,
+    pub r#type: EventType,
     pub name: String,
     pub start: Timestamp,
     #[serde(default)]
@@ -22,14 +22,13 @@ pub struct EventDto {
 }
 
 /// The type of a class event
-/// unused until i find out how to use it
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum EventType {
-    Homework,
-    Exam,
-    Holidays,
-    Other(String),
+    Homework = 1,
+    Exam = 2,
+    Holidays = 3,
+    Other = 4,
 }
 
 /// A Class
@@ -38,6 +37,7 @@ pub struct Class {
     #[serde(default)]
     pub id: Uuid,
     #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub members: Vec<Member>,
     pub name: String,
     pub description: String,
@@ -76,21 +76,17 @@ pub struct Member {
 }
 
 /// The role of a member
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum MemberRole {
-    Owner,
-    Admin,
-    Member,
+    Owner = 0,
+    Admin = 1,
+    Member = 2,
 }
 
 impl MemberRole {
     pub fn has_rights(&self) -> bool {
-        match self {
-            MemberRole::Owner => true,
-            MemberRole::Admin => true,
-            _ => false,
-        }
+        matches!(self, MemberRole::Owner | MemberRole::Admin)
     }
 }
 

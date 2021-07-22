@@ -37,7 +37,7 @@ async fn refresh_token<'a>(
 ) -> HttpResult {
     let claims = match authorization::Authorization::<Bearer>::parse(&req) {
         Ok(auth) => validate_token(auth.into_scheme().token(), &d_key),
-        Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
+        Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
     }?;
 
     if claims.refresh {

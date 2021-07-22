@@ -7,7 +7,8 @@ pub type ServiceResult<T> = Result<T, ServiceErr>;
 
 #[derive(Debug)]
 pub enum ServiceErr {
-    BadRequest(String),
+    NoAdminPermissions,
+    BadRequest(&'static str),
     InternalServerError(String),
     ConnectionNotFound(r2d2::Error),
     DbActionFailed(diesel::result::Error),
@@ -37,17 +38,18 @@ impl Display for ServiceErr {
             f,
             "{}",
             match self {
-                ServiceErr::ConnectionNotFound(err) => format!("Db Connection not found: {}", err),
-                ServiceErr::DbActionFailed(err) => format!("Db Action Failed: {}", err),
-                ServiceErr::JWTCreationError(err) => format!("Could not create JWT: {}", err),
-                ServiceErr::TokenExpiredError => "Token expired.".to_string(),
-                ServiceErr::JWTokenError => "Invalid JWT".to_string(),
+                ServiceErr::ConnectionNotFound(err) => format!("{}", err),
+                ServiceErr::DbActionFailed(err) => format!("{}", err),
+                ServiceErr::JWTCreationError(err) => format!("{}", err),
+                ServiceErr::TokenExpiredError => "auth/expired".to_string(),
+                ServiceErr::JWTokenError => "auth/invalid".to_string(),
                 ServiceErr::NotFound => "Not found".to_string(),
                 ServiceErr::InternalServerError(msg) => format!("Internal Server Error: {}", msg),
-                ServiceErr::Unauthorized(msg) => format!("Unauthorized: {}", msg),
-                ServiceErr::InvalidDTO(msg) => format!("Invalid Data for DTO: {}", msg),
-                ServiceErr::BadRequest(msg) => format!("Bad Request: {}", msg),
-                ServiceErr::Conflict(msg) => format!("Conflict: {}", msg),
+                ServiceErr::Unauthorized(msg) => msg.to_string(),
+                ServiceErr::InvalidDTO(msg) => msg.to_string(),
+                ServiceErr::BadRequest(msg) => msg.to_string(),
+                ServiceErr::Conflict(msg) => msg.to_string(),
+                ServiceErr::NoAdminPermissions => "auth/no-admin".to_string(),
             }
         )
     }
@@ -56,13 +58,16 @@ impl Display for ServiceErr {
 impl ResponseError for ServiceErr {
     fn error_response(&self) -> HttpResponse {
         match self {
-            ServiceErr::TokenExpiredError => HttpResponse::Unauthorized().body("Token expired."),
-            ServiceErr::JWTokenError => HttpResponse::BadRequest().body("Invalid JWT."),
-            ServiceErr::BadRequest(msg) => HttpResponse::BadRequest().body(msg),
+            ServiceErr::TokenExpiredError => {
+                HttpResponse::Unauthorized().body("auth/token-expired")
+            }
+            ServiceErr::JWTokenError => HttpResponse::BadRequest().body("auth/invalid-token"),
+            ServiceErr::BadRequest(msg) => HttpResponse::BadRequest().body(*msg),
             ServiceErr::NotFound => HttpResponse::NotFound().body("Not Found"),
             ServiceErr::Unauthorized(msg) => HttpResponse::Unauthorized().body(*msg),
+            ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("auth/no-admin"),
             ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg),
-            err => HttpResponse::InternalServerError().body(format!("{}", err)),
+            err => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }
 }
@@ -84,7 +89,7 @@ impl From<r2d2::Error> for ServiceErr {
 
 impl From<uuid::Error> for ServiceErr {
     fn from(_: uuid::Error) -> Self {
-        Self::BadRequest("Could not create UUID".to_string())
+        Self::BadRequest("Could not create UUID")
     }
 }
 
