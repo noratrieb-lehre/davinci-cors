@@ -1,5 +1,5 @@
 [package]
-name = "dao"
+name = "dto"
 version = "0.1.0"
 authors = ["Nilstrieb <48135649+Nilstrieb@users.noreply.github.com>"]
 edition = "2018"

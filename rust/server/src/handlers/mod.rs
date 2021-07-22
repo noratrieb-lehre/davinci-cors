@@ -1,16 +1,17 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
-use crate::models::conversion::IntoDao;
+use crate::models::conversion::IntoDto;
 use actix_web::error::BlockingError;
 use actix_web::web::Json;
 use actix_web::{web, HttpResponse};
-use dao::{PostUser, User, UserPostResponse};
 use diesel::result::DatabaseErrorKind;
+use dto::{PostUser, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
 
 mod auth;
 mod class;
+mod extractors;
 
 pub type HttpResult = Result<HttpResponse, ServiceErr>;
 
@@ -43,7 +44,7 @@ async fn create_user(
         Ok(user) => user,
         Err(BlockingError::Error(ServiceErr::DbActionFailed(
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _),
-        ))) => Err(ServiceErr::Conflict("Email already exists".to_string()))?,
+        ))) => return Err(ServiceErr::Conflict("request/email-exists".to_string())),
         other => other?,
     };
 
@@ -62,9 +63,21 @@ async fn create_user(
 }
 
 async fn get_own_user(claims: Claims, db: web::Data<Pool>) -> HttpResult {
-    let user = web::block(move || actions::user::get_user_by_id(&db, claims.uid))
-        .await?
-        .into_dao()?;
+    let (mut user, classes) = web::block::<_, _, ServiceErr>(move || {
+        let user = actions::user::get_user_by_id(&db, claims.uid)?;
+        let classes = actions::class::get_classes_by_user(&db, claims.uid)?;
+
+        Ok((
+            user.into_dto()?,
+            classes
+                .into_iter()
+                .map(IntoDto::into_dto)
+                .collect::<Result<Vec<_>, _>>()?,
+        ))
+    })
+    .await?;
+
+    user.classes = Some(classes);
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -77,7 +90,7 @@ async fn edit_own_user(
     new_user.id = claims.uid; // always update the own user
     let user = web::block(move || actions::user::update_user(&db, new_user.into_inner().into()))
         .await?
-        .into_dao()?;
+        .into_dto()?;
 
     Ok(HttpResponse::Ok().json(user))
 }

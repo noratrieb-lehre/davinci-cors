@@ -30,7 +30,7 @@
 {
   "id": "uuid",
   "owner": "User",
-  "members": [
+  "members?": [
     "Member"
   ],
   "name": "string",

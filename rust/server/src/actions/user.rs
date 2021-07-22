@@ -33,7 +33,7 @@ pub fn validate_user_password(
     Ok(found_user.into_iter().next())
 }
 
-pub fn insert_user(db: &Pool, user: &dao::PostUser) -> ServiceResult<User> {
+pub fn insert_user(db: &Pool, user: &dto::PostUser) -> ServiceResult<User> {
     let conn = db.get()?;
 
     let uuid = uuid::Uuid::new_v4();

@@ -1,20 +1,16 @@
 use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::models::{Event, EventType, NewEvent};
+use crate::models::{Event, NewEvent};
 
 use crate::error::ServiceResult;
-use crate::schema::event_types::dsl::event_types;
 use crate::schema::events::dsl::*;
 use diesel::{delete, insert_into, ExpressionMethods, SaveChangesDsl};
 use uuid::Uuid;
 
-pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<(Event, EventType)>> {
+pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
 
-    let vec: Vec<(Event, EventType)> = events
-        .filter(id.eq(class_id))
-        .inner_join(event_types)
-        .load(&conn)?;
+    let vec: Vec<Event> = events.filter(id.eq(class_id)).load(&conn)?;
 
     Ok(vec)
 }

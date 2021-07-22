@@ -1,16 +1,14 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::HttpResult;
-use actix_web::dev::Payload;
 use actix_web::http::header::Header;
-use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization;
 use actix_web_httpauth::headers::authorization::Bearer;
 use chrono::Utc;
-use dao::{LoginResponse, UserLogin};
+use dto::{LoginResponse, UserLogin};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use std::future;
 use uuid::Uuid;
 
 /// The claims of the JWT
@@ -39,14 +37,14 @@ async fn refresh_token<'a>(
 ) -> HttpResult {
     let claims = match authorization::Authorization::<Bearer>::parse(&req) {
         Ok(auth) => validate_token(auth.into_scheme().token(), &d_key),
-        Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
+        Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
     }?;
 
     if claims.refresh {
         let new_token = create_normal_jwt(claims.uid, &e_key)?;
         Ok(HttpResponse::Ok()
             .header("Token", new_token.0)
-            .json(dao::RefreshResponse {
+            .json(dto::RefreshResponse {
                 expires: new_token.1,
             }))
     } else {
@@ -81,32 +79,6 @@ async fn login(
     }
 }
 
-impl FromRequest for Claims {
-    type Error = actix_web::Error;
-    type Future = std::future::Ready<Result<Self, Self::Error>>;
-    type Config = ();
-
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let key = req
-            .app_data::<DecodingKey>()
-            .expect("no decoding key found");
-
-        future::ready(
-            match authorization::Authorization::<Bearer>::parse(req) {
-                Ok(auth) => validate_token(auth.into_scheme().token(), key),
-                Err(_) => Err(ServiceErr::Unauthorized("No Bearer token present")),
-            }
-            .and_then(|claims| match claims.refresh {
-                true => Err(ServiceErr::Unauthorized(
-                    "A refresh token can't be used for authentication",
-                )),
-                false => Ok(claims),
-            })
-            .map_err(|err| err.into()),
-        )
-    }
-}
-
 pub fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceErr> {
     let decoded = jsonwebtoken::decode::<Claims>(&token, key, &Validation::new(Algorithm::HS512))
         .map_err(|_| ServiceErr::JWTokenError)?
@@ -131,10 +103,19 @@ pub fn create_refresh_jwt(user: Uuid, key: &EncodingKey) -> Result<String, Servi
     create_jwt(user, true, key).map(|(token, _)| token)
 }
 fn create_jwt(uid: Uuid, refresh: bool, key: &EncodingKey) -> Result<(String, i64), ServiceErr> {
-    let lifetime = if refresh {
-        chrono::Duration::weeks(1000) // several years, kind of a hack but ok
+    let lifetime;
+    if refresh {
+        lifetime = chrono::Duration::weeks(1000) // several years, kind of a hack but ok
     } else {
-        chrono::Duration::hours(1)
+        // make the token last 24 hours for debugging
+        #[cfg(debug_assertions)]
+        {
+            lifetime = chrono::Duration::hours(24);
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            lifetime = chrono::Duration::hours(1);
+        }
     };
 
     let exp = Utc::now()

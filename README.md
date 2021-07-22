@@ -1,8 +1,8 @@
 # CORS
-C reative
-O rganized
-R elaxed
-S chool
+C reative  
+O rganized  
+R elaxed  
+S chool  
 
 das repo ist zwar private aber bitte trotzdem keine keys oder so pushen danke
 keys kann man in secrets eintragen in den repo settings dann können wir beide da immer zugreifen

@@ -11,9 +11,9 @@ type Uuid = uuid::Uuid;
 
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventDao {
+pub struct Event {
     pub id: Uuid,
-    pub r#type: String,
+    pub r#type: EventType,
     pub name: String,
     pub start: Timestamp,
     #[serde(default)]
@@ -22,27 +22,29 @@ pub struct EventDao {
 }
 
 /// The type of a class event
-/// unused until i find out how to use it
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum EventType {
-    Homework,
-    Exam,
-    Holidays,
-    Other(String),
+    Homework = 1,
+    Exam = 2,
+    Holidays = 3,
+    Other = 4,
 }
 
 /// A Class
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Class {
+    #[serde(default)]
     pub id: Uuid,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub members: Vec<Member>,
     pub name: String,
     pub description: String,
 }
 
 /// A User
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct User {
     #[serde(default)]
     pub id: Uuid,
@@ -54,7 +56,7 @@ pub struct User {
 }
 
 /// The user for the `POST /users` route, with a password
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostUser {
     #[serde(default)]
     pub id: Uuid,
@@ -65,22 +67,27 @@ pub struct PostUser {
 }
 
 /// A member (User in a class)
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Member {
     pub user: Uuid,
-    pub class: Uuid,
     pub display_name: String,
     pub role: MemberRole,
 }
 
 /// The role of a member
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum MemberRole {
-    Owner,
-    Admin,
-    Member,
+    Owner = 0,
+    Admin = 1,
+    Member = 2,
+}
+
+impl MemberRole {
+    pub fn has_rights(&self) -> bool {
+        matches!(self, MemberRole::Owner | MemberRole::Admin)
+    }
 }
 
 /// The timetable of a class
@@ -90,7 +97,7 @@ pub type Timetable = [TimeTableDay; 7];
 pub type TimeTableDay = Vec<Lesson>;
 
 /// A lesson in a timetable
-#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Lesson {
     pub subject: String,
     pub description: String,
@@ -113,7 +120,7 @@ pub struct LoginResponse {
 
 /// Request body of /classes/{uuid}/requests/{uuid}
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemberAcceptDao {
+pub struct MemberAcceptDto {
     pub accept: bool,
 }
 

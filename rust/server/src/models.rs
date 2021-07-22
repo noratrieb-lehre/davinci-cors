@@ -36,11 +36,11 @@ pub struct Class {
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
 #[table_name = "classes"]
-pub struct NewClass<'a> {
-    pub id: &'a Uuid,
-    pub owner: &'a Uuid,
-    pub name: &'a str,
-    pub description: &'a str,
+pub struct NewClass {
+    pub id: Uuid,
+    pub owner: Uuid,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -55,10 +55,10 @@ pub struct Member {
 #[table_name = "members"]
 #[primary_key(user, class)]
 pub struct NewMember<'a> {
-    pub user: &'a Uuid,
-    pub class: &'a Uuid,
-    pub display_name: &'a String,
-    pub role: &'a i32,
+    pub user: Uuid,
+    pub class: Uuid,
+    pub display_name: &'a str,
+    pub role: i32,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -75,9 +75,9 @@ pub struct Event {
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
 #[table_name = "events"]
 pub struct NewEvent<'a> {
-    pub id: &'a Uuid,
-    pub class: &'a Uuid,
-    pub e_type: &'a i32,
+    pub id: Uuid,
+    pub class: Uuid,
+    pub e_type: i32,
     pub name: &'a str,
     pub start: &'a chrono::NaiveDateTime,
     pub end: &'a chrono::NaiveDateTime,
@@ -107,60 +107,107 @@ pub const PENDING: i32 = 3;
 
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
-    use crate::models::{Class, Member, MemberRole, User, PENDING};
+    use crate::models::{Class, Event, Member, MemberRole, User, PENDING};
+    use std::convert::TryFrom;
+    use uuid::Uuid;
 
-    pub trait IntoDao<T> {
-        fn into_dao(self) -> ServiceResult<T>;
+    pub trait IntoDto<T> {
+        fn into_dto(self) -> ServiceResult<T>;
     }
 
-    impl IntoDao<dao::Class> for (Class, Vec<(Member, MemberRole)>) {
-        fn into_dao(self) -> ServiceResult<dao::Class> {
+    impl IntoDto<dto::Class> for Class {
+        fn into_dto(self) -> ServiceResult<dto::Class> {
+            Ok(dto::Class {
+                id: self.id,
+                members: vec![],
+                name: self.name,
+                description: self.description,
+            })
+        }
+    }
+
+    impl IntoDto<dto::Class> for (Class, Vec<(Member, MemberRole)>) {
+        fn into_dto(self) -> ServiceResult<dto::Class> {
             let (class, members) = self;
 
             let actual_members = members
                 .into_iter()
                 .filter(|(_, role)| role.id != PENDING)
-                .map(IntoDao::into_dao)
+                .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 
-            Ok(dao::Class {
+            Ok(dto::Class {
                 id: class.id,
                 members: actual_members,
-                name: "".to_string(),
-                description: "".to_string(),
+                name: class.name,
+                description: class.description,
             })
         }
     }
 
-    impl IntoDao<dao::Member> for (Member, MemberRole) {
-        fn into_dao(self) -> ServiceResult<dao::Member> {
+    impl IntoDto<dto::Member> for (Member, MemberRole) {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
             let (member, role) = self;
-            Ok(dao::Member {
+            Ok(dto::Member {
                 user: member.user,
-                class: member.class,
                 display_name: member.display_name,
-                role: role.into_dao()?,
+                role: role.into_dto()?,
             })
         }
     }
 
-    impl IntoDao<dao::MemberRole> for MemberRole {
-        fn into_dao(self) -> ServiceResult<dao::MemberRole> {
+    impl IntoDto<dto::MemberRole> for MemberRole {
+        fn into_dto(self) -> ServiceResult<dto::MemberRole> {
             Ok(match &*self.display {
-                "owner" => dao::MemberRole::Owner,
-                "admin" => dao::MemberRole::Admin,
-                "member" => dao::MemberRole::Member,
-                role => Err(ServiceErr::InvalidDao(format!(
-                    "Invalid member role {}",
-                    role
-                )))?,
+                "owner" => dto::MemberRole::Owner,
+                "admin" => dto::MemberRole::Admin,
+                "member" => dto::MemberRole::Member,
+                role => {
+                    return Err(ServiceErr::InvalidDTO(format!(
+                        "Invalid member role {}",
+                        role
+                    )))
+                }
             })
         }
     }
 
-    impl IntoDao<dao::User> for User {
-        fn into_dao(self) -> ServiceResult<dao::User> {
-            Ok(dao::User {
+    impl IntoDto<dto::MemberRole> for i32 {
+        fn into_dto(self) -> ServiceResult<dto::MemberRole> {
+            Ok(match self {
+                0 => dto::MemberRole::Owner,
+                1 => dto::MemberRole::Admin,
+                2 => dto::MemberRole::Member,
+                role => {
+                    return Err(ServiceErr::InvalidDTO(format!(
+                        "Invalid member role {}",
+                        role
+                    )))
+                }
+            })
+        }
+    }
+
+    impl IntoDto<dto::EventType> for i32 {
+        fn into_dto(self) -> ServiceResult<dto::EventType> {
+            Ok(match self {
+                1 => dto::EventType::Homework,
+                2 => dto::EventType::Exam,
+                3 => dto::EventType::Holidays,
+                4 => dto::EventType::Other,
+                role => {
+                    return Err(ServiceErr::InvalidDTO(format!(
+                        "Invalid member role {}",
+                        role
+                    )))
+                }
+            })
+        }
+    }
+
+    impl IntoDto<dto::User> for User {
+        fn into_dto(self) -> ServiceResult<dto::User> {
+            Ok(dto::User {
                 id: self.id,
                 email: self.email,
                 description: self.description,
@@ -169,10 +216,10 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::User> for (User, Vec<dao::Class>) {
-        fn into_dao(self) -> ServiceResult<dao::User> {
+    impl IntoDto<dto::User> for (User, Vec<dto::Class>) {
+        fn into_dto(self) -> ServiceResult<dto::User> {
             let (user, classes) = self;
-            Ok(dao::User {
+            Ok(dto::User {
                 id: user.id,
                 email: user.email,
                 description: user.description,
@@ -181,16 +228,74 @@ pub mod conversion {
         }
     }
 
-    ////// from dao
+    impl IntoDto<dto::Member> for Member {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
+            Ok(dto::Member {
+                user: self.user,
+                display_name: self.display_name,
+                role: self.role.into_dto()?,
+            })
+        }
+    }
 
-    impl From<dao::User> for User {
-        fn from(user: dao::User) -> Self {
+    impl IntoDto<dto::Event> for Event {
+        fn into_dto(self) -> ServiceResult<dto::Event> {
+            Ok(dto::Event {
+                id: self.id,
+                r#type: self.e_type.into_dto()?,
+                name: self.name,
+                start: self.start.timestamp(),
+                end: self.end.map(|dt| dt.timestamp()).unwrap_or(0),
+                description: self.description,
+            })
+        }
+    }
+
+    impl<T, Dto> IntoDto<Vec<Dto>> for Vec<T>
+    where
+        T: IntoDto<Dto>,
+    {
+        fn into_dto(self) -> ServiceResult<Vec<Dto>> {
+            self.into_iter()
+                .map(IntoDto::into_dto)
+                .collect::<Result<Vec<Dto>, ServiceErr>>()
+        }
+    }
+
+    ////// from dto
+
+    impl From<dto::User> for User {
+        fn from(user: dto::User) -> Self {
             Self {
                 id: user.id,
                 email: user.email,
                 password: "".to_string(),
                 description: user.description,
             }
+        }
+    }
+
+    ////// new _
+
+    impl TryFrom<dto::Class> for Class {
+        type Error = ServiceErr;
+
+        /// does not inlude the owner
+        fn try_from(class: dto::Class) -> Result<Self, Self::Error> {
+            Ok(Self {
+                id: class.id,
+                owner: Uuid::default(),
+                name: class.name,
+                description: class.description,
+            })
+        }
+    }
+
+    pub fn member_role_dto_to_int(dto: &dto::MemberRole) -> i32 {
+        match *dto {
+            dto::MemberRole::Owner => 0,
+            dto::MemberRole::Admin => 1,
+            dto::MemberRole::Member => 2,
         }
     }
 }
