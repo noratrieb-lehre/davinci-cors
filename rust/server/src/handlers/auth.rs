@@ -29,11 +29,10 @@ pub fn auth_config(cfg: &mut web::ServiceConfig) {
         .route("/login", web::post().to(login));
 }
 
-#[allow(clippy::needless_lifetimes)] // borrow checker too dumb to get this
-async fn refresh_token<'a>(
+async fn refresh_token(
     req: HttpRequest,
     e_key: web::Data<EncodingKey>,
-    d_key: web::Data<DecodingKey<'a>>,
+    d_key: web::Data<DecodingKey<'static>>,
 ) -> HttpResult {
     let claims = match authorization::Authorization::<Bearer>::parse(&req) {
         Ok(auth) => validate_token(auth.into_scheme().token(), &d_key),
@@ -48,9 +47,7 @@ async fn refresh_token<'a>(
                 expires: new_token.1,
             }))
     } else {
-        Err(ServiceErr::Unauthorized(
-            "Normal token cannot be used to get a new token",
-        ))
+        Err(ServiceErr::Unauthorized("auth/wrong-token-kind"))
     }
 }
 

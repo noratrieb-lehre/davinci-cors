@@ -7,18 +7,20 @@ pub type ServiceResult<T> = Result<T, ServiceErr>;
 
 #[derive(Debug)]
 pub enum ServiceErr {
+    // 400
+    NotFound,
     NoAdminPermissions,
     BadRequest(&'static str),
-    InternalServerError(String),
-    ConnectionNotFound(r2d2::Error),
-    DbActionFailed(diesel::result::Error),
-    NotFound,
-    JWTCreationError(jsonwebtoken::errors::Error),
+    Conflict(&'static str),
+    Unauthorized(&'static str),
     TokenExpiredError,
     JWTokenError,
-    Unauthorized(&'static str),
-    InvalidDTO(String),
-    Conflict(String),
+    // 500
+    JWTCreationError(jsonwebtoken::errors::Error),
+    ConnectionNotFound(r2d2::Error),
+    DbActionFailed(diesel::result::Error),
+    InternalServerError(String),
+    IntoDTOError(String),
 }
 
 impl std::error::Error for ServiceErr {
@@ -46,7 +48,7 @@ impl Display for ServiceErr {
                 ServiceErr::NotFound => "Not found".to_string(),
                 ServiceErr::InternalServerError(msg) => format!("Internal Server Error: {}", msg),
                 ServiceErr::Unauthorized(msg) => msg.to_string(),
-                ServiceErr::InvalidDTO(msg) => msg.to_string(),
+                ServiceErr::IntoDTOError(msg) => msg.to_string(),
                 ServiceErr::BadRequest(msg) => msg.to_string(),
                 ServiceErr::Conflict(msg) => msg.to_string(),
                 ServiceErr::NoAdminPermissions => "auth/no-admin".to_string(),
@@ -66,7 +68,7 @@ impl ResponseError for ServiceErr {
             ServiceErr::NotFound => HttpResponse::NotFound().body("Not Found"),
             ServiceErr::Unauthorized(msg) => HttpResponse::Unauthorized().body(*msg),
             ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("auth/no-admin"),
-            ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg),
+            ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg.to_string()),
             err => HttpResponse::InternalServerError().body(err.to_string()),
         }
     }

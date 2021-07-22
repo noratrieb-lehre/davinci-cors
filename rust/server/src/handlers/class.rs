@@ -6,34 +6,35 @@ use crate::handlers::HttpResult;
 use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::{NewClass, NewEvent, NewMember, PENDING};
-use actix_web::web::Json;
+use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, ServiceConfig};
 use actix_web::{web, HttpResponse};
-use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Timetable};
-use std::convert::TryInto;
+use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 
-pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
-    cfg.route("/classes", web::post().to(create_class)).service(
-        web::scope("/classes/{classid}")
-            .route("", web::get().to(get_class))
-            .route("", web::put().to(edit_class))
-            .route("", web::delete().to(delete_class))
-            .route("/members/{uuid}", web::put().to(edit_member))
-            .route("/join", web::post().to(request_join))
-            .route("/requests", web::get().to(get_join_requests))
-            .route("/requests/{uuid}", web::post().to(accept_member))
-            .route("/events", web::get().to(get_events))
-            .route("/events", web::post().to(create_event))
-            .route("/events/{uuid}", web::get().to(get_event))
-            .route("/events/{uuid}", web::put().to(edit_event))
-            .route("/events/{uuid}", web::delete().to(delete_event))
-            .route("timetable", web::get().to(get_timetable))
-            .route("timetable", web::put().to(edit_timetable)),
+pub(super) fn class_config(cfg: &mut ServiceConfig) {
+    cfg.route("/classes", post().to(create_class)).service(
+        scope("/classes/{classid}")
+            .route("", get().to(get_class))
+            .route("", put().to(edit_class))
+            .route("", delete().to(delete_class))
+            .route("/members/{uuid}", put().to(edit_member))
+            .route("/join", post().to(request_join))
+            .route("/requests", get().to(get_join_requests))
+            .route("/requests/{uuid}", post().to(accept_member))
+            .route("/events", get().to(get_events))
+            .route("/events", post().to(create_event))
+            .route("/events/{uuid}", get().to(get_event))
+            .route("/events/{uuid}", put().to(edit_event))
+            .route("/events/{uuid}", delete().to(delete_event))
+            .route("/timetable", get().to(get_timetable))
+            .route("/timetable", put().to(edit_timetable))
+            .route("/link", post().to(link_class_with_discord))
+            .route("/discord/{snowflake}", get().to(get_class_by_discord)),
     );
 }
 
-async fn get_class(class_path: web::Path<Uuid>, db: web::Data<Pool>, _role: Role) -> HttpResult {
-    let class = web::block(move || actions::class::get_class(&db, class_path.into_inner()))
+async fn get_class(class_path: Path<Uuid>, db: Data<Pool>, _role: Role) -> HttpResult {
+    let class = block(move || actions::class::get_class(&db, class_path.into_inner()))
         .await?
         .ok_or(ServiceErr::NotFound)?
         .into_dto()?;
@@ -41,21 +42,20 @@ async fn get_class(class_path: web::Path<Uuid>, db: web::Data<Pool>, _role: Role
     Ok(HttpResponse::Ok().json(class))
 }
 
-async fn create_class(class: web::Json<Class>, db: web::Data<Pool>, claims: Claims) -> HttpResult {
-    let id = uuid::Uuid::new_v4();
-    let uid = claims.uid;
-    let class = class.into_inner();
+async fn create_class(class: Json<Class>, db: Data<Pool>, claims: Claims) -> HttpResult {
+    let (result_class, owner) = block::<_, _, ServiceErr>(move || {
+        let class_id = uuid::Uuid::new_v4();
 
-    let new_class = NewClass {
-        id,
-        owner: claims.uid,
-        name: class.name,
-        description: class.description,
-    };
+        let new_class = NewClass {
+            id: class_id,
+            owner: claims.uid,
+            name: &class.name,
+            description: &class.description,
+            discord_id: None,
+        };
 
-    let (result_class, owner) = web::block::<_, _, ServiceErr>(move || {
         let class = actions::class::insert_class(&db, new_class)?;
-        let user = actions::user::get_user_by_id(&db, uid)?;
+        let user = actions::user::get_user_by_id(&db, claims.uid)?;
         let new_member = NewMember {
             user: user.id,
             class: class.id,
@@ -74,30 +74,39 @@ async fn create_class(class: web::Json<Class>, db: web::Data<Pool>, claims: Clai
 }
 
 async fn edit_class(
-    class_id: web::Path<Uuid>,
-    mut new_class: web::Json<Class>,
-    db: web::Data<Pool>,
+    class_id: Path<Uuid>,
+    new_class: Json<Class>,
+    db: Data<Pool>,
     role: Role,
 ) -> HttpResult {
-    new_class.id = class_id.into_inner();
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let class =
-        web::block(move || actions::class::update_class(&db, new_class.into_inner().try_into()?))
-            .await?
-            .into_dto()?;
+    let class = block(move || {
+        let update_class = NewClass {
+            id: class_id.into_inner(),
+            owner: Default::default(), // doesn't matter
+            name: &new_class.name,
+            description: &new_class.description,
+            discord_id: None,
+        };
+
+        actions::class::update_class(&db, update_class)
+    })
+    .await?
+    .into_dto()?;
+
     Ok(HttpResponse::Ok().json(class))
 }
 
-async fn delete_class(class_id: web::Path<Uuid>, db: web::Data<Pool>, role: Role) -> HttpResult {
+async fn delete_class(class_id: Path<Uuid>, db: Data<Pool>, role: Role) -> HttpResult {
     if *role != MemberRole::Owner {
         return Err(ServiceErr::Unauthorized("auth/no-owner"));
     }
 
     let deleted_amount =
-        web::block::<_, _, ServiceErr>(move || Ok(actions::class::delete_class(&db, *class_id)))
+        block::<_, _, ServiceErr>(move || Ok(actions::class::delete_class(&db, *class_id)))
             .await??;
 
     Ok(match deleted_amount {
@@ -108,28 +117,40 @@ async fn delete_class(class_id: web::Path<Uuid>, db: web::Data<Pool>, role: Role
 }
 
 async fn edit_member(
-    path: web::Path<(Uuid, Uuid)>,
+    path: Path<(Uuid, Uuid)>,
     role: Role,
-    member: web::Json<Member>,
-    db: web::Data<Pool>,
+    member: Json<Member>,
+    db: Data<Pool>,
     claims: Claims,
 ) -> HttpResult {
-    if claims.uid != path.1 && !role.has_rights() {
+    let (class_id, member_id) = path.into_inner();
+
+    // Only admins can edit others
+    if claims.uid != member_id && !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
+    // Cannot edit self
     if claims.uid == member.user {
         return Err(ServiceErr::BadRequest("auth/edit-own-permission"));
     }
 
+    // Can only set target permissions lower than own
     if member.role >= *role {
         return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
     }
 
-    let member = web::block(move || {
+    let member = block(move || {
+        let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
+
+        // Can only edit members lower than self
+        if old_member.role >= role.0 as i32 {
+            return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
+        }
+
         let member = NewMember {
-            user: path.1,
-            class: path.0,
+            user: member_id,
+            class: class_id,
             display_name: &member.display_name,
             role: crate::models::conversion::member_role_dto_to_int(&member.role),
         };
@@ -141,12 +162,8 @@ async fn edit_member(
     Ok(HttpResponse::Ok().json(member))
 }
 
-async fn request_join(
-    class_id: web::Path<Uuid>,
-    claims: Claims,
-    db: web::Data<Pool>,
-) -> HttpResult {
-    web::block(move || {
+async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> HttpResult {
+    block(move || {
         let user = actions::user::get_user_by_id(&db, claims.uid)?;
         let member = NewMember {
             user: claims.uid,
@@ -162,49 +179,46 @@ async fn request_join(
     Ok(HttpResponse::Created().body("Pending response..."))
 }
 
-async fn get_join_requests(
-    class_id: web::Path<Uuid>,
-    role: Role,
-    db: web::Data<Pool>,
-) -> HttpResult {
+async fn get_join_requests(class_id: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let members =
-        web::block(move || actions::class::get_pending_members(&db, class_id.into_inner()))
-            .await?
-            .into_dto()?;
+    let members = block(move || actions::class::get_pending_members(&db, class_id.into_inner()))
+        .await?
+        .into_dto()?;
 
     Ok(HttpResponse::Ok().json(members))
 }
 
 async fn accept_member(
-    path: web::Path<(Uuid, Uuid)>,
+    path: Path<(Uuid, Uuid)>,
     role: Role,
-    db: web::Data<Pool>,
+    db: Data<Pool>,
     accept: Json<MemberAcceptDto>,
 ) -> HttpResult {
+    let (class_id, member_id) = path.into_inner();
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let response = web::block(move || {
+    let response = block(move || {
         if accept.accept {
-            let member = actions::class::get_member(&db, path.1, path.0)?;
-            if member.1.id != PENDING {
+            let (member, _) = actions::class::get_member(&db, member_id, class_id)?;
+            if member.role != PENDING {
                 return Err(ServiceErr::BadRequest("class/member-not-pending"));
             }
             let new_member = NewMember {
-                user: path.1,
-                class: path.0,
-                display_name: &member.0.display_name,
+                user: member_id,
+                class: class_id,
+                display_name: &member.display_name,
                 role: 2,
             };
             actions::class::update_member(&db, new_member)?;
             Ok("Accepted member.")
         } else {
-            let deleted = actions::class::delete_member(&db, path.1, path.0)?;
+            let deleted = actions::class::delete_member(&db, member_id, class_id)?;
             match deleted {
                 0 => Err(ServiceErr::NotFound),
                 1 => Ok("Denied member."),
@@ -217,21 +231,17 @@ async fn accept_member(
     Ok(HttpResponse::Ok().body(response))
 }
 
-async fn get_event(
-    path: web::Path<(String, Uuid)>,
-    _role: Role,
-    db: web::Data<Pool>,
-) -> HttpResult {
-    let event = web::block(move || actions::event::get_event_by_id(&db, path.1))
+async fn get_event(path: Path<(String, Uuid)>, _role: Role, db: Data<Pool>) -> HttpResult {
+    let event = block(move || actions::event::get_event_by_id(&db, path.1))
         .await?
         .into_dto()?;
 
     Ok(HttpResponse::Ok().json(event))
 }
 
-async fn get_events(class_id: web::Path<Uuid>, _role: Role, db: web::Data<Pool>) -> HttpResult {
+async fn get_events(class_id: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
     // todo parameter
-    let events = web::block(move || actions::event::get_events_by_class(&db, *class_id))
+    let events = block(move || actions::event::get_events_by_class(&db, *class_id))
         .await?
         .into_dto()?;
 
@@ -239,16 +249,16 @@ async fn get_events(class_id: web::Path<Uuid>, _role: Role, db: web::Data<Pool>)
 }
 
 async fn create_event(
-    class_id: web::Path<Uuid>,
+    class_id: Path<Uuid>,
     role: Role,
-    db: web::Data<Pool>,
-    event: web::Json<Event>,
+    db: Data<Pool>,
+    event: Json<Event>,
 ) -> HttpResult {
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let event = web::block(move || {
+    let event = block(move || {
         let new_event = NewEvent {
             id: uuid::Uuid::new_v4(),
             class: *class_id,
@@ -268,16 +278,16 @@ async fn create_event(
 }
 
 async fn edit_event(
-    path: web::Path<(Uuid, Uuid)>,
+    path: Path<(Uuid, Uuid)>,
     role: Role,
-    db: web::Data<Pool>,
-    event: web::Json<Event>,
+    db: Data<Pool>,
+    event: Json<Event>,
 ) -> HttpResult {
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let event = web::block(move || {
+    let event = block(move || {
         let new_event = NewEvent {
             id: path.1,
             class: path.0,
@@ -296,16 +306,12 @@ async fn edit_event(
     Ok(HttpResponse::Ok().json(event))
 }
 
-async fn delete_event(
-    path: web::Path<(String, Uuid)>,
-    role: Role,
-    db: web::Data<Pool>,
-) -> HttpResult {
+async fn delete_event(path: Path<(String, Uuid)>, role: Role, db: Data<Pool>) -> HttpResult {
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let deleted = web::block(move || actions::event::delete_event(&db, path.1)).await?;
+    let deleted = block(move || actions::event::delete_event(&db, path.1)).await?;
 
     Ok(match deleted {
         0 => HttpResponse::NotFound().body("Event not found"),
@@ -314,8 +320,8 @@ async fn delete_event(
     })
 }
 
-async fn get_timetable(path: web::Path<Uuid>, _role: Role, db: web::Data<Pool>) -> HttpResult {
-    let timetable = web::block(move || actions::class::get_timetable(&db, *path))
+async fn get_timetable(path: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
+    let timetable = block(move || actions::class::get_timetable(&db, *path))
         .await?
         .timetable;
 
@@ -323,22 +329,22 @@ async fn get_timetable(path: web::Path<Uuid>, _role: Role, db: web::Data<Pool>) 
 }
 
 async fn edit_timetable(
-    path: web::Path<Uuid>,
+    path: Path<Uuid>,
     role: Role,
-    db: web::Data<Pool>,
+    db: Data<Pool>,
     table: Json<Timetable>,
 ) -> HttpResult {
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let timetable = web::block(move || {
+    let timetable = block(move || {
         actions::class::update_timetable(
             &db,
             models::Timetable {
                 class: *path,
                 timetable: serde_json::to_string(&table.into_inner()).map_err(|_| {
-                    ServiceErr::InternalServerError("Could not serialize timetable".to_string())
+                    ServiceErr::InternalServerError("serialize-timetable".to_string())
                 })?,
             },
         )
@@ -347,4 +353,39 @@ async fn edit_timetable(
     .timetable;
 
     Ok(HttpResponse::Ok().json(timetable))
+}
+
+async fn link_class_with_discord(
+    class_id: Path<Uuid>,
+    role: Role,
+    db: Data<Pool>,
+    id: Json<Snowflake>,
+) -> HttpResult {
+    if *role != MemberRole::Owner {
+        return Err(ServiceErr::BadRequest("auth/no-owner"));
+    }
+
+    let class = block(move || {
+        actions::class::set_discord_id_class(&db, *class_id, Some(id.into_inner().snowflake))
+    })
+    .await?
+    .into_dto()?;
+
+    Ok(HttpResponse::Ok().json(class))
+}
+
+async fn get_class_by_discord(
+    class_id: Path<String>,
+    claims: Claims,
+    db: Data<Pool>,
+) -> HttpResult {
+    if !claims.uid.is_nil() {
+        return Err(ServiceErr::NotFound); // very secret route
+    }
+
+    let class = block(move || actions::class::get_class_by_discord(&db, &class_id))
+        .await?
+        .into_dto()?;
+
+    Ok(HttpResponse::Ok().json(class))
 }

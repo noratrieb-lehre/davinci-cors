@@ -1,6 +1,6 @@
 use super::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::error::ServiceResult;
+use crate::error::{ServiceErr, ServiceResult};
 use crate::models::{NewUser, User};
 use crate::schema::users::dsl::*;
 use diesel::sql_types::{Integer, Text};
@@ -42,6 +42,7 @@ pub fn insert_user(db: &Pool, user: &dto::PostUser) -> ServiceResult<User> {
         email: &user.email,
         password: &user.password,
         description: &user.description,
+        discord_id: None,
     };
 
     Ok(insert_into(users)
@@ -74,4 +75,24 @@ pub fn change_user_password(db: &Pool, user: User) -> ServiceResult<User> {
     Ok(update(users.filter(email.eq(user.email)))
         .set(password.eq(crypt(user.password, gen_salt("bf", 8))))
         .get_result(&conn)?)
+}
+
+pub fn set_discord_id_user(db: &Pool, user_id: Uuid, d_id: Option<String>) -> ServiceResult<User> {
+    let conn = db.get()?;
+
+    Ok(update(users)
+        .filter(id.eq(user_id))
+        .set(discord_id.eq(d_id))
+        .get_result(&conn)?)
+}
+
+pub fn get_user_by_discord(db: &Pool, user_id: &str) -> ServiceResult<User> {
+    let conn = db.get()?;
+
+    Ok(users
+        .filter(discord_id.eq(user_id))
+        .load(&conn)?
+        .into_iter()
+        .next()
+        .ok_or(ServiceErr::NotFound)?)
 }

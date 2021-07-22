@@ -340,3 +340,40 @@ Requires Token
 `Timetable`  
 *Response*  
 `Timetable`
+
+
+## Bot routes
+
+### Link user with discord user
+Requires token
+`POST /users/me/link`
+*Request*
+```json
+{
+  "snowflake": "snowflakeid (string)"
+}
+```
+
+### Link guild with class
+Requires token and Owner
+`POST /classes/{uuid}/link`
+*Request*
+```json
+{
+  "snowflake": "snowflakeid (string)"
+}
+```
+
+#### Get class with discord snowflake
+
+`GET /classes/discord/{snowflake}`  
+Requires Token  
+*Response*  
+`Class`
+
+#### Get user with discord snowflake
+
+`GET /users/discord/{snowflake}`  
+Requires Token  
+*Response*  
+`User`

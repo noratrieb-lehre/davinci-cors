@@ -76,9 +76,10 @@ pub struct Member {
 }
 
 /// The role of a member
-#[derive(Debug, Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum MemberRole {
+    CORS = -1,
     Owner = 0,
     Admin = 1,
     Member = 2,
@@ -86,7 +87,10 @@ pub enum MemberRole {
 
 impl MemberRole {
     pub fn has_rights(&self) -> bool {
-        matches!(self, MemberRole::Owner | MemberRole::Admin)
+        matches!(
+            self,
+            MemberRole::Owner | MemberRole::Admin | MemberRole::CORS
+        )
     }
 }
 
@@ -138,4 +142,9 @@ pub struct UserPostResponse {
     pub email: String,
     pub description: String,
     pub expires: Timestamp,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Snowflake {
+    pub snowflake: String,
 }

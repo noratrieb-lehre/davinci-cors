@@ -19,7 +19,7 @@ use uuid::Uuid;
 /// - Validate that a user belongs to a class
 /// Also makes sure that a user is logged in
 #[derive(Debug, Clone)]
-pub struct Role(MemberRole);
+pub struct Role(pub MemberRole);
 
 impl Deref for Role {
     type Target = MemberRole;
@@ -40,6 +40,7 @@ impl FromRequest for Claims {
 }
 
 impl Claims {
+    /// The body of the fromRequest implementation, so it can be reused. (non-blocking, since it doesn't do any io)
     fn from_request_sync(req: &HttpRequest) -> Result<Self, ServiceErr> {
         let key = req
             .app_data::<DecodingKey>()
