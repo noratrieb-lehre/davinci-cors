@@ -1,12 +1,12 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
-use crate::models::conversion::IntoDao;
+use crate::models::conversion::IntoDto;
 use actix_web::error::BlockingError;
 use actix_web::web::Json;
 use actix_web::{web, HttpResponse};
-use dao::{PostUser, User, UserPostResponse};
 use diesel::result::DatabaseErrorKind;
+use dto::{PostUser, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
 
 mod auth;
@@ -68,10 +68,10 @@ async fn get_own_user(claims: Claims, db: web::Data<Pool>) -> HttpResult {
         let classes = actions::class::get_classes_by_user(&db, claims.uid)?;
 
         Ok((
-            user.into_dao()?,
+            user.into_dto()?,
             classes
                 .into_iter()
-                .map(IntoDao::into_dao)
+                .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?,
         ))
     })
@@ -90,7 +90,7 @@ async fn edit_own_user(
     new_user.id = claims.uid; // always update the own user
     let user = web::block(move || actions::user::update_user(&db, new_user.into_inner().into()))
         .await?
-        .into_dao()?;
+        .into_dto()?;
 
     Ok(HttpResponse::Ok().json(user))
 }

@@ -416,7 +416,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "bot"
 version = "0.1.0"
 dependencies = [
- "dao",
+ "dto",
 ]
 
 [[package]]
@@ -526,14 +526,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dao"
-version = "0.1.0"
-dependencies = [
- "serde",
- "uuid",
-]
-
-[[package]]
 name = "derive_more"
 version = "0.99.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -577,6 +569,14 @@ name = "dotenv"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
+name = "dto"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "uuid",
+]
 
 [[package]]
 name = "dtoa"
@@ -1532,9 +1532,9 @@ dependencies = [
  "actix-web",
  "actix-web-httpauth",
  "chrono",
- "dao",
  "diesel",
  "dotenv",
+ "dto",
  "jsonwebtoken",
  "r2d2",
  "serde",

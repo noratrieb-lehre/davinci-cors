@@ -16,7 +16,7 @@ pub enum ServiceErr {
     TokenExpiredError,
     JWTokenError,
     Unauthorized(&'static str),
-    InvalidDao(String),
+    InvalidDTO(String),
     Conflict(String),
 }
 
@@ -45,7 +45,7 @@ impl Display for ServiceErr {
                 ServiceErr::NotFound => "Not found".to_string(),
                 ServiceErr::InternalServerError(msg) => format!("Internal Server Error: {}", msg),
                 ServiceErr::Unauthorized(msg) => format!("Unauthorized: {}", msg),
-                ServiceErr::InvalidDao(msg) => format!("Invalid Data for DAO: {}", msg),
+                ServiceErr::InvalidDTO(msg) => format!("Invalid Data for DTO: {}", msg),
                 ServiceErr::BadRequest(msg) => format!("Bad Request: {}", msg),
                 ServiceErr::Conflict(msg) => format!("Conflict: {}", msg),
             }

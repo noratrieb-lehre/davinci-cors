@@ -110,13 +110,13 @@ pub mod conversion {
     use crate::models::{Class, Member, MemberRole, User, PENDING};
     use std::convert::TryFrom;
 
-    pub trait IntoDao<T> {
-        fn into_dao(self) -> ServiceResult<T>;
+    pub trait IntoDto<T> {
+        fn into_dto(self) -> ServiceResult<T>;
     }
 
-    impl IntoDao<dao::Class> for Class {
-        fn into_dao(self) -> ServiceResult<dao::Class> {
-            Ok(dao::Class {
+    impl IntoDto<dto::Class> for Class {
+        fn into_dto(self) -> ServiceResult<dto::Class> {
+            Ok(dto::Class {
                 id: self.id,
                 members: vec![],
                 name: self.name,
@@ -125,17 +125,17 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::Class> for (Class, Vec<(Member, MemberRole)>) {
-        fn into_dao(self) -> ServiceResult<dao::Class> {
+    impl IntoDto<dto::Class> for (Class, Vec<(Member, MemberRole)>) {
+        fn into_dto(self) -> ServiceResult<dto::Class> {
             let (class, members) = self;
 
             let actual_members = members
                 .into_iter()
                 .filter(|(_, role)| role.id != PENDING)
-                .map(IntoDao::into_dao)
+                .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 
-            Ok(dao::Class {
+            Ok(dto::Class {
                 id: class.id,
                 members: actual_members,
                 name: class.name,
@@ -144,24 +144,24 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::Member> for (Member, MemberRole) {
-        fn into_dao(self) -> ServiceResult<dao::Member> {
+    impl IntoDto<dto::Member> for (Member, MemberRole) {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
             let (member, role) = self;
-            Ok(dao::Member {
+            Ok(dto::Member {
                 user: member.user,
                 display_name: member.display_name,
-                role: role.into_dao()?,
+                role: role.into_dto()?,
             })
         }
     }
 
-    impl IntoDao<dao::MemberRole> for MemberRole {
-        fn into_dao(self) -> ServiceResult<dao::MemberRole> {
+    impl IntoDto<dto::MemberRole> for MemberRole {
+        fn into_dto(self) -> ServiceResult<dto::MemberRole> {
             Ok(match &*self.display {
-                "owner" => dao::MemberRole::Owner,
-                "admin" => dao::MemberRole::Admin,
-                "member" => dao::MemberRole::Member,
-                role => Err(ServiceErr::InvalidDao(format!(
+                "owner" => dto::MemberRole::Owner,
+                "admin" => dto::MemberRole::Admin,
+                "member" => dto::MemberRole::Member,
+                role => Err(ServiceErr::InvalidDTO(format!(
                     "Invalid member role {}",
                     role
                 )))?,
@@ -169,13 +169,13 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::MemberRole> for i32 {
-        fn into_dao(self) -> ServiceResult<dao::MemberRole> {
+    impl IntoDto<dto::MemberRole> for i32 {
+        fn into_dto(self) -> ServiceResult<dto::MemberRole> {
             Ok(match self {
-                0 => dao::MemberRole::Owner,
-                1 => dao::MemberRole::Admin,
-                2 => dao::MemberRole::Member,
-                role => Err(ServiceErr::InvalidDao(format!(
+                0 => dto::MemberRole::Owner,
+                1 => dto::MemberRole::Admin,
+                2 => dto::MemberRole::Member,
+                role => Err(ServiceErr::InvalidDTO(format!(
                     "Invalid member role {}",
                     role
                 )))?,
@@ -183,9 +183,9 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::User> for User {
-        fn into_dao(self) -> ServiceResult<dao::User> {
-            Ok(dao::User {
+    impl IntoDto<dto::User> for User {
+        fn into_dto(self) -> ServiceResult<dto::User> {
+            Ok(dto::User {
                 id: self.id,
                 email: self.email,
                 description: self.description,
@@ -194,10 +194,10 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::User> for (User, Vec<dao::Class>) {
-        fn into_dao(self) -> ServiceResult<dao::User> {
+    impl IntoDto<dto::User> for (User, Vec<dto::Class>) {
+        fn into_dto(self) -> ServiceResult<dto::User> {
             let (user, classes) = self;
-            Ok(dao::User {
+            Ok(dto::User {
                 id: user.id,
                 email: user.email,
                 description: user.description,
@@ -206,20 +206,20 @@ pub mod conversion {
         }
     }
 
-    impl IntoDao<dao::Member> for Member {
-        fn into_dao(self) -> ServiceResult<dao::Member> {
-            Ok(dao::Member {
+    impl IntoDto<dto::Member> for Member {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
+            Ok(dto::Member {
                 user: self.user,
                 display_name: self.display_name,
-                role: self.role.into_dao()?,
+                role: self.role.into_dto()?,
             })
         }
     }
 
-    ////// from dao
+    ////// from dto
 
-    impl From<dao::User> for User {
-        fn from(user: dao::User) -> Self {
+    impl From<dto::User> for User {
+        fn from(user: dto::User) -> Self {
             Self {
                 id: user.id,
                 email: user.email,
@@ -231,16 +231,16 @@ pub mod conversion {
 
     ////// new _
 
-    impl TryFrom<dao::Class> for Class {
+    impl TryFrom<dto::Class> for Class {
         type Error = ServiceErr;
 
-        fn try_from(class: dao::Class) -> Result<Self, Self::Error> {
+        fn try_from(class: dto::Class) -> Result<Self, Self::Error> {
             Ok(Self {
                 id: class.id,
                 owner: class
                     .members
                     .into_iter()
-                    .find(|member| member.role == dao::MemberRole::Owner)
+                    .find(|member| member.role == dto::MemberRole::Owner)
                     .ok_or(ServiceErr::BadRequest("No Owner provided".to_string()))?
                     .user,
                 name: class.name,

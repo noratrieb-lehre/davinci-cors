@@ -11,7 +11,7 @@ type Uuid = uuid::Uuid;
 
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventDao {
+pub struct EventDto {
     pub id: Uuid,
     pub r#type: String,
     pub name: String,
@@ -124,7 +124,7 @@ pub struct LoginResponse {
 
 /// Request body of /classes/{uuid}/requests/{uuid}
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemberAcceptDao {
+pub struct MemberAcceptDto {
     pub accept: bool,
 }
 
