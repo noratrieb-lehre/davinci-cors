@@ -36,11 +36,11 @@ pub struct Class {
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
 #[table_name = "classes"]
-pub struct NewClass {
+pub struct NewClass<'a> {
     pub id: Uuid,
     pub owner: Uuid,
-    pub name: String,
-    pub description: String,
+    pub name: &'a str,
+    pub description: &'a str,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -108,8 +108,6 @@ pub const PENDING: i32 = 3;
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
     use crate::models::{Class, Event, Member, MemberRole, User, PENDING};
-    use std::convert::TryFrom;
-    use uuid::Uuid;
 
     pub trait IntoDto<T> {
         fn into_dto(self) -> ServiceResult<T>;
@@ -163,7 +161,7 @@ pub mod conversion {
                 "admin" => dto::MemberRole::Admin,
                 "member" => dto::MemberRole::Member,
                 role => {
-                    return Err(ServiceErr::InvalidDTO(format!(
+                    return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",
                         role
                     )))
@@ -179,7 +177,7 @@ pub mod conversion {
                 1 => dto::MemberRole::Admin,
                 2 => dto::MemberRole::Member,
                 role => {
-                    return Err(ServiceErr::InvalidDTO(format!(
+                    return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",
                         role
                     )))
@@ -196,7 +194,7 @@ pub mod conversion {
                 3 => dto::EventType::Holidays,
                 4 => dto::EventType::Other,
                 role => {
-                    return Err(ServiceErr::InvalidDTO(format!(
+                    return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",
                         role
                     )))
@@ -275,27 +273,7 @@ pub mod conversion {
         }
     }
 
-    ////// new _
-
-    impl TryFrom<dto::Class> for Class {
-        type Error = ServiceErr;
-
-        /// does not inlude the owner
-        fn try_from(class: dto::Class) -> Result<Self, Self::Error> {
-            Ok(Self {
-                id: class.id,
-                owner: Uuid::default(),
-                name: class.name,
-                description: class.description,
-            })
-        }
-    }
-
     pub fn member_role_dto_to_int(dto: &dto::MemberRole) -> i32 {
-        match *dto {
-            dto::MemberRole::Owner => 0,
-            dto::MemberRole::Admin => 1,
-            dto::MemberRole::Member => 2,
-        }
+        *dto as i32
     }
 }

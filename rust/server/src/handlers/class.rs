@@ -9,7 +9,6 @@ use crate::models::{NewClass, NewEvent, NewMember, PENDING};
 use actix_web::web::Json;
 use actix_web::{web, HttpResponse};
 use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Timetable};
-use std::convert::TryInto;
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut web::ServiceConfig) {
@@ -42,20 +41,18 @@ async fn get_class(class_path: web::Path<Uuid>, db: web::Data<Pool>, _role: Role
 }
 
 async fn create_class(class: web::Json<Class>, db: web::Data<Pool>, claims: Claims) -> HttpResult {
-    let id = uuid::Uuid::new_v4();
-    let uid = claims.uid;
-    let class = class.into_inner();
-
-    let new_class = NewClass {
-        id,
-        owner: claims.uid,
-        name: class.name,
-        description: class.description,
-    };
-
     let (result_class, owner) = web::block::<_, _, ServiceErr>(move || {
+        let class_id = uuid::Uuid::new_v4();
+
+        let new_class = NewClass {
+            id: class_id,
+            owner: claims.uid,
+            name: &class.name,
+            description: &class.description,
+        };
+
         let class = actions::class::insert_class(&db, new_class)?;
-        let user = actions::user::get_user_by_id(&db, uid)?;
+        let user = actions::user::get_user_by_id(&db, claims.uid)?;
         let new_member = NewMember {
             user: user.id,
             class: class.id,
@@ -75,19 +72,27 @@ async fn create_class(class: web::Json<Class>, db: web::Data<Pool>, claims: Clai
 
 async fn edit_class(
     class_id: web::Path<Uuid>,
-    mut new_class: web::Json<Class>,
+    new_class: web::Json<Class>,
     db: web::Data<Pool>,
     role: Role,
 ) -> HttpResult {
-    new_class.id = class_id.into_inner();
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let class =
-        web::block(move || actions::class::update_class(&db, new_class.into_inner().try_into()?))
-            .await?
-            .into_dto()?;
+    let class = web::block(move || {
+        let update_class = NewClass {
+            id: class_id.into_inner(),
+            owner: Default::default(), // doesn't matter
+            name: &new_class.name,
+            description: &new_class.description,
+        };
+
+        actions::class::update_class(&db, update_class)
+    })
+    .await?
+    .into_dto()?;
+
     Ok(HttpResponse::Ok().json(class))
 }
 
@@ -114,22 +119,34 @@ async fn edit_member(
     db: web::Data<Pool>,
     claims: Claims,
 ) -> HttpResult {
-    if claims.uid != path.1 && !role.has_rights() {
+    let (class_id, member_id) = path.into_inner();
+
+    // Only admins can edit others
+    if claims.uid != member_id && !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
+    // Cannot edit self
     if claims.uid == member.user {
         return Err(ServiceErr::BadRequest("auth/edit-own-permission"));
     }
 
+    // Can only set target permissions lower than own
     if member.role >= *role {
         return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
     }
 
     let member = web::block(move || {
+        let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
+
+        // Can only edit members lower than self
+        if old_member.role >= role.0 as i32 {
+            return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
+        }
+
         let member = NewMember {
-            user: path.1,
-            class: path.0,
+            user: member_id,
+            class: class_id,
             display_name: &member.display_name,
             role: crate::models::conversion::member_role_dto_to_int(&member.role),
         };
@@ -185,26 +202,28 @@ async fn accept_member(
     db: web::Data<Pool>,
     accept: Json<MemberAcceptDto>,
 ) -> HttpResult {
+    let (class_id, member_id) = path.into_inner();
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
     let response = web::block(move || {
         if accept.accept {
-            let member = actions::class::get_member(&db, path.1, path.0)?;
-            if member.1.id != PENDING {
+            let (member, _) = actions::class::get_member(&db, member_id, class_id)?;
+            if member.role != PENDING {
                 return Err(ServiceErr::BadRequest("class/member-not-pending"));
             }
             let new_member = NewMember {
-                user: path.1,
-                class: path.0,
-                display_name: &member.0.display_name,
+                user: member_id,
+                class: class_id,
+                display_name: &member.display_name,
                 role: 2,
             };
             actions::class::update_member(&db, new_member)?;
             Ok("Accepted member.")
         } else {
-            let deleted = actions::class::delete_member(&db, path.1, path.0)?;
+            let deleted = actions::class::delete_member(&db, member_id, class_id)?;
             match deleted {
                 0 => Err(ServiceErr::NotFound),
                 1 => Ok("Denied member."),
@@ -338,7 +357,7 @@ async fn edit_timetable(
             models::Timetable {
                 class: *path,
                 timetable: serde_json::to_string(&table.into_inner()).map_err(|_| {
-                    ServiceErr::InternalServerError("Could not serialize timetable".to_string())
+                    ServiceErr::InternalServerError("serialize-timetable".to_string())
                 })?,
             },
         )

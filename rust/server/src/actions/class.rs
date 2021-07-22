@@ -64,7 +64,7 @@ pub fn create_member(db: &Pool, member: NewMember) -> ServiceResult<Member> {
     Ok(insert_into(members).values(&member).get_result(&conn)?)
 }
 
-pub fn update_class(db: &Pool, new_class: Class) -> ServiceResult<Class> {
+pub fn update_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
     let conn = db.get()?;
 
     Ok(update(classes)

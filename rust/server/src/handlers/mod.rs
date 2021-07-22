@@ -44,7 +44,7 @@ async fn create_user(
         Ok(user) => user,
         Err(BlockingError::Error(ServiceErr::DbActionFailed(
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _),
-        ))) => return Err(ServiceErr::Conflict("request/email-exists".to_string())),
+        ))) => return Err(ServiceErr::Conflict("request/email-exists")),
         other => other?,
     };
 

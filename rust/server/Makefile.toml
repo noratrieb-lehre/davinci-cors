@@ -10,8 +10,8 @@ dependencies = ["stop-db"]
 [tasks.create-db]
 script = [
     "docker run -d -p 5432:5432 --name davinci -e POSTGRES_PASSWORD=hugo58hugo postgres",
-    #"timeout 5",
-    #"docker exec davinci psql -c 'create database davinci'",
+    "timeout 5",
+    "docker exec davinci psql -c 'create database davinci'",
 ]
 
 [tasks.reset-db]
