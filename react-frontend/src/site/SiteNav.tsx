@@ -20,7 +20,6 @@ const SiteNav = () => {
                     {
                         isLoggedIn ? (
                             <>
-                                <NavLink to={'/'} exact className={'nav-link'}>Über</NavLink>
                                 <NavLink to={'/class'} className={'nav-link'}>Klassenansicht</NavLink>
                                 <NavLink to={'/account'} className={'nav-link'}>Account</NavLink>
                             </>
@@ -29,7 +28,6 @@ const SiteNav = () => {
                             <>
                                 <NavLink to={'/'} exact className={'nav-link'}>Login</NavLink>
                                 <NavLink to={'/signup'} exact className={'nav-link'}>Registrieren</NavLink>
-
                             </>
                         )
                     }
