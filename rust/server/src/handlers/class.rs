@@ -15,26 +15,30 @@ use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetabl
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut ServiceConfig) {
-    cfg.route("/classes", post().to(create_class)).service(
-        scope("/classes/{classid}")
-            .route("", get().to(get_class))
-            .route("", put().to(edit_class))
-            .route("", delete().to(delete_class))
-            .route("/members/{uuid}", put().to(edit_member))
-            .route("/members/{uuid}", delete().to(delete_member))
-            .route("/join", post().to(request_join))
-            .route("/requests", get().to(get_join_requests))
-            .route("/requests/{uuid}", post().to(accept_member))
-            .route("/events", get().to(get_events))
-            .route("/events", post().to(create_event))
-            .route("/events/{uuid}", get().to(get_event))
-            .route("/events/{uuid}", put().to(edit_event))
-            .route("/events/{uuid}", delete().to(delete_event))
-            .route("/timetable", get().to(get_timetable))
-            .route("/timetable", put().to(edit_timetable))
-            .route("/link", post().to(link_class_with_discord))
-            .route("/discord/{snowflake}", get().to(get_class_by_discord)),
-    );
+    cfg.route("/classes", post().to(create_class))
+        .route(
+            "/classes/discord/{snowflake}",
+            get().to(get_class_by_discord),
+        )
+        .service(
+            scope("/classes/{classid}")
+                .route("", get().to(get_class))
+                .route("", put().to(edit_class))
+                .route("", delete().to(delete_class))
+                .route("/members/{uuid}", put().to(edit_member))
+                .route("/members/{uuid}", delete().to(delete_member))
+                .route("/join", post().to(request_join))
+                .route("/requests", get().to(get_join_requests))
+                .route("/requests/{uuid}", post().to(accept_member))
+                .route("/events", get().to(get_events))
+                .route("/events", post().to(create_event))
+                .route("/events/{uuid}", get().to(get_event))
+                .route("/events/{uuid}", put().to(edit_event))
+                .route("/events/{uuid}", delete().to(delete_event))
+                .route("/timetable", get().to(get_timetable))
+                .route("/timetable", put().to(edit_timetable))
+                .route("/link", post().to(link_class_with_discord)),
+        );
 }
 
 async fn get_class(class_path: Path<Uuid>, db: Data<Pool>, _role: Role) -> HttpResult {
@@ -434,8 +438,9 @@ async fn get_class_by_discord(
     claims: Claims,
     db: Data<Pool>,
 ) -> HttpResult {
+    println!("{}, {:?}", class_id, claims);
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::NotFound); // very secret route
+        return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
     }
 
     let class = block(move || actions::class::get_class_by_discord(&db, &class_id))

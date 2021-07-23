@@ -665,6 +665,7 @@ dependencies = [
  "serde_json",
  "serenity",
  "tokio 1.9.0",
+ "uuid",
 ]
 
 [[package]]

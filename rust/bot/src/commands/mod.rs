@@ -6,24 +6,24 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 use std::result::Result;
 
-use crate::error::BotError;
+use crate::error::{BotError, BotResult};
 pub use setup::setup_slash_commands;
 
 pub async fn create_interaction_response<'a>(
     ctx: &Context,
     data: &ApplicationCommandInteractionData,
     interaction: &Interaction,
-) -> Result<(), BotError> {
+) -> BotResult<()> {
     match data.name.as_str() {
         "info" => info(ctx, &interaction).await?,
-        "events" => events::handle_event_command(ctx, &interaction, &data.options).await?,
+        "event" => events::handle_event_command(ctx, &interaction, &data.options).await?,
         "wielangenoch" => todo!(),
-        name => Ok(println!("{}, {:#?}", name, data.options)),
+        name => println!("{}, {:#?}", name, data.options),
     }
     Ok(())
 }
 
-async fn info(ctx: &Context, interaction: &Interaction) -> Result<()> {
+async fn info(ctx: &Context, interaction: &Interaction) -> BotResult<()> {
     let (corsin, nils) = tokio::join!(
         UserId(546052568619679744).to_user(&ctx.http),
         UserId(414755070161453076).to_user(&ctx.http)
@@ -31,7 +31,7 @@ async fn info(ctx: &Context, interaction: &Interaction) -> Result<()> {
     let (corsin, nils) = (corsin?, nils?);
     let corsin_first = rand::random::<bool>();
 
-    interaction
+    Ok(interaction
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -41,7 +41,7 @@ async fn info(ctx: &Context, interaction: &Interaction) -> Result<()> {
                         .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                 })
         })
-        .await
+        .await?)
 }
 
 fn info_embed(
