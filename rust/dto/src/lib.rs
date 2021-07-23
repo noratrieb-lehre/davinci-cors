@@ -83,6 +83,7 @@ pub enum MemberRole {
     Owner = 0,
     Admin = 1,
     Member = 2,
+    Pending = 3,
 }
 
 impl MemberRole {

@@ -7,7 +7,7 @@ use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::{NewClass, NewEvent, NewMember, PENDING};
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, ServiceConfig};
-use actix_web::{web, HttpResponse};
+use actix_web::HttpResponse;
 use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 
@@ -18,6 +18,7 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
             .route("", put().to(edit_class))
             .route("", delete().to(delete_class))
             .route("/members/{uuid}", put().to(edit_member))
+            .route("/members/{uuid}", delete().to(delete_member))
             .route("/join", post().to(request_join))
             .route("/requests", get().to(get_join_requests))
             .route("/requests/{uuid}", post().to(accept_member))
@@ -160,6 +161,34 @@ async fn edit_member(
     .into_dto()?;
 
     Ok(HttpResponse::Ok().json(member))
+}
+
+async fn delete_member(
+    path: Path<(Uuid, Uuid)>,
+    role: Role,
+    db: Data<Pool>,
+    claims: Claims,
+) -> HttpResult {
+    let (class_id, member_id) = path.into_inner();
+
+    // Must be admin to delete others
+    if !role.has_rights() && claims.uid != member_id {
+        return Err(ServiceErr::NoAdminPermissions);
+    }
+
+    // Class must always have an owner
+    if claims.uid == member_id && *role == MemberRole::Owner {
+        return Err(ServiceErr::BadRequest("class/must-have-owner"));
+    }
+
+    let deleted_amount =
+        block(move || actions::class::delete_member(&db, member_id, class_id)).await?;
+
+    match deleted_amount {
+        0 => Err(ServiceErr::NotFound),
+        1 => Ok(HttpResponse::Ok().body("Deleted member")),
+        _ => unreachable!(),
+    }
 }
 
 async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> HttpResult {

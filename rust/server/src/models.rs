@@ -14,7 +14,7 @@ pub struct User {
 #[derive(Debug, Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
-    pub id: &'a Uuid,
+    pub id: Uuid,
     pub email: &'a str,
     pub password: &'a str,
     pub description: &'a str,
@@ -180,6 +180,7 @@ pub mod conversion {
                 0 => dto::MemberRole::Owner,
                 1 => dto::MemberRole::Admin,
                 2 => dto::MemberRole::Member,
+                3 => dto::MemberRole::Pending,
                 role => {
                     return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",

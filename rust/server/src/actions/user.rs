@@ -33,24 +33,15 @@ pub fn validate_user_password(
     Ok(found_user.into_iter().next())
 }
 
-pub fn insert_user(db: &Pool, user: &dto::PostUser) -> ServiceResult<User> {
+pub fn insert_user(db: &Pool, user: NewUser) -> ServiceResult<User> {
     let conn = db.get()?;
-
-    let uuid = uuid::Uuid::new_v4();
-    let new_user = NewUser {
-        id: &uuid,
-        email: &user.email,
-        password: &user.password,
-        description: &user.description,
-        discord_id: None,
-    };
 
     Ok(insert_into(users)
         .values((
-            id.eq(uuid),
-            email.eq(new_user.email),
-            password.eq(crypt(new_user.password, gen_salt("bf", 8))),
-            description.eq(new_user.description),
+            id.eq(user.id),
+            email.eq(user.email),
+            password.eq(crypt(user.password, gen_salt("bf", 8))),
+            description.eq(user.description),
         ))
         .get_result(&conn)?)
 }
@@ -77,7 +68,7 @@ pub fn change_user_password(db: &Pool, user: User) -> ServiceResult<User> {
         .get_result(&conn)?)
 }
 
-pub fn set_discord_id_user(db: &Pool, user_id: Uuid, d_id: Option<String>) -> ServiceResult<User> {
+pub fn set_discord_id_user(db: &Pool, user_id: Uuid, d_id: Option<&str>) -> ServiceResult<User> {
     let conn = db.get()?;
 
     Ok(update(users)
