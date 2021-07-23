@@ -230,12 +230,21 @@ Requires Token
 ### Class member
 
 ### Put class member
-
+Requires Token and Admin  
 `PUT /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
 *Response*  
 `Member`
+
+### Delete class member
+Requires Token and Admin  
+`DELETE /classes/{uuid}/members/{uuid}`  
+*Request*  
+`Member`    
+*Response*  
+`Member`
+
 
 #### Request join
 
