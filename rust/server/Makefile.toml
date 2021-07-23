@@ -23,3 +23,7 @@ dependencies = [
 [tasks.run-migrations]
 command = "diesel"
 args = ["migration", "run"]
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--", "--test-threads=1"]

@@ -6,8 +6,11 @@ use crate::handlers::HttpResult;
 use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::{NewClass, NewEvent, NewMember, PENDING};
-use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, ServiceConfig};
+use actix_web::web::{
+    block, delete, get, post, put, scope, Data, Json, Path, Query, ServiceConfig,
+};
 use actix_web::HttpResponse;
+use chrono::NaiveDateTime;
 use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 
@@ -268,11 +271,34 @@ async fn get_event(path: Path<(String, Uuid)>, _role: Role, db: Data<Pool>) -> H
     Ok(HttpResponse::Ok().json(event))
 }
 
-async fn get_events(class_id: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
-    // todo parameter
-    let events = block(move || actions::event::get_events_by_class(&db, *class_id))
-        .await?
-        .into_dto()?;
+async fn get_events(
+    class_id: Path<Uuid>,
+    _role: Role,
+    db: Data<Pool>,
+    Query((before, after)): Query<(Option<i64>, Option<i64>)>,
+) -> HttpResult {
+    let events = block(move || match (before, after) {
+        (None, None) => actions::event::get_events_by_class(&db, *class_id),
+        (Some(before), Some(after)) => actions::event::get_events_by_class_filtered_both(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(before, 0),
+            NaiveDateTime::from_timestamp(after, 0),
+        ),
+        (Some(before), None) => actions::event::get_events_by_class_filtered_before(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(before, 0),
+        ),
+        (None, Some(after)) => actions::event::get_events_by_class_filtered_both(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(0, 0),
+            NaiveDateTime::from_timestamp(after, 0),
+        ),
+    })
+    .await?
+    .into_dto()?;
 
     Ok(HttpResponse::Ok().json(events))
 }
@@ -294,7 +320,7 @@ async fn create_event(
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end / 1000, 0),
+            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
             description: &event.description,
         };
 
@@ -323,7 +349,7 @@ async fn edit_event(
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end / 1000, 0),
+            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
             description: &event.description,
         };
 
