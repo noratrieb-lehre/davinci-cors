@@ -28,7 +28,7 @@ const Login = () => {
     const history = useHistory()
     const userService = useContext<UserService>(UserServiceContext)
     const handleSumbit = ({email, password}: { email: string, password: string }) => {
-        userService.login(email, password).then(() => history.push('/account'));
+        userService.login(email, password).then(() => history.push('/class'));
 
     }
     const formik = useFormik({
@@ -49,7 +49,8 @@ const Login = () => {
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'text'} name={'email'} onChange={formik.handleChange}
-                                 value={formik.values.email} isInvalid={!!formik.errors.email} placeholder={'E-Mail Adresse'}/>
+                                 value={formik.values.email} isInvalid={!!formik.errors.email}
+                                 placeholder={'E-Mail Adresse'}/>
                     <br/>
                     <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                 </FormGroup>

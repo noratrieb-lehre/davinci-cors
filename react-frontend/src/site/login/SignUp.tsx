@@ -18,7 +18,7 @@ const ValidationScheme = Yup.object().shape({
 const SignUp = () => {
     const userService = useContext(UserServiceContext);
 
-    const onSubmit = ({ email, password }: {email: string, password: string}) => {
+    const onSubmit = ({email, password}: { email: string, password: string }) => {
         userService.createAccount({
             description: '',
             id: '',
@@ -64,7 +64,8 @@ const SignUp = () => {
                     <FormControl type={'password'} placeholder={'Passwort bestätigen'} name={'confirmPassword'}
                                  isInvalid={!!formik.errors.confirmPassword} value={formik.values.confirmPassword}
                                  onChange={formik.handleChange}/>
-                    <Alert variant={'danger'} show={!!formik.errors.confirmPassword}>{formik.errors.confirmPassword}</Alert>
+                    <Alert variant={'danger'}
+                           show={!!formik.errors.confirmPassword}>{formik.errors.confirmPassword}</Alert>
                 </FormGroup>
                 <br/><br/>
                 <Button onClick={() => formik.handleSubmit()}>Registrieren</Button>

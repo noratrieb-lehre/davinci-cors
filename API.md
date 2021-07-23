@@ -346,7 +346,7 @@ Requires Token
 
 ### Link user with discord user
 Requires token
-`POST /users/me/connect`
+`POST /users/me/link`
 *Request*
 ```json
 {
@@ -356,7 +356,7 @@ Requires token
 
 ### Link guild with class
 Requires token and Owner
-`POST /classes/{uuid}/connect`
+`POST /classes/{uuid}/link`
 *Request*
 ```json
 {

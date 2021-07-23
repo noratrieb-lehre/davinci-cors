@@ -2,10 +2,11 @@ import React, {useContext, useEffect, useState} from 'react';
 import {Container, Tab, Tabs} from "react-bootstrap";
 import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
 import ClassInfo from "./ClassInfo";
-import Timetable from "./Timetable";
+import Timetable from "./timetable/Timetable";
 import Calendar from "./calendar/Calendar";
 import {UserServiceContext} from "../../Router";
 import Class from "../../../data/class/Class";
+import WieLangeNoch from "./wielangenoch/WieLangeNoch";
 
 const CurrentClass = React.createContext<Class | undefined>(undefined)
 
@@ -33,23 +34,24 @@ const ClassView = () => {
     }, [selectedSite, currentClass])
 
     return (
-        <Container>
-
-
+        <Container fluid>
             <CurrentClass.Provider value={currentClass}>
-                <Tabs id={'classview-tab'} className={'mb-3'} activeKey={selectedSite}
-                      onSelect={onTabSelect}>
-                    <Tab eventKey={'info'} title={'Info'}/>
-                    <Tab eventKey={"timetable"} title={'Stundenplan'}/>
-                    <Tab eventKey={'calendar'} title={'Kalender'}/>
-                </Tabs>
                 {
                     currentClass && (
                         <>
+                            <Tabs id={'classview-tab'} className={'mb-3'} activeKey={selectedSite}
+                                  onSelect={onTabSelect} sm={8}>
+                                <Tab eventKey={'info'} title={'Info'}/>
+                                <Tab eventKey={"timetable"} title={'Stundenplan'}/>
+                                <Tab eventKey={'calendar'} title={'Kalender'}/>
+                                <Tab title={'Wie Lange Noch'} eventKey={'wielangenoch'}/>
+                            </Tabs>
+
                             <Switch>
                                 <Route path={'/class/:id/info'} component={ClassInfo}/>
                                 <Route path={'/class/:id/calendar'} component={Calendar}/>
                                 <Route path={'/class/:id/timetable'} component={Timetable}/>
+                                <Route path={'/class/:id/wielangenoch'} component={WieLangeNoch}/>
                             </Switch>
 
                             <Redirect exact from={'/class/:id/'} to={`/class/${id}/info`}/>
