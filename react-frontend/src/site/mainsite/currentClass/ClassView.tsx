@@ -32,7 +32,7 @@ const ClassView = () => {
         if (id && currentClass) {
             history.push(`/class/${id}/${selectedSite}`);
         }
-    }, [selectedSite, currentClass])
+    }, [history, id, selectedSite, currentClass])
 
     return (
         <Container fluid>
@@ -41,7 +41,7 @@ const ClassView = () => {
                     currentClass && (
                         <>
                             <Tabs id={'classview-tab'} className={'mb-3'} activeKey={selectedSite}
-                                  onSelect={onTabSelect} sm={8}>
+                                  onSelect={onTabSelect} sm={8} transition={false}>
                                 <Tab eventKey={'info'} title={'Info'}/>
                                 <Tab eventKey={"timetable"} title={'Stundenplan'}/>
                                 <Tab eventKey={'calendar'} title={'Kalender'}/>
@@ -57,7 +57,8 @@ const ClassView = () => {
                                 <Route path={'/class/:id/timetable'} component={Timetable}/>
                                 <Route path={'/class/:id/wielangenoch'} component={WieLangeNoch}/>
                                 {
-                                    userService.isAdmin(currentClass) && <Route path={'/class/:id/admin'} component={AdminPanel}/>
+                                    userService.isAdmin(currentClass) &&
+                                    <Route path={'/class/:id/admin'} component={AdminPanel}/>
                                 }
                             </Switch>
 

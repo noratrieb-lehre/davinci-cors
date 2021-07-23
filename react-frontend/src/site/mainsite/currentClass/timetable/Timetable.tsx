@@ -25,7 +25,7 @@ const Timetable = () => {
                             <TimeTableDay key={idx} name={getNameOfDay(idx)} lessons={val}/>
                         )
                     } else {
-                        return (<></>)
+                        return (<Container key={idx}/>)
                     }
                 })
             }
