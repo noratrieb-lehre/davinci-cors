@@ -7,7 +7,7 @@ use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::{NewClass, NewEvent, NewMember, PENDING};
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, ServiceConfig};
-use actix_web::{web, HttpResponse};
+use actix_web::HttpResponse;
 use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 

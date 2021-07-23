@@ -6,8 +6,11 @@ CREATE TABLE users
     email       VARCHAR(50)   NOT NULL,
     password    TEXT          NOT NULL,
     description VARCHAR(1000) NOT NULL DEFAULT '',
+    discord_id  VARCHAR(20)   NULL,
     CONSTRAINT unique_email
-        UNIQUE (email)
+        UNIQUE (email),
+    CONSTRAINT unique_discord_user
+        UNIQUE (discord_id)
 );
 
 CREATE TABLE member_roles
@@ -22,18 +25,23 @@ CREATE TABLE classes
     owner       UUID        NOT NULL,
     name        VARCHAR(50) NOT NULL,
     description VARCHAR(50) NOT NULL DEFAULT '',
+    discord_id  VARCHAR(20) NULL,
     CONSTRAINT class_owner_fK
         FOREIGN KEY (owner)
             REFERENCES users (id)
+            ON DELETE RESTRICT,
+    CONSTRAINT unique_guild
+        UNIQUE (discord_id)
 );
 
 CREATE TABLE timetables
 (
     class     UUID PRIMARY KEY,
-    timetable TEXT NOT NULL DEFAULT '[[], [], [], [], [], [], []]',
+    timetable TEXT NOT NULL DEFAULT '[[],[],[],[],[],[],[]]',
     CONSTRAINT timetable_class_fk
         FOREIGN KEY (class)
             REFERENCES classes (id)
+            ON DELETE CASCADE
 );
 
 INSERT INTO member_roles (id, display)
@@ -52,13 +60,16 @@ CREATE TABLE members
     PRIMARY KEY ("user", class),
     CONSTRAINT member_users_fk
         FOREIGN KEY ("user")
-            REFERENCES users (id),
+            REFERENCES users (id)
+            ON DELETE CASCADE,
     CONSTRAINT member_class_fk
         FOREIGN KEY (class)
-            REFERENCES classes (id),
+            REFERENCES classes (id)
+            ON DELETE CASCADE,
     CONSTRAINT member_role_fk
         FOREIGN KEY (role)
             REFERENCES member_roles (id)
+            ON DELETE CASCADE
 );
 
 CREATE TABLE event_types
@@ -84,8 +95,10 @@ CREATE TABLE events
     description VARCHAR(1000) NOT NULL,
     CONSTRAINT event_class_fk
         FOREIGN KEY (class)
-            REFERENCES classes (id),
+            REFERENCES classes (id)
+            ON DELETE CASCADE,
     CONSTRAINT event_type_fk
         FOREIGN KEY (e_type)
             REFERENCES event_types (id)
+            ON DELETE RESTRICT
 );

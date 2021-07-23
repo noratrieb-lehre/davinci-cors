@@ -2,11 +2,11 @@ use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
 use crate::models::conversion::IntoDto;
-use actix_error::BlockingError;
+use crate::models::NewUser;
+use actix_web::error::BlockingError;
 use actix_web::web::ServiceConfig;
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path};
 use actix_web::HttpResponse;
-use actix_web::{Data, Json, Path};
 use diesel::result::DatabaseErrorKind;
 use dto::{PostUser, Snowflake, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
@@ -40,7 +40,19 @@ async fn get_hugo() -> HttpResponse {
 }
 
 async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey>) -> HttpResult {
-    let user = match block(move || actions::user::insert_user(&db, &body)).await {
+    let user = match block(move || {
+        let new_user = NewUser {
+            id: uuid::Uuid::new_v4(),
+            email: &body.email,
+            password: &body.password,
+            description: &body.description,
+            discord_id: None,
+        };
+
+        actions::user::insert_user(&db, new_user)
+    })
+    .await
+    {
         Ok(user) => user,
         Err(BlockingError::Error(ServiceErr::DbActionFailed(
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _),
@@ -103,7 +115,7 @@ async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
 
 async fn link_user_with_discord(claims: Claims, db: Data<Pool>, id: Json<Snowflake>) -> HttpResult {
     let user = block(move || {
-        actions::user::set_discord_id_user(&db, claims.uid, Some(id.into_inner().snowflake))
+        actions::user::set_discord_id_user(&db, claims.uid, Some(&id.into_inner().snowflake))
     })
     .await?
     .into_dto()?;
