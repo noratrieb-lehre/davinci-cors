@@ -92,12 +92,12 @@ pub fn set_discord_id_class(
 pub fn get_class_by_discord(db: &Pool, class_id: &str) -> ServiceResult<Class> {
     let conn = db.get()?;
 
-    Ok(classes
+    classes
         .filter(discord_id.eq(class_id))
         .load(&conn)?
         .into_iter()
         .next()
-        .ok_or(ServiceErr::NotFound)?)
+        .ok_or(ServiceErr::NotFound)
 }
 
 pub fn get_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<(Member, MemberRole)> {

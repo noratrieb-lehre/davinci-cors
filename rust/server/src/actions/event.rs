@@ -4,13 +4,46 @@ use crate::models::{Event, NewEvent};
 
 use crate::error::ServiceResult;
 use crate::schema::events::dsl::*;
-use diesel::{delete, insert_into, ExpressionMethods, SaveChangesDsl};
+use diesel::{delete, insert_into, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl};
 use uuid::Uuid;
 
 pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
 
-    let vec: Vec<Event> = events.filter(id.eq(class_id)).load(&conn)?;
+    let vec: Vec<Event> = events.filter(class.eq(class_id)).load(&conn)?;
+
+    Ok(vec)
+}
+
+pub fn get_events_by_class_filtered_before(
+    db: &Pool,
+    class_id: Uuid,
+    before: chrono::NaiveDateTime,
+) -> ServiceResult<Vec<Event>> {
+    let conn = db.get()?;
+
+    let vec: Vec<Event> = events
+        .filter(class.eq(class_id).and(start.lt(before)))
+        .load(&conn)?;
+
+    Ok(vec)
+}
+
+pub fn get_events_by_class_filtered_both(
+    db: &Pool,
+    class_id: Uuid,
+    before: chrono::NaiveDateTime,
+    after: chrono::NaiveDateTime,
+) -> ServiceResult<Vec<Event>> {
+    let conn = db.get()?;
+
+    let vec: Vec<Event> = events
+        .filter(
+            class
+                .eq(class_id)
+                .and(start.lt(before).and(end.gt(Some(after)))),
+        )
+        .load(&conn)?;
 
     Ok(vec)
 }

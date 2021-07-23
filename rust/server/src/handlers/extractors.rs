@@ -92,10 +92,13 @@ async fn get_member_role(
     class_id: Result<Uuid, ServiceErr>,
     claims: Result<Claims, ServiceErr>,
 ) -> Result<Role, ServiceErr> {
-    Ok(Role(
-        web::block(move || crate::actions::class::get_member(&db, claims?.uid, class_id?))
+    let claims = claims?;
+    Ok(Role(if claims.uid.is_nil() {
+        MemberRole::CORS
+    } else {
+        web::block(move || crate::actions::class::get_member(&db, claims.uid, class_id?))
             .await?
             .into_dto()?
-            .role,
-    ))
+            .role
+    }))
 }

@@ -15,9 +15,14 @@ mod test {
 
     use super::class::*;
     use super::user::*;
+    use crate::actions::event::{
+        get_events_by_class, get_events_by_class_filtered_before,
+        get_events_by_class_filtered_both, insert_event,
+    };
     use crate::actions::Pool;
     use crate::models;
-    use crate::models::{NewClass, NewMember, NewUser};
+    use crate::models::{Class, NewClass, NewEvent, NewMember, NewUser, User};
+    use chrono::NaiveDateTime;
     use dto::{Lesson, Timetable};
 
     fn get_pool() -> Pool {
@@ -110,28 +115,7 @@ mod test {
     fn timetables() {
         let db = get_pool();
 
-        let user = insert_user(
-            &db,
-            NewUser {
-                id: uuid::Uuid::new_v4(),
-                email: "test_mail",
-                password: "xxxxxxsecretxxxxxx",
-                description: "test",
-                discord_id: None,
-            },
-        )
-        .unwrap();
-        let class = insert_class(
-            &db,
-            NewClass {
-                id: uuid::Uuid::new_v4(),
-                owner: user.id,
-                name: "testklasse",
-                description: "",
-                discord_id: Some("4387208542928543"),
-            },
-        )
-        .unwrap();
+        let (user, class) = insert_class_user(&db);
 
         let timetable = create_timetable(&db, class.id).unwrap();
         assert_eq!(&*timetable.timetable, "[[],[],[],[],[],[],[]]");
@@ -202,5 +186,123 @@ mod test {
         assert_eq!(validated_user.id, user.id);
 
         delete_user(&db, user.id).unwrap();
+    }
+
+    #[test]
+    fn event_filter() {
+        let db = get_pool();
+
+        let (owner, class) = insert_class_user(&db);
+
+        let events = vec![
+            insert_event(
+                &db,
+                NewEvent {
+                    id: uuid::Uuid::new_v4(),
+                    class: class.id,
+                    e_type: 1,
+                    name: "event1000",
+                    start: &NaiveDateTime::from_timestamp(1000, 0),
+                    end: &NaiveDateTime::from_timestamp(2000, 0),
+                    description: "event",
+                },
+            )
+            .unwrap(),
+            insert_event(
+                &db,
+                NewEvent {
+                    id: uuid::Uuid::new_v4(),
+                    class: class.id,
+                    e_type: 1,
+                    name: "event1000",
+                    start: &NaiveDateTime::from_timestamp(2000, 0),
+                    end: &NaiveDateTime::from_timestamp(0, 0),
+                    description: "event",
+                },
+            )
+            .unwrap(),
+            insert_event(
+                &db,
+                NewEvent {
+                    id: uuid::Uuid::new_v4(),
+                    class: class.id,
+                    e_type: 1,
+                    name: "event1000",
+                    start: &NaiveDateTime::from_timestamp(0, 0),
+                    end: &NaiveDateTime::from_timestamp(10000, 0),
+                    description: "event",
+                },
+            )
+            .unwrap(),
+        ];
+        assert_eq!(events.len(), 3);
+
+        let events = get_events_by_class(&db, class.id).unwrap();
+        assert_eq!(events.len(), 3);
+
+        let events = get_events_by_class_filtered_before(
+            &db,
+            class.id,
+            chrono::NaiveDateTime::from_timestamp(0, 0),
+        )
+        .unwrap();
+        assert_eq!(events.len(), 0);
+
+        let events = get_events_by_class_filtered_before(
+            &db,
+            class.id,
+            chrono::NaiveDateTime::from_timestamp(9000, 0),
+        )
+        .unwrap();
+        println!("{:?}", events);
+        println!("{:?}", get_events_by_class(&db, class.id));
+        assert_eq!(events.len(), 3);
+
+        let events = get_events_by_class_filtered_before(
+            &db,
+            class.id,
+            chrono::NaiveDateTime::from_timestamp(1000000, 0),
+        )
+        .unwrap();
+        assert_eq!(events.len(), 3);
+
+        let events = get_events_by_class_filtered_both(
+            &db,
+            class.id,
+            NaiveDateTime::from_timestamp(1500, 0),
+            chrono::NaiveDateTime::from_timestamp(500, 0),
+        )
+        .unwrap();
+        assert_eq!(events.len(), 2);
+
+        delete_class(&db, class.id).unwrap();
+        delete_user(&db, owner.id).unwrap();
+    }
+
+    fn insert_class_user(db: &Pool) -> (User, Class) {
+        let user = insert_user(
+            &db,
+            NewUser {
+                id: uuid::Uuid::new_v4(),
+                email: &uuid::Uuid::new_v4().to_string(),
+                password: "xxxxxxsecretxxxxxx",
+                description: "test",
+                discord_id: None,
+            },
+        )
+        .unwrap();
+
+        let class = insert_class(
+            &db,
+            NewClass {
+                id: uuid::Uuid::new_v4(),
+                owner: user.id,
+                name: "testklasse",
+                description: "",
+                discord_id: None,
+            },
+        )
+        .unwrap();
+        (user, class)
     }
 }

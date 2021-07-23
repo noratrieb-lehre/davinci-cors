@@ -80,10 +80,10 @@ pub fn set_discord_id_user(db: &Pool, user_id: Uuid, d_id: Option<&str>) -> Serv
 pub fn get_user_by_discord(db: &Pool, user_id: &str) -> ServiceResult<User> {
     let conn = db.get()?;
 
-    Ok(users
+    users
         .filter(discord_id.eq(user_id))
         .load(&conn)?
         .into_iter()
         .next()
-        .ok_or(ServiceErr::NotFound)?)
+        .ok_or(ServiceErr::NotFound)
 }

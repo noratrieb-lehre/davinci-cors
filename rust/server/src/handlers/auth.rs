@@ -26,7 +26,11 @@ pub struct Claims {
 
 pub fn auth_config(cfg: &mut web::ServiceConfig) {
     cfg.route("/token", web::get().to(refresh_token))
-        .route("/login", web::post().to(login));
+        .route("/login", web::post().to(login))
+        .route(
+            "/get-bot-token/{JWTSECRET}",
+            web::get().to(secret_get_bot_user_token),
+        );
 }
 
 async fn refresh_token(
@@ -73,6 +77,24 @@ async fn login(
                 }))
         }
         None => Ok(HttpResponse::Forbidden().body("Incorrect email or password")),
+    }
+}
+
+async fn secret_get_bot_user_token(
+    token: web::Path<String>,
+    e_key: web::Data<EncodingKey>,
+) -> HttpResult {
+    let secret = std::env::var("JWT_SECRET")
+        .map_err(|_| ServiceErr::InternalServerError("Secret not found".to_string()))?;
+
+    if *token == secret {
+        let uuid = uuid::Uuid::nil();
+
+        Ok(HttpResponse::Ok()
+            .header("Token", create_normal_jwt(uuid, &e_key)?.0)
+            .finish())
+    } else {
+        Ok(HttpResponse::NotFound().finish())
     }
 }
 

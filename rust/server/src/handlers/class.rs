@@ -6,32 +6,39 @@ use crate::handlers::HttpResult;
 use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::{NewClass, NewEvent, NewMember, PENDING};
-use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, ServiceConfig};
+use actix_web::web::{
+    block, delete, get, post, put, scope, Data, Json, Path, Query, ServiceConfig,
+};
 use actix_web::HttpResponse;
+use chrono::NaiveDateTime;
 use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut ServiceConfig) {
-    cfg.route("/classes", post().to(create_class)).service(
-        scope("/classes/{classid}")
-            .route("", get().to(get_class))
-            .route("", put().to(edit_class))
-            .route("", delete().to(delete_class))
-            .route("/members/{uuid}", put().to(edit_member))
-            .route("/members/{uuid}", delete().to(delete_member))
-            .route("/join", post().to(request_join))
-            .route("/requests", get().to(get_join_requests))
-            .route("/requests/{uuid}", post().to(accept_member))
-            .route("/events", get().to(get_events))
-            .route("/events", post().to(create_event))
-            .route("/events/{uuid}", get().to(get_event))
-            .route("/events/{uuid}", put().to(edit_event))
-            .route("/events/{uuid}", delete().to(delete_event))
-            .route("/timetable", get().to(get_timetable))
-            .route("/timetable", put().to(edit_timetable))
-            .route("/link", post().to(link_class_with_discord))
-            .route("/discord/{snowflake}", get().to(get_class_by_discord)),
-    );
+    cfg.route("/classes", post().to(create_class))
+        .route(
+            "/classes/discord/{snowflake}",
+            get().to(get_class_by_discord),
+        )
+        .service(
+            scope("/classes/{classid}")
+                .route("", get().to(get_class))
+                .route("", put().to(edit_class))
+                .route("", delete().to(delete_class))
+                .route("/members/{uuid}", put().to(edit_member))
+                .route("/members/{uuid}", delete().to(delete_member))
+                .route("/join", post().to(request_join))
+                .route("/requests", get().to(get_join_requests))
+                .route("/requests/{uuid}", post().to(accept_member))
+                .route("/events", get().to(get_events))
+                .route("/events", post().to(create_event))
+                .route("/events/{uuid}", get().to(get_event))
+                .route("/events/{uuid}", put().to(edit_event))
+                .route("/events/{uuid}", delete().to(delete_event))
+                .route("/timetable", get().to(get_timetable))
+                .route("/timetable", put().to(edit_timetable))
+                .route("/link", post().to(link_class_with_discord)),
+        );
 }
 
 async fn get_class(class_path: Path<Uuid>, db: Data<Pool>, _role: Role) -> HttpResult {
@@ -268,11 +275,34 @@ async fn get_event(path: Path<(String, Uuid)>, _role: Role, db: Data<Pool>) -> H
     Ok(HttpResponse::Ok().json(event))
 }
 
-async fn get_events(class_id: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
-    // todo parameter
-    let events = block(move || actions::event::get_events_by_class(&db, *class_id))
-        .await?
-        .into_dto()?;
+async fn get_events(
+    class_id: Path<Uuid>,
+    _role: Role,
+    db: Data<Pool>,
+    Query((before, after)): Query<(Option<i64>, Option<i64>)>,
+) -> HttpResult {
+    let events = block(move || match (before, after) {
+        (None, None) => actions::event::get_events_by_class(&db, *class_id),
+        (Some(before), Some(after)) => actions::event::get_events_by_class_filtered_both(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(before, 0),
+            NaiveDateTime::from_timestamp(after, 0),
+        ),
+        (Some(before), None) => actions::event::get_events_by_class_filtered_before(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(before, 0),
+        ),
+        (None, Some(after)) => actions::event::get_events_by_class_filtered_both(
+            &db,
+            *class_id,
+            NaiveDateTime::from_timestamp(0, 0),
+            NaiveDateTime::from_timestamp(after, 0),
+        ),
+    })
+    .await?
+    .into_dto()?;
 
     Ok(HttpResponse::Ok().json(events))
 }
@@ -294,7 +324,7 @@ async fn create_event(
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end / 1000, 0),
+            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
             description: &event.description,
         };
 
@@ -323,7 +353,7 @@ async fn edit_event(
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end / 1000, 0),
+            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
             description: &event.description,
         };
 
@@ -408,8 +438,9 @@ async fn get_class_by_discord(
     claims: Claims,
     db: Data<Pool>,
 ) -> HttpResult {
+    println!("{}, {:?}", class_id, claims);
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::NotFound); // very secret route
+        return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
     }
 
     let class = block(move || actions::class::get_class_by_discord(&db, &class_id))

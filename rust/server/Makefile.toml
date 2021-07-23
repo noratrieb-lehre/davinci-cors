@@ -8,18 +8,24 @@ args = ["rm", "davinci"]
 dependencies = ["stop-db"]
 
 [tasks.create-db]
-script = [
-    "docker run -d -p 5432:5432 --name davinci -e POSTGRES_PASSWORD=hugo58hugo postgres",
-    "timeout 5",
-    "docker exec davinci psql -c 'create database davinci'",
-]
-
-[tasks.reset-db]
-dependencies = [
-    "remove-db",
-    "create-db"
-]
+script = ["docker run -d -p 5432:5432 --name davinci -e POSTGRES_PASSWORD=hugo58hugo -e POSTGRES_DB=davinci postgres"]
 
 [tasks.run-migrations]
 command = "diesel"
 args = ["migration", "run"]
+
+[tasks.reset-db]
+dependencies = [
+    "remove-db",
+    "create-db",
+    "run-migrations",
+]
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--", "--test-threads=1"]
+
+[tasks-build]
+command = "cargo"
+args = ["build", "--release"]
+dependencies = ["test"]
