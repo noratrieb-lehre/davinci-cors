@@ -77,7 +77,6 @@ const WieLangeNoch = () => {
             const end = toLocaleDate(val.end);
             return date.getTime() >= start.getTime() && date.getTime() < end.getTime()
         })
-        console.log('hallo')
         if (currentLesson[0]) {
             return {
                 subject: currentLesson[0].subject,
