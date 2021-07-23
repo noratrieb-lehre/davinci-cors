@@ -27,6 +27,7 @@ const Router = () => {
                             <Route path={'/class/:id/calendar'} component={MainSite}/>
                             <Route path={'/class/:id/timetable'} component={MainSite}/>
                             <Route path={'/class/:id/wielangenoch'} component={MainSite}/>
+                            <Route path={'/class/:id/admin'} component={MainSite}/>
                             <Route path={'/account'} component={Account}/>
                             <Route component={() => (<Redirect to={'/'}/>)}/>
                         </Switch>
