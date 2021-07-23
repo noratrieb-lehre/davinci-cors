@@ -43,6 +43,11 @@ export default class UserService {
         console.log(user)
     }
 
+    public isAdmin(currentClass: Class): boolean {
+        const role = currentClass.members.filter(val => this.currentUser?.id === val.user)[0]?.role;
+        return role === 'owner' || role === 'admin'
+    }
+
     public async getClass(id: string): Promise<Class> {
         return getClasses().filter(val => val.id === id)[0]
     }

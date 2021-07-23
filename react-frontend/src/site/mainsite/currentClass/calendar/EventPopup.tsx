@@ -15,7 +15,7 @@ const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => 
     }, [event])
     return (
         <Modal show={show} onHide={handleClose} backdrop="static">
-            <Modal.Header closeButton>
+            <Modal.Header>
                 <Modal.Title>{event.name}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
