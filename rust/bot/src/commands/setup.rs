@@ -2,6 +2,7 @@ use serenity::builder::CreateApplicationCommands;
 use serenity::model::interactions::ApplicationCommandOptionType;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+use tracing::info;
 
 pub async fn setup_slash_commands(ctx: &Context) {
     //ApplicationCommand::create_global_application_commands(&ctx.http, create_commands)
@@ -13,7 +14,7 @@ pub async fn setup_slash_commands(ctx: &Context) {
         .await
         .expect("Could not create slash commands");
 
-    println!("Setup slash commands.");
+    info!("Setup slash commands.");
 }
 
 fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateApplicationCommands {
@@ -23,9 +24,6 @@ fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateAppli
             command
                 .name("wielangenoch")
                 .description("Zeigt an, wie lange die Lektion nocht geht")
-        })
-        .create_application_command(|command| {
-            command.name("wln").description("Alias für wielangenoch")
         })
         .create_application_command(|command| {
             command

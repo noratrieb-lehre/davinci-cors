@@ -3,12 +3,15 @@ mod error;
 mod requests;
 
 use crate::requests::CorsClient;
+use color_eyre::Report;
 use serenity::async_trait;
 use serenity::model::gateway::Ready;
 use serenity::model::interactions::Interaction;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use std::sync::Arc;
+use tracing::{error, info};
+use tracing_subscriber::EnvFilter;
 
 struct Handler;
 
@@ -19,7 +22,7 @@ impl TypeMapKey for CorsClient {
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        println!(
+        info!(
             "CORS Bot connected - {}#{} ({})",
             ready.user.name, ready.user.discriminator, ready.user.id
         );
@@ -31,7 +34,7 @@ impl EventHandler for Handler {
                 if let Err(why) =
                     commands::create_interaction_response(&ctx, data, &interaction).await
                 {
-                    eprintln!("Error: {}", why);
+                    error!("Error: {}", why);
                 }
             }
         }
@@ -39,8 +42,9 @@ impl EventHandler for Handler {
 }
 
 #[tokio::main]
-async fn main() {
-    dotenv::dotenv().expect("Could not load .env file");
+async fn main() -> std::result::Result<(), Report> {
+    dotenv::dotenv().ok();
+    setup()?;
 
     let token = std::env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     let cors_token =
@@ -61,7 +65,25 @@ async fn main() {
         data.insert::<CorsClient>(Arc::new(CorsClient::from_token(cors_token)))
     }
 
-    println!("Connecting client...");
+    info!("Connecting client...");
 
     client.start().await.expect("Could not create client");
+
+    Ok(())
+}
+
+fn setup() -> std::result::Result<(), Report> {
+    if std::env::var("RUST_LIB_BACKTRACE").is_err() {
+        std::env::set_var("RUST_LIB_BACKTRACE", "1")
+    }
+    color_eyre::install()?;
+
+    if std::env::var("RUST_LOG").is_err() {
+        std::env::set_var("RUST_LOG", "debug")
+    }
+    tracing_subscriber::fmt::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
+
+    Ok(())
 }

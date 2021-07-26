@@ -67,9 +67,12 @@ async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey
         .header("Token", token)
         .header("Refresh-Token", refresh_token)
         .json(UserPostResponse {
-            id: user.id,
-            email: user.email,
-            description: user.description,
+            user: User {
+                id: user.id,
+                email: user.email,
+                description: user.description,
+                classes: None,
+            },
             expires,
         }))
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 type Timestamp = i64;
 
 /// A UTC seconds after 00:00
-type DayTimestamp = u32;
+type DayTimestamp = i64;
 
 /// A Unique User Id
 type Uuid = uuid::Uuid;
@@ -12,6 +12,7 @@ type Uuid = uuid::Uuid;
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
+    #[serde(default)]
     pub id: Uuid,
     pub r#type: EventType,
     pub name: String,
@@ -22,7 +23,7 @@ pub struct Event {
 
 /// The type of a class event
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(rename_all = "camelCase")]
 pub enum EventType {
     Homework = 1,
     Exam = 2,
@@ -112,14 +113,14 @@ pub struct Lesson {
 /// Response of /token
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RefreshResponse {
-    pub expires: i64,
+    pub expires: Timestamp,
 }
 
 /// Response of /token
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoginResponse {
     pub userid: Uuid,
-    pub expires: i64,
+    pub expires: Timestamp,
 }
 
 /// Request body of /classes/{uuid}/requests/{uuid}
@@ -138,13 +139,17 @@ pub struct UserLogin {
 /// Response body of POST /users
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserPostResponse {
-    pub id: Uuid,
-    pub email: String,
-    pub description: String,
+    pub user: User,
     pub expires: Timestamp,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snowflake {
     pub snowflake: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetEventQuery {
+    pub before: Option<i64>,
+    pub after: Option<i64>,
 }

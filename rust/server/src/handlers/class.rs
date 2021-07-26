@@ -11,7 +11,7 @@ use actix_web::web::{
 };
 use actix_web::HttpResponse;
 use chrono::NaiveDateTime;
-use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
+use dto::{Class, Event, GetEventQuery, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut ServiceConfig) {
@@ -279,8 +279,10 @@ async fn get_events(
     class_id: Path<Uuid>,
     _role: Role,
     db: Data<Pool>,
-    Query((before, after)): Query<(Option<i64>, Option<i64>)>,
+    query: Query<GetEventQuery>,
 ) -> HttpResult {
+    let GetEventQuery { before, after } = query.into_inner();
+
     let events = block(move || match (before, after) {
         (None, None) => actions::event::get_events_by_class(&db, *class_id),
         (Some(before), Some(after)) => actions::event::get_events_by_class_filtered_both(
@@ -438,7 +440,6 @@ async fn get_class_by_discord(
     claims: Claims,
     db: Data<Pool>,
 ) -> HttpResult {
-    println!("{}, {:?}", class_id, claims);
     if !claims.uid.is_nil() {
         return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
     }

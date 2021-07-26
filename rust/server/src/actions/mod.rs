@@ -254,8 +254,6 @@ mod test {
             chrono::NaiveDateTime::from_timestamp(9000, 0),
         )
         .unwrap();
-        println!("{:?}", events);
-        println!("{:?}", get_events_by_class(&db, class.id));
         assert_eq!(events.len(), 3);
 
         let events = get_events_by_class_filtered_before(

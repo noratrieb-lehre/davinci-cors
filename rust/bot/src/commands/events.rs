@@ -4,6 +4,7 @@ use serenity::prelude::*;
 use crate::error::{BotError, BotResult};
 use crate::requests::CorsClient;
 use serenity::builder::CreateEmbed;
+use tracing::warn;
 
 pub async fn handle_event_command(
     ctx: &Context,
@@ -13,9 +14,9 @@ pub async fn handle_event_command(
     match options.first() {
         Some(subcommand) => match subcommand.name.as_str() {
             "show" => show_events(ctx, interaction).await?,
-            _ => eprintln!("Invalid subcommand"),
+            _ => warn!("Invalid subcommand"),
         },
-        None => eprintln!("No subcommand"),
+        None => warn!("No subcommand"),
     }
 
     Ok(())
