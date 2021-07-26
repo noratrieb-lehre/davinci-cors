@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
     Button,
     Col,
@@ -13,9 +13,18 @@ import {
 } from "react-bootstrap";
 import Datetime from 'react-datetime';
 import {useFormik} from "formik";
+import {UserServiceContext} from "../../../Router";
 
 const NewLesson = () => {
-    const onSubmit = () => {
+    const userService = useContext(UserServiceContext);
+
+    const onSubmit = ({
+                          subject,
+                          start,
+                          end,
+                          description,
+                          day
+                      }: { subject: string, start: string, end: string, description: string, day: number }) => {
 
     }
     const formik = useFormik({
@@ -31,6 +40,7 @@ const NewLesson = () => {
         validateOnBlur: true,
         validationSchema: true
     })
+
     return (
         <Container>
             <ModalTitle>Neue Lektion hinzufügen</ModalTitle>
@@ -97,14 +107,14 @@ const NewLesson = () => {
 
 const getFormatted = (type: number): string => types[type];
 
-const types: {[type: number]: string} = {
-    0:'Montag',
-    1:'Dienstag',
-    2:'Mittwoch',
-    3:'Donnerstag',
-    4:'Freitag',
-    5:'Samstag',
-    6:'Sonntg',
+const types: { [type: number]: string } = {
+    0: 'Montag',
+    1: 'Dienstag',
+    2: 'Mittwoch',
+    3: 'Donnerstag',
+    4: 'Freitag',
+    5: 'Samstag',
+    6: 'Sonntg',
 }
 
 export default NewLesson;

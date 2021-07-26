@@ -139,11 +139,11 @@ const NewEvent = () => {
 
 const getFormatted = (type: string): string => types[type];
 
-const types: {[type: string]: string} = {
-    'homework':'Hausaufgabe',
-    'holidays':'Ferien',
-    'exam':'Prüfung',
-    'other':'Anderes',
+const types: { [type: string]: string } = {
+    'homework': 'Hausaufgabe',
+    'holidays': 'Ferien',
+    'exam': 'Prüfung',
+    'other': 'Anderes',
 }
 
 export default NewEvent;

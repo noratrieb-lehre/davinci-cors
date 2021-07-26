@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Container} from 'react-bootstrap';
 import SiteNav from "./SiteNav";
 import UserService from "../service/UserService";
@@ -12,8 +12,10 @@ const userService = new UserService();
 const UserServiceContext = React.createContext<UserService>(userService);
 
 const Router = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
-    userService.onUserChange((user) => setIsLoggedIn(!!user))
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    useEffect(() => {
+        userService.onUserChange((user) => setIsLoggedIn(!!user))
+    }, [])
     return (
         <Container fluid>
             <UserServiceContext.Provider value={userService}>

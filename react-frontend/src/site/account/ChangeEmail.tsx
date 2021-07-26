@@ -1,11 +1,17 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Alert, Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import {UserServiceContext} from "../Router";
 import * as Yup from 'yup';
 import {useFormik} from "formik";
+import User from "../../data/user/User";
 
 const ChangeEmail = () => {
     const userService = useContext(UserServiceContext);
+    const [currentUser, setCurrentUser] = useState<User>();
+
+    useEffect(() => {
+        userService.getCurrentUser().then(setCurrentUser);
+    })
     const handleSubmit = ({email}: { email: string }) => {
 
     }
@@ -15,7 +21,7 @@ const ChangeEmail = () => {
         validateOnChange: false,
         validateOnBlur: true,
         initialValues: {
-            'email': userService.currentUser?.email || ''
+            'email': currentUser?.email || ''
         },
         validationSchema: Yup.object().shape({
             'email': Yup.string()
