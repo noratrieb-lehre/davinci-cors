@@ -41,6 +41,7 @@ async fn main() -> Result<(), Report> {
 
     HttpServer::new(move || {
         let cors = Cors::permissive();
+
         App::new()
             .wrap(cors)
             .app_data(pool.clone())
