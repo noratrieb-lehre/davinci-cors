@@ -31,6 +31,17 @@ pub enum EventType {
     Other = 4,
 }
 
+impl EventType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EventType::Homework => "homework",
+            EventType::Exam => "exam",
+            EventType::Holidays => "holidays",
+            EventType::Other => "other",
+        }
+    }
+}
+
 /// A Class
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Class {

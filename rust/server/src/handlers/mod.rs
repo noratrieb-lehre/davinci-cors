@@ -57,7 +57,6 @@ async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey
     Ok(HttpResponse::Created()
         .header("Token", token)
         .header("Refresh-Token", refresh_token)
-        .header("access-control-expose-headers", "*") // todo dont
         .json(UserPostResponse {
             user: User {
                 id: user.id,
