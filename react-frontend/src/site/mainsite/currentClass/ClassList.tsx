@@ -8,8 +8,8 @@ const ClassList = () => {
     const userService = useContext(UserServiceContext);
     const history = useHistory();
     useEffect(() => {
-        userService.getClasses().then(val => val.map(c => ({name: c.name, id: c.id})))
-            .then((setAllClasses));
+        userService.getClasses().then(val => val?.map(c => ({name: c.name, id: c.id})))
+            .then(((val) => setAllClasses(val || [])));
     }, [userService])
 
     const selectUserClass = (e: string | null) => {

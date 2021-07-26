@@ -3,6 +3,7 @@ import {Alert, Button, Container, Form, FormControl, FormGroup, FormLabel, Modal
 import {useFormik} from "formik";
 import * as Yup from 'yup'
 import {UserServiceContext} from "../Router";
+import {useHistory} from "react-router-dom";
 
 const ValidationScheme = Yup.object().shape({
     email: Yup.string()
@@ -17,6 +18,7 @@ const ValidationScheme = Yup.object().shape({
 
 const SignUp = () => {
     const userService = useContext(UserServiceContext);
+    const history = useHistory();
 
     const onSubmit = ({email, password}: { email: string, password: string }) => {
         userService.createAccount({
@@ -24,7 +26,7 @@ const SignUp = () => {
             id: '',
             email,
             password
-        })
+        }).then(() => history.push('/classview'))
     }
 
     const formik = useFormik({

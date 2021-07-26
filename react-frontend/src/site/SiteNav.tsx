@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Nav, Navbar} from "react-bootstrap";
 import {Link, NavLink} from "react-router-dom";
 import {UserServiceContext} from "./Router";
@@ -8,8 +8,10 @@ import CORS from '../img/mainlogo.svg';
 
 const SiteNav = () => {
     const userService = useContext<UserService>(UserServiceContext);
-    const [isLoggedIn, setIsLoggedIn] = useState(!!userService.currentUser);
-    userService.onUserChange((user) => setIsLoggedIn(!!user));
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    useEffect(() => {
+        userService.onUserChange((user) => setIsLoggedIn(!!user));
+    }, [])
 
     return (
         <Navbar expand={'lg'}>

@@ -16,7 +16,7 @@ const TimeTableDay = ({name, lessons}: { name: string, lessons: Array<Lesson> })
                 </thead>
                 <tbody>
                 {
-                    lessons.map((val,idx) => (
+                    lessons.map((val, idx) => (
                         <tr key={idx}>
                             <td>{formatTime(val.start)}-{formatTime(val.end)}</td>
                             <td>{val.subject}</td>

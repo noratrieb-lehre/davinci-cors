@@ -32,7 +32,9 @@ const WieLangeNoch = () => {
     });
     useEffect(() => {
         userService.getTimeTable(currentClass!.id).then(val => {
-            setCurrentTimeTable(val[getIndex(new Date())].sort((a, b) => a.end - b.end))
+            if (val) {
+                setCurrentTimeTable(val[getIndex(new Date())].sort((a, b) => a.end - b.end))
+            }
         })
     }, [currentClass])
 
@@ -86,7 +88,7 @@ const WieLangeNoch = () => {
         }
 
         const nextLesson = currentTimeTable!.find((val) => date.getTime() < toLocaleDate(val.start).getTime())
-        if(nextLesson) {
+        if (nextLesson) {
             return {
                 subject: `Pause (Nächste Lektion: ${nextLesson!.subject})`,
                 timeTillLessonFinish: getDateDiff(date, nextLesson!.start),
