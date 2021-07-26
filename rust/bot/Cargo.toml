@@ -8,13 +8,18 @@ edition = "2018"
 
 [dependencies]
 dto = { path = "../dto" }
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+tokio = { version = "1.9.0", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.64"
+serde_url_params = "0.2.1"
 reqwest = "0.11.4"
 dotenv = "0.15.0"
 rand = "0.8.4"
 uuid = { version = "0.8.2", features = ["serde"] }
+color-eyre = "0.5.11"
+tracing = "0.1.26"
+tracing-subscriber = "0.2.19"
+chrono = "0.4.19"
 
 [dependencies.serenity]
 version = "0.10.8"

@@ -15,8 +15,8 @@ impl Display for BotError {
             f,
             "{}",
             match self {
-                BotError::DiscordError(err) => format!("Discord Error: {}", err),
-                BotError::CorsApiError(err) => format!("CORS APi Error: {}", err),
+                BotError::DiscordError(err) => format!("Discord Error: {:?}", err),
+                BotError::CorsApiError(err) => format!("CORS APi Error: {:?}", err),
                 BotError::Other(msg) => format!("Other Error: {}", msg),
             }
         )

@@ -38,15 +38,16 @@ async fn refresh_token(
     e_key: web::Data<EncodingKey>,
     d_key: web::Data<DecodingKey<'static>>,
 ) -> HttpResult {
-    let claims = match authorization::Authorization::<Bearer>::parse(&req) {
-        Ok(auth) => validate_token(auth.into_scheme().token(), &d_key),
-        Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
-    }?;
+    let auth = authorization::Authorization::<Bearer>::parse(&req)
+        .map_err(|_| ServiceErr::Unauthorized("auth/no-token"))?;
+
+    let claims = validate_token(auth.into_scheme().token(), &d_key)?;
 
     if claims.refresh {
         let new_token = create_normal_jwt(claims.uid, &e_key)?;
         Ok(HttpResponse::Ok()
-            .header("Token", new_token.0)
+            .header("token", format!("Bearer {}", new_token.0))
+            .header("access-control-expose-headers", "*") // todo dont
             .json(dto::RefreshResponse {
                 expires: new_token.1,
             }))
@@ -69,8 +70,9 @@ async fn login(
             let refresh_token = create_refresh_jwt(user.id, &key)?;
             let (token, expires) = create_normal_jwt(user.id, &key)?;
             Ok(HttpResponse::Ok()
-                .header("Token", token)
-                .header("Refresh-Token", refresh_token)
+                .header("token", format!("Bearer {}", token))
+                .header("refresh-token", format!("Bearer {}", refresh_token))
+                .header("access-control-expose-headers", "*") // todo dont
                 .json(LoginResponse {
                     userid: user.id,
                     expires,
@@ -91,7 +93,13 @@ async fn secret_get_bot_user_token(
         let uuid = uuid::Uuid::nil();
 
         Ok(HttpResponse::Ok()
-            .header("Token", create_normal_jwt(uuid, &e_key)?.0)
+            .header(
+                "Token",
+                format!(
+                    "Bearer {}",
+                    create_other_jwt(uuid, &e_key, chrono::Duration::weeks(10000))?
+                ),
+            )
             .finish())
     } else {
         Ok(HttpResponse::NotFound().finish())
@@ -103,7 +111,7 @@ pub fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceE
         .map_err(|_| ServiceErr::JWTokenError)?
         .claims;
 
-    if decoded.exp < Utc::now().timestamp() * 1000 {
+    if decoded.exp < Utc::now().timestamp_millis() {
         Err(ServiceErr::TokenExpiredError)
     } else {
         Ok(decoded)
@@ -113,35 +121,48 @@ pub fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceE
 /// Returns the token and the expiration date
 /// Create a JWT
 pub fn create_normal_jwt(user: Uuid, key: &EncodingKey) -> Result<(String, i64), ServiceErr> {
-    create_jwt(user, false, key)
+    let lifetime; // several years, kind of a hack but ok
+
+    // make the token last 24 hours for debugging
+    #[cfg(debug_assertions)]
+    {
+        lifetime = chrono::Duration::hours(24);
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        lifetime = chrono::Duration::hours(1);
+    }
+    create_jwt(user, false, key, lifetime)
 }
 
 /// Create a refresh JWT
 /// Returns the token and the expiration date
 pub fn create_refresh_jwt(user: Uuid, key: &EncodingKey) -> Result<String, ServiceErr> {
-    create_jwt(user, true, key).map(|(token, _)| token)
-}
-fn create_jwt(uid: Uuid, refresh: bool, key: &EncodingKey) -> Result<(String, i64), ServiceErr> {
-    let lifetime;
-    if refresh {
-        lifetime = chrono::Duration::weeks(1000) // several years, kind of a hack but ok
-    } else {
-        // make the token last 24 hours for debugging
-        #[cfg(debug_assertions)]
-        {
-            lifetime = chrono::Duration::hours(24);
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            lifetime = chrono::Duration::hours(1);
-        }
-    };
+    let lifetime = chrono::Duration::weeks(1000); // several years, kind of a hack but ok
 
+    create_jwt(user, true, key, lifetime).map(|(token, _)| token)
+}
+
+/// Create a custom expiration date jwt
+/// Returns the token and the expiration date
+pub fn create_other_jwt(
+    user: Uuid,
+    key: &EncodingKey,
+    time: chrono::Duration,
+) -> Result<String, ServiceErr> {
+    create_jwt(user, false, key, time).map(|(token, _)| token)
+}
+
+fn create_jwt(
+    uid: Uuid,
+    refresh: bool,
+    key: &EncodingKey,
+    lifetime: chrono::Duration,
+) -> Result<(String, i64), ServiceErr> {
     let exp = Utc::now()
         .checked_add_signed(lifetime)
         .expect("valid timestamp")
-        .timestamp()
-        * 1000;
+        .timestamp_millis();
 
     let claims = Claims { exp, uid, refresh };
 

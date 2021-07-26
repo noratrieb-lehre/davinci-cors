@@ -179,7 +179,7 @@ Requires Token
 *Response*           
 Refresh-Token: Bearer token              
 Token: Bearer token         
-`User` & `{"expires": "Timestamp"}`
+`{"expires": "Timestamp", "user": "User"}`
 
 #### Delete myself (not hugo)
 

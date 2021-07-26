@@ -11,7 +11,9 @@ use actix_web::web::{
 };
 use actix_web::HttpResponse;
 use chrono::NaiveDateTime;
-use dto::{Class, Event, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable};
+use dto::{
+    Class, Event, GetEventQueryParams, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable,
+};
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut ServiceConfig) {
@@ -36,6 +38,8 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
                 .route("/events/{uuid}", put().to(edit_event))
                 .route("/events/{uuid}", delete().to(delete_event))
                 .route("/timetable", get().to(get_timetable))
+                .route("/timetable", post().to(create_timetable))
+                .route("/timetable", delete().to(delete_timetable))
                 .route("/timetable", put().to(edit_timetable))
                 .route("/link", post().to(link_class_with_discord)),
         );
@@ -279,8 +283,10 @@ async fn get_events(
     class_id: Path<Uuid>,
     _role: Role,
     db: Data<Pool>,
-    Query((before, after)): Query<(Option<i64>, Option<i64>)>,
+    query: Query<GetEventQueryParams>,
 ) -> HttpResult {
+    let GetEventQueryParams { before, after } = query.into_inner();
+
     let events = block(move || match (before, after) {
         (None, None) => actions::event::get_events_by_class(&db, *class_id),
         (Some(before), Some(after)) => actions::event::get_events_by_class_filtered_both(
@@ -289,15 +295,15 @@ async fn get_events(
             NaiveDateTime::from_timestamp(before, 0),
             NaiveDateTime::from_timestamp(after, 0),
         ),
-        (Some(before), None) => actions::event::get_events_by_class_filtered_before(
+        (Some(before), None) => actions::event::get_events_by_class_filtered_both(
             &db,
             *class_id,
             NaiveDateTime::from_timestamp(before, 0),
+            NaiveDateTime::from_timestamp(0, 0),
         ),
-        (None, Some(after)) => actions::event::get_events_by_class_filtered_both(
+        (None, Some(after)) => actions::event::get_events_by_class_filtered_after(
             &db,
             *class_id,
-            NaiveDateTime::from_timestamp(0, 0),
             NaiveDateTime::from_timestamp(after, 0),
         ),
     })
@@ -346,6 +352,8 @@ async fn edit_event(
         return Err(ServiceErr::NoAdminPermissions);
     }
 
+    let path = path.into_inner();
+
     let event = block(move || {
         let new_event = NewEvent {
             id: path.1,
@@ -384,7 +392,9 @@ async fn get_timetable(path: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpRes
         .await?
         .timetable;
 
-    Ok(HttpResponse::Ok().json(timetable))
+    Ok(HttpResponse::Ok()
+        .header("content-type", "application/json")
+        .body(timetable))
 }
 
 async fn edit_timetable(
@@ -411,7 +421,38 @@ async fn edit_timetable(
     .await?
     .timetable;
 
-    Ok(HttpResponse::Ok().json(timetable))
+    Ok(HttpResponse::Ok()
+        .header("content-type", "application/json")
+        .body(timetable))
+}
+
+async fn create_timetable(path: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    if !role.has_rights() {
+        return Err(ServiceErr::NoAdminPermissions);
+    }
+
+    let timetable = block(move || actions::class::create_timetable(&db, path.into_inner()))
+        .await?
+        .timetable;
+
+    Ok(HttpResponse::Ok()
+        .header("content-type", "application/json")
+        .body(timetable))
+}
+
+async fn delete_timetable(path: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    if !role.has_rights() {
+        return Err(ServiceErr::NoAdminPermissions);
+    }
+
+    let delete_count =
+        block(move || actions::class::delete_timetable(&db, path.into_inner())).await?;
+
+    Ok(match delete_count {
+        0 => HttpResponse::NotFound().body("Timetable not found"),
+        1 => HttpResponse::Ok().body("Deleted timetable."),
+        _ => unreachable!(),
+    })
 }
 
 async fn link_class_with_discord(
@@ -438,7 +479,6 @@ async fn get_class_by_discord(
     claims: Claims,
     db: Data<Pool>,
 ) -> HttpResult {
-    println!("{}, {:?}", class_id, claims);
     if !claims.uid.is_nil() {
         return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
     }

@@ -2,6 +2,7 @@ use serenity::builder::CreateApplicationCommands;
 use serenity::model::interactions::ApplicationCommandOptionType;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+use tracing::info;
 
 pub async fn setup_slash_commands(ctx: &Context) {
     //ApplicationCommand::create_global_application_commands(&ctx.http, create_commands)
@@ -13,7 +14,7 @@ pub async fn setup_slash_commands(ctx: &Context) {
         .await
         .expect("Could not create slash commands");
 
-    println!("Setup slash commands.");
+    info!("Setup slash commands.");
 }
 
 fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateApplicationCommands {
@@ -25,37 +26,51 @@ fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateAppli
                 .description("Zeigt an, wie lange die Lektion nocht geht")
         })
         .create_application_command(|command| {
-            command.name("wln").description("Alias für wielangenoch")
-        })
-        .create_application_command(|command| {
             command
                 .name("event")
                 .description("Events verwalten")
                 .create_option(|option| {
                     option
-                        .name("show")
-                        .description("Events anzeigen")
+                        .name("all")
+                        .description("Alle Events anzeigen")
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                })
+                .create_option(|option| {
+                    option
+                        .name("next")
+                        .description("Die nächsten Events anzeigen")
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                })
+                .create_option(|option| {
+                    option
+                        .name("filter")
+                        .description("Die nächsten Events anzeigen")
                         .kind(ApplicationCommandOptionType::SubCommand)
                         .create_sub_option(|option| {
                             option
-                                .name("selector")
-                                .description("Welche Events man will")
+                                .name("typ")
+                                .description("Der Typ nach dem gefiltert werden soll")
                                 .kind(ApplicationCommandOptionType::String)
-                                .required(false)
-                                .add_string_choice("Alle Events", "all")
-                                .add_string_choice("Die nächsten Events (default)", "next")
-                                .add_string_choice("Nur Events eines types", "filter")
-                                .add_string_choice("In Name und Description suchen", "search")
-                        })
-                        .create_sub_option(|option| {
-                            option
-                                .name("parameter")
-                                .description("Welche Events man will")
-                                .kind(ApplicationCommandOptionType::String)
-                                .required(false)
+                                .add_string_choice("Hausaufgabe", "homework")
+                                .add_string_choice("Prüfung", "exam")
+                                .add_string_choice("Ferien", "holidays")
+                                .add_string_choice("Andere", "other")
+                                .required(true)
                         })
                 })
-            // })
+                .create_option(|option| {
+                    option
+                        .name("search")
+                        .description("Die nächsten Events anzeigen")
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                        .create_sub_option(|option| {
+                            option
+                                .name("query")
+                                .description("Der Suchterm")
+                                .kind(ApplicationCommandOptionType::String)
+                                .required(true)
+                        })
+                })
         })
         .create_application_command(|commands| {
             commands.name("info").description("Botinformationen")

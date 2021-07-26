@@ -71,13 +71,12 @@ impl FromRequest for Role {
             .match_info()
             .get("classid")
             .ok_or(ServiceErr::BadRequest("request/no-class-id"))
-            .and_then(|id| uuid::Uuid::parse_str(id).map_err(|e| e.into()))
-            .unwrap();
+            .and_then(|id| uuid::Uuid::parse_str(id).map_err(|e| e.into()));
 
         let claims = Claims::from_request_sync(req);
 
         Box::pin(async move {
-            get_member_role(db, Ok(class_id), claims)
+            get_member_role(db, class_id, claims)
                 .await
                 .map_err(|err| match err {
                     ServiceErr::NotFound => ServiceErr::Unauthorized("auth/no-access"),
