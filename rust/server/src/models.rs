@@ -243,14 +243,14 @@ pub mod conversion {
 
     impl IntoDto<dto::Event> for Event {
         fn into_dto(self) -> ServiceResult<dto::Event> {
-            let end = self.end.map(|dt| dt.timestamp());
+            let end = self.end.map(|dt| dt.timestamp_millis());
             let end = if let Some(0) = end { None } else { end };
 
             Ok(dto::Event {
                 id: self.id,
                 r#type: self.e_type.into_dto()?,
                 name: self.name,
-                start: self.start.timestamp(),
+                start: self.start.timestamp_millis(),
                 end,
                 description: self.description,
             })

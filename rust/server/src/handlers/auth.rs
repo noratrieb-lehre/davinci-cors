@@ -38,10 +38,10 @@ async fn refresh_token(
     e_key: web::Data<EncodingKey>,
     d_key: web::Data<DecodingKey<'static>>,
 ) -> HttpResult {
-    let claims = match authorization::Authorization::<Bearer>::parse(&req) {
-        Ok(auth) => validate_token(auth.into_scheme().token(), &d_key),
-        Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
-    }?;
+    let auth = authorization::Authorization::<Bearer>::parse(&req)
+        .map_err(|_| ServiceErr::Unauthorized("auth/no-token"))?;
+
+    let claims = validate_token(auth.into_scheme().token(), &d_key)?;
 
     if claims.refresh {
         let new_token = create_normal_jwt(claims.uid, &e_key)?;
@@ -109,7 +109,7 @@ pub fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceE
         .map_err(|_| ServiceErr::JWTokenError)?
         .claims;
 
-    if decoded.exp < Utc::now().timestamp() * 1000 {
+    if decoded.exp < Utc::now().timestamp_millis() {
         Err(ServiceErr::TokenExpiredError)
     } else {
         Ok(decoded)
@@ -160,8 +160,7 @@ fn create_jwt(
     let exp = Utc::now()
         .checked_add_signed(lifetime)
         .expect("valid timestamp")
-        .timestamp()
-        * 1000;
+        .timestamp_millis();
 
     let claims = Claims { exp, uid, refresh };
 

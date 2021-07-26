@@ -1,5 +1,5 @@
 use crate::error::BotResult;
-use dto::{Class, Event, Timetable};
+use dto::{Class, Event, GetEventQueryParams, Timetable};
 use reqwest::header::HeaderMap;
 use reqwest::Client;
 use tracing::debug;
@@ -28,17 +28,13 @@ impl CorsClient {
     pub async fn get_events(
         &self,
         guild_id: u64,
-        before: Option<u64>,
-        after: Option<u64>,
+        before: Option<i64>,
+        after: Option<i64>,
     ) -> BotResult<Vec<Event>> {
         let class_id = self.get_class(guild_id).await?.id;
 
-        let params = match (before, after) {
-            (Some(before), Some(after)) => format!("&before={}&after={}", before, after),
-            (Some(before), None) => format!("&before={}", before),
-            (None, Some(after)) => format!("&after={}", after),
-            _ => "".to_string(),
-        };
+        let params = serde_url_params::to_string(&GetEventQueryParams { before, after })
+            .expect("Query params be valid");
 
         let res = self
             .client

@@ -16,8 +16,8 @@ mod test {
     use super::class::*;
     use super::user::*;
     use crate::actions::event::{
-        get_events_by_class, get_events_by_class_filtered_before,
-        get_events_by_class_filtered_both, insert_event,
+        get_events_by_class, get_events_by_class_filtered_after, get_events_by_class_filtered_both,
+        insert_event,
     };
     use crate::actions::Pool;
     use crate::models;
@@ -240,7 +240,7 @@ mod test {
         let events = get_events_by_class(&db, class.id).unwrap();
         assert_eq!(events.len(), 3);
 
-        let events = get_events_by_class_filtered_before(
+        let events = get_events_by_class_filtered_after(
             &db,
             class.id,
             chrono::NaiveDateTime::from_timestamp(0, 0),
@@ -248,7 +248,7 @@ mod test {
         .unwrap();
         assert_eq!(events.len(), 0);
 
-        let events = get_events_by_class_filtered_before(
+        let events = get_events_by_class_filtered_after(
             &db,
             class.id,
             chrono::NaiveDateTime::from_timestamp(9000, 0),
@@ -256,7 +256,7 @@ mod test {
         .unwrap();
         assert_eq!(events.len(), 3);
 
-        let events = get_events_by_class_filtered_before(
+        let events = get_events_by_class_filtered_after(
             &db,
             class.id,
             chrono::NaiveDateTime::from_timestamp(1000000, 0),

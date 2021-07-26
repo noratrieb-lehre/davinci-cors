@@ -87,44 +87,39 @@ fn wie_lange_noch_embed<'a>(
     lesson: Option<&Lesson>,
     next: Option<&Lesson>,
 ) -> &'a mut CreateEmbed {
+    let now = absolute_time_as_weekday(Utc::now()).0;
+
     match (found_timetable, lesson, next) {
         (false, _, _) => embed.title("Stundenplan nicht gefunden").field(
             "Für Admins",
             "Aktiviere den Stundenplan in den Admineinstellungen",
             false,
         ),
+        (_, None, None) => embed.title("Keine Schule mehr heute!"),
         (_, None, Some(next)) => {
-            let start = utc_from_day_timestamp(next.start).format("%H:%M");
+            let time_to_next = format_time(next.start - now);
             embed.title("Keine Lektion").field(
                 format!("Nächste Lektion: {}", next.subject),
-                format!("Start: {}", start),
+                format!("Start in: {}h", time_to_next),
                 false,
             )
         }
-        (_, None, _) => embed.title("Keine Schule mehr heute!"),
         (_, Some(lesson), next) => {
             let (current, _) = absolute_time_as_weekday(Utc::now());
             let remaining = lesson.end - current;
             embed
                 .title(format!("Aktuelle Lektion: {}", lesson.subject))
                 .field(
-                    format!(
-                        "{} - {}, noch {}h",
-                        format_timestamp(lesson.start),
-                        format_timestamp(lesson.end),
-                        format_timestamp(remaining),
-                    ),
+                    format!("Noch {}h", format_time(remaining),),
                     &lesson.description,
                     false,
                 );
             if let Some(next) = next {
+                let time_to_next = format_time(next.start - now);
+
                 embed.field(
                     format!("Nächste Lektion: {}", &next.subject),
-                    format!(
-                        "{} - {}",
-                        format_timestamp(next.start),
-                        format_timestamp(next.end),
-                    ),
+                    format!("in {}h", time_to_next),
                     false,
                 );
             }
@@ -133,7 +128,7 @@ fn wie_lange_noch_embed<'a>(
     }
 }
 
-fn format_timestamp(time: i64) -> DelayedFormat<StrftimeItems<'static>> {
+fn format_time(time: i64) -> DelayedFormat<StrftimeItems<'static>> {
     utc_from_day_timestamp(time).format("%H:%M:%S")
 }
 

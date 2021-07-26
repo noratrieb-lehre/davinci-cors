@@ -3,11 +3,9 @@ use crate::error::ServiceErr;
 use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
 use crate::models::conversion::IntoDto;
 use crate::models::NewUser;
-use actix_web::error::BlockingError;
 use actix_web::web::ServiceConfig;
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path};
 use actix_web::HttpResponse;
-use diesel::result::DatabaseErrorKind;
 use dto::{PostUser, Snowflake, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
 
@@ -40,7 +38,7 @@ async fn get_hugo() -> HttpResponse {
 }
 
 async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey>) -> HttpResult {
-    let user = match block(move || {
+    let user = block(move || {
         let new_user = NewUser {
             id: uuid::Uuid::new_v4(),
             email: &body.email,
@@ -51,14 +49,7 @@ async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey
 
         actions::user::insert_user(&db, new_user)
     })
-    .await
-    {
-        Ok(user) => user,
-        Err(BlockingError::Error(ServiceErr::DbActionFailed(
-            diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _),
-        ))) => return Err(ServiceErr::Conflict("request/email-exists")),
-        other => other?,
-    };
+    .await?;
 
     let (token, expires) = create_normal_jwt(user.id, &key)?;
     let refresh_token = create_refresh_jwt(user.id, &key)?;

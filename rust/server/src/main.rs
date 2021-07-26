@@ -3,6 +3,7 @@ extern crate diesel;
 
 use crate::actions::Pool;
 use crate::handlers::config;
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 use color_eyre::Report;
 use diesel::prelude::*;
@@ -10,7 +11,7 @@ use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use std::env;
-use tracing::{debug, info};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 pub mod actions;
@@ -39,7 +40,9 @@ async fn main() -> Result<(), Report> {
     info!("Starting Server");
 
     HttpServer::new(move || {
+        let cors = Cors::permissive();
         App::new()
+            .wrap(cors)
             .app_data(pool.clone())
             .data(pool.clone())
             .app_data(encoding_key.clone())

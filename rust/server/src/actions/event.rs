@@ -15,15 +15,15 @@ pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Event
     Ok(vec)
 }
 
-pub fn get_events_by_class_filtered_before(
+pub fn get_events_by_class_filtered_after(
     db: &Pool,
     class_id: Uuid,
-    before: chrono::NaiveDateTime,
+    after: chrono::NaiveDateTime,
 ) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
 
     let vec: Vec<Event> = events
-        .filter(class.eq(class_id).and(start.lt(before)))
+        .filter(class.eq(class_id).and(end.gt(after)))
         .load(&conn)?;
 
     Ok(vec)

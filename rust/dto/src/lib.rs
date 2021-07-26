@@ -149,7 +149,7 @@ pub struct Snowflake {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetEventQuery {
+pub struct GetEventQueryParams {
     pub before: Option<i64>,
     pub after: Option<i64>,
 }

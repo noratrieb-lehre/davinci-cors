@@ -1,5 +1,6 @@
 use actix_web::error::BlockingError;
 use actix_web::{HttpResponse, ResponseError};
+use diesel::result::DatabaseErrorKind;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
@@ -78,6 +79,9 @@ impl From<diesel::result::Error> for ServiceErr {
     fn from(err: diesel::result::Error) -> Self {
         match err {
             diesel::result::Error::NotFound => Self::NotFound,
+            diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                Self::Conflict("request/already-exists")
+            }
             _ => Self::DbActionFailed(err),
         }
     }
@@ -91,7 +95,7 @@ impl From<r2d2::Error> for ServiceErr {
 
 impl From<uuid::Error> for ServiceErr {
     fn from(_: uuid::Error) -> Self {
-        Self::BadRequest("Could not create UUID")
+        Self::BadRequest("request/invalid-uuid")
     }
 }
 
