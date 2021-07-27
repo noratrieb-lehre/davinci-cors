@@ -175,9 +175,9 @@ Requires Token
 *Response*  
 `User`
   
-#### change password
+#### Change password
 
-`PUT users/me/password`  
+`PATCH users/me/password`  
 Requires Token  
 *Request*  
 `{"password": "string"}`  
