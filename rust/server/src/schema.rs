@@ -24,6 +24,16 @@ table! {
         start -> Timestamp,
         end -> Nullable<Timestamp>,
         description -> Varchar,
+        notification -> Nullable<Timestamp>,
+    }
+}
+
+table! {
+    guilds (id) {
+        id -> Varchar,
+        notif_channel -> Nullable<Varchar>,
+        notif_ping_role -> Nullable<Varchar>,
+        notif_ping_everyone -> Bool,
     }
 }
 
@@ -72,6 +82,7 @@ allow_tables_to_appear_in_same_query!(
     classes,
     event_types,
     events,
+    guilds,
     member_roles,
     members,
     timetables,

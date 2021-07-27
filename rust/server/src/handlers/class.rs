@@ -12,7 +12,8 @@ use actix_web::web::{
 use actix_web::HttpResponse;
 use chrono::NaiveDateTime;
 use dto::{
-    Class, Event, GetEventQueryParams, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable,
+    Class, Event, GetEventQueryParams, Member, MemberAcceptDto, MemberRole, SingleSnowflake,
+    Timetable,
 };
 use tracing::debug;
 use uuid::Uuid;
@@ -361,6 +362,7 @@ async fn create_event(
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
             end: end.as_ref(),
             description: &event.description,
+            notification: None,
         };
 
         actions::event::insert_event(&db, new_event)
@@ -397,6 +399,7 @@ async fn edit_event(
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
             end: end.as_ref(),
             description: &event.description,
+            notification: None,
         };
 
         actions::event::update_event(&db, new_event)
@@ -510,7 +513,7 @@ async fn link_class_with_discord(
     class_id: Path<Uuid>,
     role: Role,
     db: Data<Pool>,
-    id: Json<Snowflake>,
+    id: Json<SingleSnowflake>,
 ) -> HttpResult {
     debug!(%class_id, ?role, ?id, "link class with discord");
 

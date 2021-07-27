@@ -63,7 +63,7 @@ pub fn update_user(db: &Pool, user: User) -> ServiceResult<User> {
 pub fn change_user_password(db: &Pool, user: User) -> ServiceResult<User> {
     let conn = db.get()?;
 
-    Ok(update(users.filter(email.eq(user.email)))
+    Ok(update(users.filter(id.eq(user.id)))
         .set(password.eq(crypt(user.password, gen_salt("bf", 8))))
         .get_result(&conn)?)
 }

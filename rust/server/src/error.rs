@@ -83,11 +83,16 @@ impl ResponseError for ServiceErr {
 impl From<diesel::result::Error> for ServiceErr {
     fn from(err: diesel::result::Error) -> Self {
         match err {
-            diesel::result::Error::NotFound => Self::NotFound,
+            diesel::result::Error::NotFound => {
+                debug!(%err, "Handled Db error occurred");
+                Self::NotFound
+            }
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                debug!(%err, "Handled Db error occurred");
                 Self::Conflict("request/already-exists")
             }
             diesel::result::Error::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, _) => {
+                debug!(%err, "Handled Db error occurred");
                 Self::Conflict("request/does-not-exist")
             }
             _ => Self::DbActionFailed(err),

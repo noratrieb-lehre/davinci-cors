@@ -2,7 +2,7 @@ use crate::error::BotResult;
 use dto::{Class, Event, GetEventQueryParams, Timetable};
 use reqwest::header::HeaderMap;
 use reqwest::Client;
-use tracing::{debug, info};
+use tracing::debug;
 
 const BASE_URL: &str = "http://localhost:8080/api";
 

@@ -27,6 +27,10 @@
 ### Timestamp
 
 `number`, UTC Unix Timestamp in milliseconds
+  
+### SnowflakeId
+
+`string`, Discord Snwoflake Id
 
 ### Class Dto
 
@@ -180,7 +184,12 @@ Requires Token
 `PATCH users/me/password`  
 Requires Token  
 *Request*  
-`{"password": "string"}`  
+```json
+{
+  "password": "string",
+  "oldPassword": "string"
+}
+```  
 *Response*  
 `User`
 
@@ -374,7 +383,7 @@ Requires token
 *Request*
 ```json
 {
-  "snowflake": "snowflakeid (string)"
+  "snowflake": "SnowflakeId"
 }
 ```
 
@@ -384,7 +393,7 @@ Requires token & Owner
 *Request*
 ```json
 {
-  "snowflake": "snowflakeid (string)"
+  "snowflake": "SnowflakeId"
 }
 ```
 
@@ -401,3 +410,22 @@ Bot only
 Bot only  
 *Response*  
 `User`
+
+#### Notifications
+##### Notification
+```json
+{
+  "event": "Event",
+  "guild": "SnowflakeId",
+  "channel": "SnowflakeId",
+  "rolePing": "SnowflakeId | null",
+  "everyonePing": "boolean"
+}
+```  
+  
+`/bot/notifications?since=lastTimestamp`  
+Bot only  
+
+Get all events + notification data for events that had their notifications due in the time since the last timestamp.  
+*Response*  
+`{"notifications": "Notification[]", "time": "Timestamp"}`

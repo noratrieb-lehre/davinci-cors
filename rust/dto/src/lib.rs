@@ -10,6 +10,9 @@ type DayTimestamp = i64;
 /// A Unique User Id
 type Uuid = uuid::Uuid;
 
+/// A discord Snowflake id
+type Snowflake = String;
+
 /// A class event
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
@@ -70,6 +73,7 @@ pub struct User {
 }
 
 /// The user for the `POST /users` route, with a password
+/// # IMPORTANT: never log the password
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostUser {
     #[serde(default)]
@@ -157,6 +161,7 @@ pub struct MemberAcceptDto {
 }
 
 /// Request body of /login
+/// # IMPORTANT: never log the password
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserLogin {
     pub email: String,
@@ -171,12 +176,40 @@ pub struct UserPostResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Snowflake {
-    pub snowflake: String,
+pub struct SingleSnowflake {
+    pub snowflake: Snowflake,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetEventQueryParams {
     pub before: Option<i64>,
     pub after: Option<i64>,
+}
+
+/// # IMPORTANT: never log the password
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChangePasswordReq {
+    pub password: String,
+}
+
+/// A single notification that should be sent out by the bot
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Notification {
+    pub event: Event,
+    pub guild: Snowflake,
+    pub channel: Snowflake,
+    pub role_ping: Option<Snowflake>,
+    pub everyone_ping: bool,
+}
+
+/// The response for the notifications route
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationRes {
+    pub notifications: Vec<Notification>,
+    pub time: Timestamp,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationQueryParams {
+    pub since: i64,
 }

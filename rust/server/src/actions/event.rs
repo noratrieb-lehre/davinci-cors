@@ -1,11 +1,13 @@
 use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::models::{Event, NewEvent};
+use crate::models::{Event, FromNotificationQuery, NewEvent};
 
 use crate::error::ServiceResult;
 use crate::schema::events::dsl::*;
 use diesel::sql_types::{Nullable, Timestamp};
-use diesel::{delete, insert_into, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl};
+use diesel::{
+    delete, insert_into, sql_query, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl,
+};
 use uuid::Uuid;
 
 sql_function!(fn coalesce(a: Nullable<Timestamp>, b: Timestamp) -> Timestamp);
@@ -87,4 +89,32 @@ pub fn delete_event(db: &Pool, event_id: Uuid) -> ServiceResult<usize> {
     let conn = db.get()?;
 
     Ok(delete(events).filter(id.eq(event_id)).execute(&conn)?)
+}
+
+pub fn get_notifications(
+    db: &Pool,
+    since: chrono::NaiveDateTime,
+) -> ServiceResult<(chrono::NaiveDateTime, Vec<FromNotificationQuery>)> {
+    let conn = db.get()?;
+
+    #[derive(Debug, QueryableByName)]
+    struct CurrentTimestamp {
+        #[sql_type = "Timestamp"]
+        current_timestamp: chrono::NaiveDateTime,
+    }
+
+    let current_time = sql_query("SELECT current_timestamp")
+        .load::<CurrentTimestamp>(&conn)?
+        .into_iter()
+        .next()
+        .expect("SQL broke")
+        .current_timestamp;
+
+    // See the comment in the sql file
+    let notifications = sql_query(include_str!("get_notifications.sql"))
+        .bind::<Timestamp, _>(current_time)
+        .bind::<Timestamp, _>(since)
+        .load(&conn)?;
+
+    Ok((current_time, notifications))
 }
