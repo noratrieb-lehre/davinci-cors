@@ -1,4 +1,3 @@
-import axios, {AxiosInstance} from "axios";
 import User, {PostUser} from "../data/user/User";
 import Class from "../data/class/Class";
 import Member from "../data/user/Member";
@@ -11,32 +10,32 @@ import UserRequest from "./UserRequest";
 import EventRequest from "./EventRequest";
 import ClassRequest from "./ClassRequest";
 import MemberRequest from "./MemberRequest";
+import Axios from "./AxiosInstance";
+import axios from "axios";
 
 
 export default class UserService {
-    private axios: AxiosInstance;
     private onUserChangeHandler: Array<(user?: User) => void> = [];
     private readonly timetableRequest: TimetableRequest;
     private readonly userRequest: UserRequest;
     private readonly eventRequest: EventRequest;
     private readonly classRequest: ClassRequest;
     private readonly memberRequest: MemberRequest;
+    private readonly axios: Axios;
     private refreshToken?: string;
     private currentUserID?: string;
 
     public constructor() {
-        this.axios = axios.create({
-            baseURL: 'http://localhost:8080/api'
-        });
-        this.timetableRequest = new TimetableRequest(this.axios);
-        this.userRequest = new UserRequest(this.axios);
-        this.eventRequest = new EventRequest(this.axios);
-        this.classRequest = new ClassRequest(this.axios);
-        this.memberRequest = new MemberRequest(this.axios)
+        this.axios = Axios.getInstance();
+        this.timetableRequest = new TimetableRequest();
+        this.userRequest = new UserRequest();
+        this.eventRequest = new EventRequest();
+        this.classRequest = new ClassRequest();
+        this.memberRequest = new MemberRequest()
     }
 
     public async getCurrentUser(): Promise<User> {
-        return await this.axios.get<User>('/users/me').then(r => r.data);
+        return await this.userRequest.getCurrentUser();
     }
 
     public async logout(): Promise<void> {
@@ -69,6 +68,10 @@ export default class UserService {
         return await this.classRequest.getClass(id);
     }
 
+    public async createClass(name: string, description: string): Promise<void> {
+        return await this.classRequest.createClass(name, description)
+    }
+
     public getMember(memberList: Array<Member>, userID: string): Member | undefined {
         return memberList.filter(val => val.user === userID)[0];
     }
@@ -78,7 +81,7 @@ export default class UserService {
     }
 
     public async getClasses(): Promise<Array<Class> | undefined> {
-        return this.axios.get<User>('/users/me').then(r => r.data.classes);
+        return await this.classRequest.getClasses();
     }
 
     public async getTimeTable(classId: string): Promise<TimeTable | undefined> {
@@ -93,8 +96,9 @@ export default class UserService {
         return this.timetableRequest.updateTimetable(classId, timetableDay, day);
     }
 
+    //TODO
     public async getCalendar(classId: string): Promise<Array<Event>> {
-        const response = await this.axios.get<Array<Event>>(`/classes/${classId}/events`);
+        const response = await axios.get<Array<Event>>(`/classes/${classId}/events`);
         return response.data;
     }
 
@@ -102,8 +106,9 @@ export default class UserService {
         await this.eventRequest.createEvent(classID, event)
     }
 
+    //TODO
     public async getPendingMembers(classId: string): Promise<Array<User>> {
-        return await this.axios.get<Array<User>>(`/classes/${classId}/requests`).then(r => r.data);
+        return await axios.get<Array<User>>(`/classes/${classId}/requests`).then(r => r.data);
     }
 
 
@@ -132,8 +137,7 @@ export default class UserService {
         if (this.refreshToken) {
             const then = new Date(expireDate);
             setTimeout(async () => {
-                const response = await this.axios.get('/token', {
-                    baseURL: 'http://localhost:8080/api',
+                const response = await axios.get('http://localhost:8080/api/token', {
                     headers: {
                         'Authorization': this.refreshToken
                     }
@@ -145,13 +149,7 @@ export default class UserService {
     }
 
     private setToken(header: any) {
-        console.log(header)
-        this.axios = axios.create({
-            baseURL: 'http://localhost:8080/api',
-            headers: {
-                Authorization: (header['token'] || undefined!["token undefined"])
-            }
-        })
-        this.refreshToken = (header['refresh-Token'] || undefined!["token undefined"]);
+        this.axios.setAxios(header['token']);
+        this.refreshToken = (header['refresh-Token']);
     }
 }

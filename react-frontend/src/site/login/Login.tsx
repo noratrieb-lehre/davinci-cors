@@ -29,7 +29,6 @@ const Login = () => {
     const userService = useContext<UserService>(UserServiceContext)
     const handleSumbit = ({email, password}: { email: string, password: string }) => {
         userService.login(email, password).then(() => history.push('/class'));
-
     }
     const formik = useFormik({
         initialValues: {
@@ -45,7 +44,10 @@ const Login = () => {
         <Container>
             <ModalTitle>Log In</ModalTitle>
             <br/>
-            <Form>
+            <Form onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e)
+            }}>
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'text'} name={'email'} onChange={formik.handleChange}
@@ -65,7 +67,7 @@ const Login = () => {
                     <Alert variant={'danger'} show={!!formik.errors.password}>{formik.errors.password}</Alert>
                 </FormGroup>
                 <br/>
-                <Button onClick={() => formik.submitForm()}>Login</Button>
+                <Button type={'submit'}>Login</Button>
             </Form>
             <br/>
             <ModalFooter>Noch nicht registriert? <Link to={'/signup'}>Hier registrieren!</Link></ModalFooter>

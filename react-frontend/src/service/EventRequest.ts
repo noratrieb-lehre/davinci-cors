@@ -1,15 +1,15 @@
-import {AxiosInstance} from "axios";
 import Event from "../data/event/Event";
+import Axios from './AxiosInstance'
 
 export default class EventRequest {
-    private axios: AxiosInstance;
+    private readonly axios: Axios;
 
-    public constructor(axios: AxiosInstance) {
-        this.axios = axios
+    public constructor() {
+        this.axios = Axios.getInstance();
     }
 
     public async createEvent(classID: string, event: Event): Promise<void> {
-        await this.axios.post(`/classes/${classID}/events`, {
+        await this.axios.axios.post(`/classes/${classID}/events`, {
             id: '',
             type: event.type,
             name: event.name,

@@ -11,7 +11,8 @@ const ChangeEmail = () => {
 
     useEffect(() => {
         userService.getCurrentUser().then(setCurrentUser);
-    })
+    }, [])
+
     const handleSubmit = ({email}: { email: string }) => {
 
     }

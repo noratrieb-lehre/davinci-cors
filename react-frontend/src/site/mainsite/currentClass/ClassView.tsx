@@ -36,6 +36,7 @@ const ClassView = () => {
 
     return (
         <Container fluid>
+
             <CurrentClass.Provider value={currentClass}>
                 {
                     currentClass && (
