@@ -174,6 +174,15 @@ Requires Token
 `User`  
 *Response*  
 `User`
+  
+#### change password
+
+`PUT users/me/password`  
+Requires Token  
+*Request*  
+`{"password": "string"}`  
+*Response*  
+`User`
 
 #### Post myself (not hugo)
 
