@@ -7,21 +7,22 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import Account from "./account/Account";
 import MainSite from "./mainsite/MainSite";
 import SignUp from "./login/SignUp";
+import User from "../data/user/User";
 
 const userService = new UserService();
 const UserServiceContext = React.createContext<UserService>(userService);
 
 const Router = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User>();
     useEffect(() => {
-        userService.onUserChange((user) => setIsLoggedIn(!!user))
+        userService.onUserChange((user) => setCurrentUser(user))
     }, [])
     return (
         <Container fluid>
             <UserServiceContext.Provider value={userService}>
                 <SiteNav/>
                 {
-                    isLoggedIn ? (
+                    !!currentUser ? (
                         <Switch>
                             <Route exact path={'/class'} component={MainSite}/>
                             <Route exact path={'/class/:id'} component={MainSite}/>

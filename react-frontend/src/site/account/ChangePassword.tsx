@@ -6,6 +6,7 @@ import {useFormik} from "formik";
 const validationScheme = Yup.object().shape({
     'password': Yup.string()
         .min(6, 'Das Passwort muss mindestens 6 Zeichen haben')
+        .max(50, 'Das Passwort kann nicht länger als 50 Zeichen sein')
         .required('Das Passwort-Feld darf nicht leer sein'),
     'confirmPassword': Yup.string()
         .oneOf([Yup.ref('password'), null], 'Die Passwörter stimmem nicht überein'),

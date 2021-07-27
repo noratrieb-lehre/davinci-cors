@@ -7,9 +7,11 @@ import {useHistory} from "react-router-dom";
 
 const ValidationScheme = Yup.object().shape({
     email: Yup.string()
+        .max(50, 'Die E-Mail darf nicht länger als 50 Zeichen sein')
         .email('Die E-Mail Adresse ist nicht gültig')
         .required('Das E-Mail Feld darf nicht leer sein'),
     password: Yup.string()
+        .max(50, 'Das Passwort darf nicht länger als 50 Zeichen sein')
         .min(6, 'Das Passwort muss mindestens 6 Zeichen lang sein')
         .required('Das Passwort Feld darf nicht leer sein'),
     confirmPassword: Yup.string()

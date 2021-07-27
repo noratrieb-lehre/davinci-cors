@@ -10,7 +10,9 @@ const SiteNav = () => {
     const userService = useContext<UserService>(UserServiceContext);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     useEffect(() => {
-        userService.onUserChange((user) => setIsLoggedIn(!!user));
+        userService.onUserChange((user) => {
+            setIsLoggedIn(!!user)
+        });
     }, [])
 
     return (

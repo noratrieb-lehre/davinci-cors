@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {CurrentClass} from "../ClassView";
-import FullCalendar, {EventClickArg, EventContentArg, EventInput} from "@fullcalendar/react";
+import FullCalendar, {EventClickArg, EventContentArg} from "@fullcalendar/react";
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from "@fullcalendar/interaction";
@@ -56,13 +56,15 @@ const Calendar = () => {
                         day: 'Tag',
                         timeGrid: 'Tag'
                     }}
-                    events={[...events.map((val): EventInput => ({
-                        title: val.name,
+                    events={events.map((val) => ({
                         ...val,
+                        title: val.name,
+                        start: val.start,
+                        end: (val.end) ? val.end : undefined,
                         allDay: val.type === 'holidays',
                         backgroundColor: getColorOfEvent(val.type),
                         borderColor: getColorOfEvent(val.type),
-                    }))]}
+                    }))}
                     editable={true}
                     selectable={true}
                     selectMirror={true}

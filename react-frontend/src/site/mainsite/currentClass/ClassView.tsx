@@ -15,6 +15,7 @@ const ClassView = () => {
     const {id} = useParams<{ id: string }>();
     const [currentClass, setCurrentClass] = useState<Class>();
     const [selectedSite, setSelectedSite] = useState<string>('info');
+    const [isAdmin, setIsAdmin] = useState(false);
     const history = useHistory();
     const userService = useContext(UserServiceContext);
     useEffect(() => {
@@ -22,6 +23,12 @@ const ClassView = () => {
             userService.getClass(id).then(setCurrentClass);
         }
     }, [id, userService])
+
+    useEffect(() => {
+        if (currentClass){
+            setIsAdmin(userService.isAdmin(currentClass))
+        }
+    }, [currentClass])
 
     const onTabSelect = (key: string | null) => {
         if (key) {
@@ -48,7 +55,7 @@ const ClassView = () => {
                                 <Tab eventKey={'calendar'} title={'Kalender'}/>
                                 <Tab title={'Wie Lange Noch'} eventKey={'wielangenoch'}/>
                                 {
-                                    userService.isAdmin(currentClass) && <Tab title={'Admin'} eventKey={'admin'}/>
+                                    isAdmin && <Tab title={'Admin'} eventKey={'admin'}/>
                                 }
                             </Tabs>
 
@@ -58,7 +65,7 @@ const ClassView = () => {
                                 <Route path={'/class/:id/timetable'} component={Timetable}/>
                                 <Route path={'/class/:id/wielangenoch'} component={WieLangeNoch}/>
                                 {
-                                    userService.isAdmin(currentClass) &&
+                                    isAdmin &&
                                     <Route path={'/class/:id/admin'} component={AdminPanel}/>
                                 }
                             </Switch>

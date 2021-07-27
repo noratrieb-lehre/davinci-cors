@@ -1,13 +1,13 @@
 import React from 'react';
 import {Container} from "react-bootstrap";
-import ChangeClassName from "./ChangeClassName";
+import ChangeClassSettings from "./ChangeClassSettings";
 import NewEvent from "./NewEvent";
 import NewLesson from "./NewLesson";
 
 const AdminPanel = () => {
     return (
         <Container>
-            <ChangeClassName/>
+            <ChangeClassSettings/>
             <hr/>
             <NewEvent/>
             <hr/>
