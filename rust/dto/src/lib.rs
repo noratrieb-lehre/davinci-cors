@@ -60,6 +60,7 @@ pub struct User {
     #[serde(default)]
     pub id: Uuid,
     pub email: String,
+    #[serde(default)]
     pub description: String,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,6 +82,7 @@ pub struct PostUser {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Member {
+    #[serde(default)]
     pub user: Uuid,
     pub display_name: String,
     pub role: MemberRole,

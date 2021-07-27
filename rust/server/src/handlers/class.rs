@@ -489,7 +489,7 @@ async fn get_class_by_discord(
     db: Data<Pool>,
 ) -> HttpResult {
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
+        return Err(ServiceErr::Unauthorized("not a bot")); // very secret route
     }
 
     let class = block(move || actions::class::get_class_by_discord(&db, &class_id))
