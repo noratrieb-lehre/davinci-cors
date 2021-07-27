@@ -184,7 +184,11 @@ Requires Token
 `PATCH users/me/password`  
 Requires Token  
 *Request*  
-`{"password": "string"}`  
+```json
+{
+  "password": "string",
+  "oldPassword": "string"
+}```  
 *Response*  
 `User`
 
