@@ -447,12 +447,19 @@ async fn edit_timetable(
         return Err(ServiceErr::NoAdminPermissions);
     }
 
+    let table = table
+        .into_inner()
+        .iter()
+        // this clone is not really needed, but i don't know what to do else
+        .map(|day| day.clone().sort_unstable())
+        .collect::<Vec<_>>();
+
     let timetable = block(move || {
         actions::class::update_timetable(
             &db,
             models::Timetable {
                 class: *class_id,
-                timetable: serde_json::to_string(&table.into_inner()).map_err(|_| {
+                timetable: serde_json::to_string(&table).map_err(|_| {
                     ServiceErr::InternalServerError("serialize-timetable".to_string())
                 })?,
             },

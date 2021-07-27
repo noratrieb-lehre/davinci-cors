@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 /// A UTC Unix timestamp in seconds
 type Timestamp = i64;
@@ -122,6 +123,18 @@ pub struct Lesson {
     pub description: String,
     pub start: DayTimestamp,
     pub end: DayTimestamp,
+}
+
+impl PartialOrd for Lesson {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.start.partial_cmp(&other.start)
+    }
+}
+
+impl Ord for Lesson {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.start.cmp(&other.start)
+    }
 }
 
 /// Response of /token
