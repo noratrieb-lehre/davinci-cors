@@ -17,6 +17,7 @@ pub struct Event {
     pub r#type: EventType,
     pub name: String,
     pub start: Timestamp,
+    #[serde(default)]
     pub end: Option<Timestamp>,
     pub description: String,
 }

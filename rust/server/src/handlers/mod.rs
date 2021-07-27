@@ -8,6 +8,7 @@ use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path};
 use actix_web::HttpResponse;
 use dto::{PostUser, Snowflake, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
+use tracing::debug;
 
 mod auth;
 mod class;
@@ -34,15 +35,26 @@ pub fn other_config(cfg: &mut ServiceConfig) {
 }
 
 async fn get_hugo() -> HttpResponse {
+    debug!("Someone got Hugo!");
+
     HttpResponse::Ok().body("Hugo Boss")
 }
 
-async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey>) -> HttpResult {
+async fn create_user(
+    mut body: Json<PostUser>,
+    db: Data<Pool>,
+    key: Data<EncodingKey>,
+) -> HttpResult {
+    // to make the logging safe - we don't want to leak passwords
+    let password = std::mem::replace(&mut body.password, "**********".to_string());
+
+    debug!(?body, "create a user");
+
     let user = block(move || {
         let new_user = NewUser {
             id: uuid::Uuid::new_v4(),
             email: &body.email,
-            password: &body.password,
+            password: &password,
             description: &body.description,
             discord_id: None,
         };
@@ -55,8 +67,8 @@ async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey
     let refresh_token = create_refresh_jwt(user.id, &key)?;
 
     Ok(HttpResponse::Created()
-        .header("Token", token)
-        .header("Refresh-Token", refresh_token)
+        .header("Token", format!("Bearer {}", token))
+        .header("Refresh-Token", format!("Bearer {}", refresh_token))
         .json(UserPostResponse {
             user: User {
                 id: user.id,
@@ -69,6 +81,8 @@ async fn create_user(body: Json<PostUser>, db: Data<Pool>, key: Data<EncodingKey
 }
 
 async fn get_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
+    debug!(uid = %claims.uid, "get own user");
+
     let (mut user, classes) = block::<_, _, ServiceErr>(move || {
         let user = actions::user::get_user_by_id(&db, claims.uid)?;
         let classes = actions::class::get_classes_by_user(&db, claims.uid)?;
@@ -89,6 +103,8 @@ async fn get_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
 }
 
 async fn edit_own_user(claims: Claims, db: Data<Pool>, mut new_user: Json<User>) -> HttpResult {
+    debug!(uid = %claims.uid, ?new_user, "edit own user");
+
     new_user.id = claims.uid; // always update the own user
     let user = block(move || actions::user::update_user(&db, new_user.into_inner().into()))
         .await?
@@ -98,6 +114,8 @@ async fn edit_own_user(claims: Claims, db: Data<Pool>, mut new_user: Json<User>)
 }
 
 async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
+    debug!(uid = %claims.uid, "delete own user 😔 rip");
+
     let amount = block(move || actions::user::delete_user(&db, claims.uid)).await?;
 
     Ok(match amount {
@@ -108,6 +126,8 @@ async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
 }
 
 async fn link_user_with_discord(claims: Claims, db: Data<Pool>, id: Json<Snowflake>) -> HttpResult {
+    debug!(uid = %claims.uid, ?id, "link own user with discord");
+
     let user = block(move || {
         actions::user::set_discord_id_user(&db, claims.uid, Some(&id.into_inner().snowflake))
     })

@@ -47,6 +47,7 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
 }
 
 async fn get_class(class_path: Path<Uuid>, db: Data<Pool>, _role: Role) -> HttpResult {
+    debug!(%class_path, "get class");
     let class = block(move || actions::class::get_class(&db, class_path.into_inner()))
         .await?
         .ok_or(ServiceErr::NotFound)?
@@ -56,6 +57,8 @@ async fn get_class(class_path: Path<Uuid>, db: Data<Pool>, _role: Role) -> HttpR
 }
 
 async fn create_class(class: Json<Class>, db: Data<Pool>, claims: Claims) -> HttpResult {
+    debug!(?class, userid = %claims.uid, "create a new class");
+
     let (result_class, owner) = block::<_, _, ServiceErr>(move || {
         let class_id = uuid::Uuid::new_v4();
 
@@ -92,6 +95,8 @@ async fn edit_class(
     db: Data<Pool>,
     role: Role,
 ) -> HttpResult {
+    debug!(%class_id, ?role, "edit class");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
@@ -114,6 +119,8 @@ async fn edit_class(
 }
 
 async fn delete_class(class_id: Path<Uuid>, db: Data<Pool>, role: Role) -> HttpResult {
+    debug!(%class_id, ?role, "delete class");
+
     if *role != MemberRole::Owner {
         return Err(ServiceErr::Unauthorized("auth/no-owner"));
     }
@@ -137,6 +144,8 @@ async fn edit_member(
     claims: Claims,
 ) -> HttpResult {
     let (class_id, member_id) = path.into_inner();
+
+    debug!(%class_id, %member_id, ?role, userid = %claims.uid, ?member, "edit member");
 
     // Only admins can edit others
     if claims.uid != member_id && !role.has_rights() {
@@ -183,6 +192,8 @@ async fn delete_member(
 ) -> HttpResult {
     let (class_id, member_id) = path.into_inner();
 
+    debug!(%class_id, %member_id, ?role, userid = %claims.uid, "delete member");
+
     // Must be admin to delete others
     if !role.has_rights() && claims.uid != member_id {
         return Err(ServiceErr::NoAdminPermissions);
@@ -204,6 +215,8 @@ async fn delete_member(
 }
 
 async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, userid = %claims.uid, "request join");
+
     block(move || {
         let user = actions::user::get_user_by_id(&db, claims.uid)?;
         let member = NewMember {
@@ -221,6 +234,8 @@ async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> H
 }
 
 async fn get_join_requests(class_id: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, ?role, "get join requests");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
@@ -239,6 +254,8 @@ async fn accept_member(
     accept: Json<MemberAcceptDto>,
 ) -> HttpResult {
     let (class_id, member_id) = path.into_inner();
+
+    debug!(%class_id, %member_id, ?role, ?accept, "accept/deny member");
 
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
@@ -273,6 +290,8 @@ async fn accept_member(
 }
 
 async fn get_event(path: Path<(String, Uuid)>, _role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(event_id = %path.1, ?_role, "get event");
+
     let event = block(move || actions::event::get_event_by_id(&db, path.1))
         .await?
         .into_dto()?;
@@ -287,6 +306,8 @@ async fn get_events(
     query: Query<GetEventQueryParams>,
 ) -> HttpResult {
     let GetEventQueryParams { before, after } = query.into_inner();
+
+    debug!(%class_id, ?_role, ?before, ?after, "get events");
 
     let before = before.map(|b| b / 1000);
     let after = after.map(|a| a / 1000);
@@ -322,6 +343,8 @@ async fn create_event(
     db: Data<Pool>,
     event: Json<Event>,
 ) -> HttpResult {
+    debug!(%class_id, ?role, ?event, "create event");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
@@ -354,19 +377,21 @@ async fn edit_event(
     db: Data<Pool>,
     event: Json<Event>,
 ) -> HttpResult {
+    let (class_id, event_id) = path.into_inner();
+
+    debug!(%class_id, %event_id, ?role, ?event, "edit event");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
-
-    let path = path.into_inner();
 
     let event = block(move || {
         let end = event
             .end
             .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
         let new_event = NewEvent {
-            id: path.1,
-            class: path.0,
+            id: event_id,
+            class: class_id,
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
@@ -383,6 +408,8 @@ async fn edit_event(
 }
 
 async fn delete_event(path: Path<(String, Uuid)>, role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(class_id = ?path.0, event_id = ?path.1, ?role, "delete event");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
@@ -396,8 +423,10 @@ async fn delete_event(path: Path<(String, Uuid)>, role: Role, db: Data<Pool>) ->
     })
 }
 
-async fn get_timetable(path: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
-    let timetable = block(move || actions::class::get_timetable(&db, *path))
+async fn get_timetable(class_id: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, ?_role, "get timetable");
+
+    let timetable = block(move || actions::class::get_timetable(&db, *class_id))
         .await?
         .timetable;
 
@@ -407,11 +436,13 @@ async fn get_timetable(path: Path<Uuid>, _role: Role, db: Data<Pool>) -> HttpRes
 }
 
 async fn edit_timetable(
-    path: Path<Uuid>,
+    class_id: Path<Uuid>,
     role: Role,
     db: Data<Pool>,
     table: Json<Timetable>,
 ) -> HttpResult {
+    debug!(%class_id, ?role, ?table, "edit timetable");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
@@ -420,7 +451,7 @@ async fn edit_timetable(
         actions::class::update_timetable(
             &db,
             models::Timetable {
-                class: *path,
+                class: *class_id,
                 timetable: serde_json::to_string(&table.into_inner()).map_err(|_| {
                     ServiceErr::InternalServerError("serialize-timetable".to_string())
                 })?,
@@ -435,12 +466,14 @@ async fn edit_timetable(
         .body(timetable))
 }
 
-async fn create_timetable(path: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+async fn create_timetable(class_id: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, ?role, "create timetable");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    let timetable = block(move || actions::class::create_timetable(&db, path.into_inner()))
+    let timetable = block(move || actions::class::create_timetable(&db, class_id.into_inner()))
         .await?
         .timetable;
 
@@ -449,13 +482,15 @@ async fn create_timetable(path: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpR
         .body(timetable))
 }
 
-async fn delete_timetable(path: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+async fn delete_timetable(class_id: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, ?role, "delete timetable");
+
     if !role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
     let delete_count =
-        block(move || actions::class::delete_timetable(&db, path.into_inner())).await?;
+        block(move || actions::class::delete_timetable(&db, class_id.into_inner())).await?;
 
     Ok(match delete_count {
         0 => HttpResponse::NotFound().body("Timetable not found"),
@@ -470,6 +505,8 @@ async fn link_class_with_discord(
     db: Data<Pool>,
     id: Json<Snowflake>,
 ) -> HttpResult {
+    debug!(%class_id, ?role, ?id, "link class with discord");
+
     if *role != MemberRole::Owner {
         return Err(ServiceErr::BadRequest("auth/no-owner"));
     }
@@ -488,6 +525,8 @@ async fn get_class_by_discord(
     claims: Claims,
     db: Data<Pool>,
 ) -> HttpResult {
+    debug!(%class_id, uid = %claims.uid, "get class by discord");
+
     if !claims.uid.is_nil() {
         return Err(ServiceErr::Unauthorized("not a bot")); // very secret route
     }

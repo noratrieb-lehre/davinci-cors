@@ -9,6 +9,7 @@ use chrono::Utc;
 use dto::{LoginResponse, UserLogin};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Validation};
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 use uuid::Uuid;
 
 /// The claims of the JWT
@@ -43,6 +44,8 @@ async fn refresh_token(
 
     let claims = validate_token(auth.into_scheme().token(), &d_key)?;
 
+    debug!(uid = %claims.uid, "refresh token");
+
     if claims.refresh {
         let new_token = create_normal_jwt(claims.uid, &e_key)?;
         Ok(HttpResponse::Ok()
@@ -56,12 +59,16 @@ async fn refresh_token(
 }
 
 async fn login(
-    body: web::Json<UserLogin>,
+    mut body: web::Json<UserLogin>,
     db: web::Data<Pool>,
     key: web::Data<EncodingKey>,
 ) -> HttpResult {
+    // to make the logging safe - we don't want to leak passwords
+    let password = std::mem::replace(&mut body.password, "**********".to_string());
+    debug!(?body, "login");
+
     let user =
-        web::block(move || actions::user::validate_user_password(&db, &body.email, &body.password))
+        web::block(move || actions::user::validate_user_password(&db, &body.email, &password))
             .await?;
 
     match user {

@@ -5,7 +5,7 @@ CREATE TABLE users
     id          UUID PRIMARY KEY,
     email       VARCHAR(50)   NOT NULL,
     password    TEXT          NOT NULL,
-    description VARCHAR(1000) NOT NULL DEFAULT '',
+    description VARCHAR(10000) NOT NULL DEFAULT '',
     discord_id  VARCHAR(20)   NULL,
     CONSTRAINT unique_email
         UNIQUE (email),
@@ -24,7 +24,7 @@ CREATE TABLE classes
     id          UUID PRIMARY KEY,
     owner       UUID        NOT NULL,
     name        VARCHAR(50) NOT NULL,
-    description VARCHAR(50) NOT NULL DEFAULT '',
+    description VARCHAR(10000) NOT NULL DEFAULT '',
     discord_id  VARCHAR(20) NULL,
     CONSTRAINT class_owner_fK
         FOREIGN KEY (owner)
@@ -92,7 +92,7 @@ CREATE TABLE events
     name        VARCHAR(50)   NOT NULL,
     start       TIMESTAMP     NOT NULL,
     "end"       TIMESTAMP     NULL,
-    description VARCHAR(1000) NOT NULL,
+    description VARCHAR(10000) NOT NULL,
     CONSTRAINT event_class_fk
         FOREIGN KEY (class)
             REFERENCES classes (id)

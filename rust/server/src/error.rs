@@ -3,7 +3,7 @@ use actix_web::{HttpResponse, ResponseError};
 use diesel::result::DatabaseErrorKind;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use tracing::error;
+use tracing::{debug, error};
 
 pub type ServiceResult<T> = Result<T, ServiceErr>;
 
@@ -61,6 +61,7 @@ impl Display for ServiceErr {
 
 impl ResponseError for ServiceErr {
     fn error_response(&self) -> HttpResponse {
+        debug!(err = %self, "an error occurred");
         match self {
             ServiceErr::TokenExpiredError => {
                 HttpResponse::Unauthorized().body("auth/token-expired")
@@ -72,7 +73,7 @@ impl ResponseError for ServiceErr {
             ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("auth/no-admin"),
             ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg.to_string()),
             err => {
-                error!(%err);
+                error!(%err, "an error occurred");
                 HttpResponse::InternalServerError().finish()
             }
         }
