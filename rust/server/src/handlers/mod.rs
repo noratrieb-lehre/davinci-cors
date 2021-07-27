@@ -1,12 +1,13 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
 use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
+use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::NewUser;
-use actix_web::web::ServiceConfig;
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path};
+use actix_web::web::{patch, ServiceConfig};
 use actix_web::HttpResponse;
-use dto::{PostUser, Snowflake, User, UserPostResponse};
+use dto::{ChangePasswordReq, PostUser, Snowflake, User, UserPostResponse};
 use jsonwebtoken::EncodingKey;
 use tracing::debug;
 
@@ -29,6 +30,7 @@ pub fn other_config(cfg: &mut ServiceConfig) {
             .route("/me", get().to(get_own_user))
             .route("/me", put().to(edit_own_user))
             .route("/me", delete().to(delete_own_user))
+            .route("/me/password", patch().to(change_password))
             .route("/me/link", post().to(link_user_with_discord))
             .route("/discord/{snowflake}", post().to(get_user_by_discord)),
     );
@@ -123,6 +125,31 @@ async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
         1 => HttpResponse::Ok().body("Deleted user."),
         _ => unreachable!(),
     })
+}
+
+async fn change_password(
+    claims: Claims,
+    db: Data<Pool>,
+    password: Json<ChangePasswordReq>,
+) -> HttpResult {
+    debug!(uid = %claims.uid, "change user password");
+
+    let user = block(move || {
+        actions::user::change_user_password(
+            &db,
+            models::User {
+                id: claims.uid,
+                email: "".to_string(),
+                password: password.into_inner().password,
+                description: "".to_string(),
+                discord_id: None,
+            },
+        )
+    })
+    .await?
+    .into_dto()?;
+
+    Ok(HttpResponse::Ok().json(user))
 }
 
 async fn link_user_with_discord(claims: Claims, db: Data<Pool>, id: Json<Snowflake>) -> HttpResult {

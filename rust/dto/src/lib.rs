@@ -70,6 +70,7 @@ pub struct User {
 }
 
 /// The user for the `POST /users` route, with a password
+/// # IMPORTANT: never log the password
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostUser {
     #[serde(default)]
@@ -157,6 +158,7 @@ pub struct MemberAcceptDto {
 }
 
 /// Request body of /login
+/// # IMPORTANT: never log the password
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserLogin {
     pub email: String,
@@ -179,4 +181,10 @@ pub struct Snowflake {
 pub struct GetEventQueryParams {
     pub before: Option<i64>,
     pub after: Option<i64>,
+}
+
+/// # IMPORTANT: never log the password
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChangePasswordReq {
+    pub password: String,
 }
