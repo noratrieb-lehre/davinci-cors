@@ -188,7 +188,8 @@ Requires Token
 {
   "password": "string",
   "oldPassword": "string"
-}```  
+}
+```  
 *Response*  
 `User`
 
