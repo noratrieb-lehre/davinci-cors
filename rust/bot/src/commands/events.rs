@@ -1,12 +1,13 @@
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::commands::functions::from_utc_timestamp;
+use crate::commands::format_datetime;
+use crate::commands::functions::{from_utc_timestamp, from_utc_to_cest};
 use crate::error::{BotError, BotResult};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
-use tracing::{debug, warn};
+use tracing::debug;
 
 pub async fn handle_event_command(
     ctx: &Context,
@@ -29,7 +30,7 @@ pub async fn handle_event_command(
 
 async fn show_all_events(ctx: &Context, interaction: &Interaction) -> BotResult<()> {
     let events = get_events(ctx, interaction.guild_id, None, None).await?;
-    warn!(events = ?events);
+    debug!(events = ?events);
 
     send_events(ctx, interaction, events.as_slice()).await
 }
@@ -38,7 +39,7 @@ async fn show_next_events(ctx: &Context, interaction: &Interaction) -> BotResult
     let current_time = Utc::now().timestamp_millis();
     let events = get_events(ctx, interaction.guild_id, None, Some(current_time)).await?;
 
-    warn!(len = %events.len());
+    debug!(len = %events.len());
     send_events(ctx, interaction, events.as_slice()).await
 }
 
@@ -129,15 +130,15 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
         .iter()
         .map(|event| {
             let end_value = if let Some(end) = event.end {
-                format!(" - {} UTC", format_datetime(end))
+                format!(" - {} CEST", format_datetime(end))
             } else {
                 "".to_string()
             };
 
             (
-                format!("{} - {}", format_date(event.start), event.name),
+                format!("{} | {}", format_date(event.start), event.name),
                 format!(
-                    "{} UTC{} \n {}",
+                    "{} CEST{} \n {}",
                     format_datetime(event.start),
                     end_value,
                     event.description
@@ -163,9 +164,4 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
 
 fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
     from_utc_timestamp(time).format("%d.%m")
-}
-fn format_datetime(
-    time: i64,
-) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    from_utc_timestamp(time).format("%d.%m.%Y %H:%M")
 }

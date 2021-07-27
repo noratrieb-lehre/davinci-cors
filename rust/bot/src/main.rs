@@ -1,17 +1,20 @@
-mod commands;
-mod error;
-mod requests;
+use std::sync::Arc;
 
-use crate::requests::CorsClient;
 use color_eyre::Report;
 use serenity::async_trait;
 use serenity::model::gateway::Ready;
 use serenity::model::interactions::Interaction;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-use std::sync::Arc;
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
+
+use crate::requests::CorsClient;
+
+mod commands;
+mod error;
+mod notifications;
+mod requests;
 
 struct Handler;
 
@@ -60,12 +63,18 @@ async fn main() -> std::result::Result<(), Report> {
         .await
         .expect("Could not create client");
 
+    let cors_client = Arc::new(CorsClient::from_token(cors_token));
     {
         let mut data = client.data.write().await;
-        data.insert::<CorsClient>(Arc::new(CorsClient::from_token(cors_token)))
+        data.insert::<CorsClient>(cors_client.clone())
     }
 
     info!("Connecting client...");
+
+    tokio::spawn(notifications::start_timer(
+        client.cache_and_http.clone(),
+        cors_client.clone(),
+    ));
 
     client.start().await.expect("Could not create client");
 

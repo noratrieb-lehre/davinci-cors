@@ -1,19 +1,20 @@
-mod events;
-mod functions;
-mod setup;
-
-use crate::error::{BotError, BotResult};
+use chrono::format::{DelayedFormat, StrftimeItems};
+use chrono::Utc;
 use serenity::builder::CreateEmbed;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-use tracing::warn;
+use tracing::debug;
 
-use crate::commands::functions::{absolute_time_as_weekday, from_utc_timestamp};
-use crate::requests::CorsClient;
-use chrono::format::{DelayedFormat, StrftimeItems};
-use chrono::Utc;
 use dto::Lesson;
 pub use setup::setup_slash_commands;
+
+use crate::commands::functions::{absolute_time_as_weekday, from_utc_timestamp, from_utc_to_cest};
+use crate::error::{BotError, BotResult};
+use crate::requests::CorsClient;
+
+mod events;
+mod functions;
+mod setup;
 
 pub async fn create_interaction_response<'a>(
     ctx: &Context,
@@ -24,7 +25,7 @@ pub async fn create_interaction_response<'a>(
         "info" => info(ctx, &interaction).await?,
         "event" => events::handle_event_command(ctx, &interaction, &data.options).await?,
         "wielangenoch" => wie_lange_noch(ctx, interaction).await?,
-        name => warn!("{}, {:#?}", name, data.options),
+        name => debug!("{}, {:#?}", name, data.options),
     }
     Ok(())
 }
@@ -167,4 +168,10 @@ fn info_embed(
             ),
         ])
         .footer(|f| f.text("Bot Version 0.0"))
+}
+
+pub fn format_datetime(
+    time: i64,
+) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
+    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m.%Y %H:%M")
 }
