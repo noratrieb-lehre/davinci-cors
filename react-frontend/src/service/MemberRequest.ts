@@ -1,14 +1,15 @@
-import {AxiosInstance} from "axios";
+import Axios from './AxiosInstance';
 
 export default class MemberRequest {
-    private axios: AxiosInstance;
+    private readonly axios: Axios;
 
-    public constructor(axios: AxiosInstance) {
-        this.axios = axios
+    public constructor() {
+        this.axios = Axios.getInstance();
     }
 
+
     public async replyToRequest(classID: string, userID: string, accept: boolean): Promise<void> {
-        await this.axios.post(`/classes/${classID}/requests/${userID}`, {
+        await this.axios.axios.post(`/classes/${classID}/requests/${userID}`, {
             accept
         })
     }

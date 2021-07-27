@@ -14,7 +14,7 @@ const Account = () => {
     }, [])
     return (
         <Container className={'text-center'}>
-            <ModalTitle>Account von {currentUser!.email}</ModalTitle>
+            <ModalTitle>Account von {currentUser?.email}</ModalTitle>
             <br/>
             <hr/>
             <ChangeEmail/>
