@@ -18,9 +18,11 @@ import {UserServiceContext} from "../Router";
 
 const LoginSchema = Yup.object().shape({
     email: Yup.string()
+        .max(1000, 'Die Beschreibung darf nicht länger als 1000 Zeichen sein')
         .email('Ungültige E-Mail Adresse')
         .required('E-Mail-Feld darf nicht leer sein.'),
     password: Yup.string()
+        .max(50, 'Das Zeichen darf nicht länger als 50 Zeichen sein')
         .required('Passwort-Feld darf nicht leer sein')
 })
 

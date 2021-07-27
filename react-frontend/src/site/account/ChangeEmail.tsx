@@ -27,6 +27,7 @@ const ChangeEmail = () => {
         validationSchema: Yup.object().shape({
             'email': Yup.string()
                 .email('Bitte geben Sie eine valide E-Mail ein')
+                .max(50, 'Die E-Mail darf maximal 50 Zeichen lang sein')
                 .required('Das E-Mail Feld darf nicht leer sein')
         })
     })

@@ -20,12 +20,38 @@ export default class UserRequest {
         return await this.axios.axios.get<User>('/users/me').then(r => r.data);
     }
 
-    public async createAccount(user: PostUser): Promise<AxiosResponse> {
-        console.log(user)
+    public async createAccount(user: PostUser): Promise<AxiosResponse<{ user: User, expires: number }>> {
         return await this.axios.axios.post<{ user: User, expires: number }>('/users', {
             password: user.password,
             email: user.email,
             description: user.description,
         }).catch(err => console.error(err.response)) as AxiosResponse
+    }
+
+    public async changeEmail(email: string) {
+        const response = this.axios.axios.get<User>('/users/me').then(r => r.data);
+        await this.axios.axios.put('/users/me', {
+            ...response,
+            email
+        })
+    }
+
+    public async changeDescription(description: string) {
+        const response = this.axios.axios.get<User>('/users/me').then(r => r.data);
+        await this.axios.axios.put('/users/me', {
+            ...response,
+            description
+        })
+    }
+
+    public async deleteUser(): Promise<void> {
+        await this.axios.axios.delete('/users/me');
+    }
+
+    public async changePassword(password: string, oldPassword: string) {
+        await this.axios.axios.patch('/users/me/password', {
+            password,
+            oldPassword
+        })
     }
 }

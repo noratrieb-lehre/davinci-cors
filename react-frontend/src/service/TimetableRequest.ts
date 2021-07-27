@@ -20,8 +20,11 @@ export default class TimetableRequest {
         await this.axios.axios.put(`/classes/${classId}/timetable`, timetable)
     }
 
-    public async getTimeTable(classId: string): Promise<AxiosResponse<TimeTable | undefined>> {
-        return await this.axios.axios.get<TimeTable>(`/classes/${classId}/timetable`);
+    public async getTimeTable(classId: string): Promise<AxiosResponse<TimeTable> | undefined> {
+        return await this.axios.axios.get<TimeTable>(`/classes/${classId}/timetable`).catch(() => {
+            console.log('Stundenplan nicht vorhanden')
+            return undefined
+        });
     }
 
 }

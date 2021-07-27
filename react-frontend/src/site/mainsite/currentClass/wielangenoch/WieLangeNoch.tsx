@@ -67,32 +67,36 @@ const WieLangeNoch = () => {
 
 
     const getLessonAndTimes = (date: Date): ReturnValue => {
-        if (date.getTime() < toLocaleDate(currentTimeTable![0]!.start).getTime() ||
-            date.getTime() > toLocaleDate(currentTimeTable![currentTimeTable!.length - 1].end).getTime())
-            return {
-                subject: 'Keine Schule!',
-                timeTillLessonFinish: '00:00',
-                timeTillSchoolFinish: '00:00:00'
-            }
-        const currentLesson = currentTimeTable!.filter((val) => {
-            const start = toLocaleDate(val.start);
-            const end = toLocaleDate(val.end);
-            return date.getTime() >= start.getTime() && date.getTime() < end.getTime()
-        })
-        if (currentLesson[0]) {
-            return {
-                subject: currentLesson[0].subject,
-                timeTillLessonFinish: getDateDiff(date, currentLesson[0].end),
-                timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
-            }
-        }
+        if (currentTimeTable) {
+            if (currentTimeTable.length > 0) {
+                if (date.getTime() < toLocaleDate(currentTimeTable![0]!.start).getTime() ||
+                    date.getTime() > toLocaleDate(currentTimeTable![currentTimeTable!.length - 1].end).getTime())
+                    return {
+                        subject: 'Keine Schule!',
+                        timeTillLessonFinish: '00:00',
+                        timeTillSchoolFinish: '00:00:00'
+                    }
+                const currentLesson = currentTimeTable!.filter((val) => {
+                    const start = toLocaleDate(val.start);
+                    const end = toLocaleDate(val.end);
+                    return date.getTime() >= start.getTime() && date.getTime() < end.getTime()
+                })
+                if (currentLesson[0]) {
+                    return {
+                        subject: currentLesson[0].subject,
+                        timeTillLessonFinish: getDateDiff(date, currentLesson[0].end),
+                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
+                    }
+                }
 
-        const nextLesson = currentTimeTable!.find((val) => date.getTime() < toLocaleDate(val.start).getTime())
-        if (nextLesson) {
-            return {
-                subject: `Pause (Nächste Lektion: ${nextLesson!.subject})`,
-                timeTillLessonFinish: getDateDiff(date, nextLesson!.start),
-                timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
+                const nextLesson = currentTimeTable!.find((val) => date.getTime() < toLocaleDate(val.start).getTime())
+                if (nextLesson) {
+                    return {
+                        subject: `Pause (Nächste Lektion: ${nextLesson!.subject})`,
+                        timeTillLessonFinish: getDateDiff(date, nextLesson!.start),
+                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
+                    }
+                }
             }
         }
 

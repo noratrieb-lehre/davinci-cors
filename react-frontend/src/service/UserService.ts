@@ -32,6 +32,21 @@ export default class UserService {
         this.eventRequest = new EventRequest();
         this.classRequest = new ClassRequest();
         this.memberRequest = new MemberRequest()
+        const refreshToken = localStorage.getItem('refresh-token')
+        if (refreshToken) {
+            this.refreshToken = refreshToken;
+            axios.get('http://localhost:8080/api/token', {
+                headers: {
+                    Authorization: refreshToken
+                }
+            }).then(val => {
+                this.setToken(val.headers);
+                this.getCurrentUser().then(value => {
+                    this.currentUserID = value.id;
+                    this.triggerOnAuthStateChange(value)
+                })
+            })
+        }
     }
 
     public async getCurrentUser(): Promise<User> {
@@ -39,6 +54,7 @@ export default class UserService {
     }
 
     public async logout(): Promise<void> {
+        localStorage.removeItem('refresh-token')
         this.triggerOnAuthStateChange(undefined);
     }
 
@@ -47,15 +63,17 @@ export default class UserService {
         this.currentUserID = loginResponse.data.userid;
 
         this.setToken(loginResponse.headers);
-        this.updateToken(loginResponse.data.expires)
+        this.updateToken(loginResponse.data.expires);
+        localStorage.setItem('refresh-token', loginResponse.headers['refresh-token'])
         this.triggerOnAuthStateChange(await this.getCurrentUser());
     }
 
     public async createAccount(user: PostUser): Promise<void> {
         const response = await this.userRequest.createAccount(user);
-        this.setToken(response.headers)
+        this.setToken(response.headers);
         this.updateToken(response.data.expires);
-        const newUser = await this.getCurrentUser();
+        const newUser = response.data.user;
+        this.currentUserID = response.data.user.id;
         this.triggerOnAuthStateChange(newUser);
     }
 
@@ -96,10 +114,8 @@ export default class UserService {
         return this.timetableRequest.updateTimetable(classId, timetableDay, day);
     }
 
-    //TODO
     public async getCalendar(classId: string): Promise<Array<Event>> {
-        const response = await axios.get<Array<Event>>(`/classes/${classId}/events`);
-        return response.data;
+        return await this.eventRequest.getCalendar(classId)
     }
 
     public async createEvent(classID: string, event: Event): Promise<void> {
@@ -108,7 +124,7 @@ export default class UserService {
 
     //TODO
     public async getPendingMembers(classId: string): Promise<Array<User>> {
-        return await axios.get<Array<User>>(`/classes/${classId}/requests`).then(r => r.data);
+        return await this.memberRequest.getPendingMembers(classId);
     }
 
 
@@ -137,6 +153,7 @@ export default class UserService {
         if (this.refreshToken) {
             const then = new Date(expireDate);
             setTimeout(async () => {
+                console.log('Requesting new Token')
                 const response = await axios.get('http://localhost:8080/api/token', {
                     headers: {
                         'Authorization': this.refreshToken
@@ -149,7 +166,8 @@ export default class UserService {
     }
 
     private setToken(header: any) {
+        if(header['refresh-token'])
+            this.refreshToken = header['refresh-token']
         this.axios.setAxios(header['token']);
-        this.refreshToken = (header['refresh-Token']);
     }
 }

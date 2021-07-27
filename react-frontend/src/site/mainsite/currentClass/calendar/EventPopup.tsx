@@ -10,9 +10,11 @@ const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => 
         onClose();
     }
     const [show, setShow] = useState(true);
+
     useEffect(() => {
         setShow(true)
     }, [event])
+
     return (
         <Modal show={show} onHide={handleClose} backdrop="static">
             <Modal.Header>
@@ -23,7 +25,9 @@ const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => 
                 {
                     event.end && <p>Ende: {formatDate(event.end, event.type)}</p>
                 }
-                <p>Beschreibung: {event.description}</p>
+                {
+                    event.description && <p>Beschreibung: {event.description}</p>
+                }
                 <p>Typ: {formatType(event.type)}</p>
             </Modal.Body>
             <Modal.Footer><Button onClick={handleClose}>Schliessen</Button></Modal.Footer>

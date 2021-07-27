@@ -6,8 +6,10 @@ import * as Yup from 'yup';
 
 const validationScheme = Yup.object().shape({
     'name': Yup.string()
+        .max(50, 'Der Name darf nicht länger als 50 Zeichen sein')
         .required('Der Name darf nicht leer sein'),
     'description': Yup.string()
+        .max(1000, 'Die Beschreibung darf nicht länger als 1000 Zeichen sein')
         .notRequired()
 })
 

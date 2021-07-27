@@ -23,14 +23,15 @@ import EventType from "../../../../data/event/EventType";
 
 type submitValues = {
     eventName: string,
-    startDate: string,
-    endDate: string,
+    startDate: number,
+    endDate?: number,
     description: string,
     eventType: EventType
 }
 
 const validationSchema = Yup.object().shape({
     eventName: Yup.string()
+        .max(50, 'Der Name darf maximal 50 Zeichen lang sein')
         .required('Das Event muss einen Namen haben'),
     startDate: Yup.string()
         .required('Das Startdatum muss definiert sein'),
@@ -48,14 +49,20 @@ const NewEvent = () => {
     const userService = useContext(UserServiceContext);
     const currentClass = useContext(CurrentClass);
     const onSubmit = ({eventName, startDate, endDate, description, eventType}: submitValues) => {
-        console.log(eventType)
+        userService.createEvent(currentClass!.id, {
+            name: eventName,
+            start: new Date(startDate * 1000).getTime(),
+            end: (endDate) ? new Date(endDate * 1000).getTime() : undefined,
+            description: description,
+            type: eventType,
+        })
     }
 
     const formik = useFormik({
         initialValues: {
             eventName: '',
-            startDate: '',
-            endDate: '',
+            startDate: 0,
+            endDate: 0,
             description: '',
             eventType: 'other',
         },
@@ -89,7 +96,7 @@ const NewEvent = () => {
                             <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
                                       onChange={moment => {
                                           if (typeof moment !== 'string')
-                                              formik.setFieldValue('startDate', (moment as Moment).date())
+                                              formik.setFieldValue('startDate', (moment as Moment).unix())
                                       }}/>
                         </FormGroup>
                         <Alert variant={'danger'} show={!!formik.errors.startDate}>{formik.errors.startDate}</Alert>
@@ -100,7 +107,7 @@ const NewEvent = () => {
                             <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
                                       onChange={moment => {
                                           if (typeof moment !== 'string')
-                                              formik.setFieldValue('endDate', (moment as Moment).date())
+                                              formik.setFieldValue('endDate', (moment as Moment).unix())
                                       }}/>
                         </FormGroup>
                         <Alert variant={'danger'} show={!!formik.errors.endDate}>{formik.errors.endDate}</Alert>
