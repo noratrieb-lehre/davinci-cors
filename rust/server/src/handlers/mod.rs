@@ -4,10 +4,13 @@ use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
 use crate::models;
 use crate::models::conversion::IntoDto;
 use crate::models::NewUser;
-use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path};
+use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, Query};
 use actix_web::web::{patch, ServiceConfig};
 use actix_web::HttpResponse;
-use dto::{ChangePasswordReq, PostUser, Snowflake, User, UserPostResponse};
+use dto::{
+    ChangePasswordReq, NotificationQueryParams, NotificationRes, PostUser, SingleSnowflake, User,
+    UserPostResponse,
+};
 use jsonwebtoken::EncodingKey;
 use tracing::debug;
 
@@ -32,7 +35,8 @@ pub fn other_config(cfg: &mut ServiceConfig) {
             .route("/me", delete().to(delete_own_user))
             .route("/me/password", patch().to(change_password))
             .route("/me/link", post().to(link_user_with_discord))
-            .route("/discord/{snowflake}", post().to(get_user_by_discord)),
+            .route("/discord/{snowflake}", post().to(get_user_by_discord))
+            .route("/bot/notifications", get().to(get_notifications)),
     );
 }
 
@@ -152,7 +156,11 @@ async fn change_password(
     Ok(HttpResponse::Ok().json(user))
 }
 
-async fn link_user_with_discord(claims: Claims, db: Data<Pool>, id: Json<Snowflake>) -> HttpResult {
+async fn link_user_with_discord(
+    claims: Claims,
+    db: Data<Pool>,
+    id: Json<SingleSnowflake>,
+) -> HttpResult {
     debug!(uid = %claims.uid, ?id, "link own user with discord");
 
     let user = block(move || {
@@ -174,4 +182,29 @@ async fn get_user_by_discord(user_id: Path<String>, db: Data<Pool>, claims: Clai
         .into_dto()?;
 
     Ok(HttpResponse::Ok().json(user))
+}
+
+async fn get_notifications(
+    params: Query<NotificationQueryParams>,
+    db: Data<Pool>,
+    claims: Claims,
+) -> HttpResult {
+    if !claims.uid.is_nil() {
+        return Err(ServiceErr::NotFound); // very secret route
+    }
+
+    let (time, notifications) = block(move || {
+        actions::event::get_notifications(
+            &db,
+            chrono::NaiveDateTime::from_timestamp(params.since / 1000, 0),
+        )
+    })
+    .await?;
+
+    let notifications = notifications.into_dto()?;
+
+    Ok(HttpResponse::Ok().json(NotificationRes {
+        notifications,
+        time: time.timestamp_millis(),
+    }))
 }

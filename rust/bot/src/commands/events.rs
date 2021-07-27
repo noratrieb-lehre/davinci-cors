@@ -19,9 +19,9 @@ pub async fn handle_event_command(
             "next" => show_next_events(ctx, interaction).await?,
             "filter" => show_filter_events(ctx, interaction, subcommand).await?,
             "search" => show_search_events(ctx, interaction, subcommand).await?,
-            _ => warn!("Invalid subcommand"),
+            _ => debug!(?subcommand, "Invalid subcommand"),
         },
-        None => warn!("No subcommand"),
+        None => debug!("No subcommand"),
     }
 
     Ok(())

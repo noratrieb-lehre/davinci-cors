@@ -74,6 +74,7 @@ pub struct Event {
     pub start: chrono::NaiveDateTime,
     pub end: Option<chrono::NaiveDateTime>,
     pub description: String,
+    pub notification: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
@@ -86,6 +87,7 @@ pub struct NewEvent<'a> {
     pub start: &'a chrono::NaiveDateTime,
     pub end: Option<&'a chrono::NaiveDateTime>,
     pub description: &'a str,
+    pub notification: Option<&'a chrono::NaiveDateTime>,
 }
 
 #[derive(Debug, Clone, Queryable)]
@@ -107,11 +109,61 @@ pub struct NewTimetable<'a> {
     pub timetable: &'a str,
 }
 
+#[derive(Debug, Clone, Queryable)]
+pub struct Guild {
+    pub id: String,
+    pub notif_channel: Option<String>,
+    pub notif_ping_role: Option<String>,
+    pub notif_ping_everyone: bool,
+}
+
+#[derive(Debug, Insertable, Queryable, Identifiable, AsChangeset)]
+#[table_name = "guilds"]
+pub struct NewGuild<'a> {
+    pub id: &'a str,
+    pub notif_channel: Option<&'a str>,
+    pub notif_ping_role: Option<&'a str>,
+    pub notif_ping_everyone: bool,
+}
+
+use diesel::sql_types::{Bool, Integer, Nullable, Timestamp, Uuid as SQLUuid, VarChar};
+
+#[derive(Debug, Clone, QueryableByName)]
+pub struct FromNotificationQuery {
+    // Event
+    #[sql_type = "SQLUuid"]
+    pub e_id: Uuid,
+    #[sql_type = "SQLUuid"]
+    pub e_class: Uuid,
+    #[sql_type = "Integer"]
+    pub e_e_type: i32,
+    #[sql_type = "VarChar"]
+    pub e_name: String,
+    #[sql_type = "Timestamp"]
+    pub e_start: chrono::NaiveDateTime,
+    #[sql_type = "Nullable<Timestamp>"]
+    pub e_end: Option<chrono::NaiveDateTime>,
+    #[sql_type = "VarChar"]
+    pub e_description: String,
+    #[sql_type = "Nullable<Timestamp>"]
+    pub e_notification: Option<chrono::NaiveDateTime>,
+    // Guild
+    #[sql_type = "VarChar"]
+    pub g_id: String,
+    #[sql_type = "Nullable<VarChar>"]
+    pub g_notif_channel: Option<String>,
+    #[sql_type = "Nullable<VarChar>"]
+    pub g_notif_ping_role: Option<String>,
+    #[sql_type = "Bool"]
+    pub g_notif_ping_everyone: bool,
+}
+
 pub const PENDING: i32 = 3;
 
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
-    use crate::models::{Class, Event, Member, MemberRole, User, PENDING};
+    use crate::models::{Class, Event, FromNotificationQuery, Member, MemberRole, User, PENDING};
+    use dto::Notification;
 
     pub trait IntoDto<T> {
         fn into_dto(self) -> ServiceResult<T>;
@@ -253,6 +305,32 @@ pub mod conversion {
                 start: self.start.timestamp_millis(),
                 end,
                 description: self.description,
+            })
+        }
+    }
+
+    impl IntoDto<dto::Notification> for FromNotificationQuery {
+        fn into_dto(self) -> ServiceResult<Notification> {
+            Ok(dto::Notification {
+                event: Event {
+                    id: self.e_id,
+                    class: self.e_class,
+                    e_type: self.e_e_type,
+                    name: self.e_name,
+                    start: self.e_start,
+                    end: self.e_end,
+                    description: self.e_description,
+                    notification: self.e_notification,
+                }
+                .into_dto()?,
+                guild: self.g_id,
+                channel: self.g_notif_channel.ok_or_else(|| {
+                    ServiceErr::InternalServerError(
+                        "Selected notification without notif_channel".to_string(),
+                    )
+                })?,
+                role_ping: self.g_notif_ping_role,
+                everyone_ping: self.g_notif_ping_everyone,
             })
         }
     }
