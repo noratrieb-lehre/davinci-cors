@@ -12,6 +12,7 @@ import ClassRequest from "./ClassRequest";
 import MemberRequest from "./MemberRequest";
 import Axios from "./AxiosInstance";
 import axios from "axios";
+import DiscordRequest from "./DiscordRequest";
 
 
 export default class UserService {
@@ -21,6 +22,7 @@ export default class UserService {
     private readonly eventRequest: EventRequest;
     private readonly classRequest: ClassRequest;
     private readonly memberRequest: MemberRequest;
+    private readonly discordRequest: DiscordRequest
     private readonly axios: Axios;
     private refreshToken?: string;
     private currentUserID?: string;
@@ -31,7 +33,8 @@ export default class UserService {
         this.userRequest = new UserRequest();
         this.eventRequest = new EventRequest();
         this.classRequest = new ClassRequest();
-        this.memberRequest = new MemberRequest()
+        this.memberRequest = new MemberRequest();
+        this.discordRequest = new DiscordRequest();
         const refreshToken = localStorage.getItem('refresh-token')
         if (refreshToken) {
             this.refreshToken = refreshToken;
@@ -122,7 +125,6 @@ export default class UserService {
         await this.eventRequest.createEvent(classID, event)
     }
 
-    //TODO
     public async getPendingMembers(classId: string): Promise<Array<User>> {
         return await this.memberRequest.getPendingMembers(classId);
     }
@@ -132,6 +134,21 @@ export default class UserService {
         await this.memberRequest.replyToRequest(classID, userID, accept);
     }
 
+    public async changeEmail(email: string) {
+        return this.userRequest.changeEmail(email);
+    }
+
+    public async changeDescription(description: string) {
+        return this.userRequest.changeDescription(description)
+    }
+
+    public async changePassword(password: string, oldPassword: string) {
+        return this.userRequest.changePassword(password, oldPassword)
+    }
+
+    public async deleteClassMember(classId: string, memberId: string): Promise<void> {
+        await this.memberRequest.deleteClassMember(classId, memberId)
+    }
 
     public getMemberRole(role: MemberRole): string {
         switch (role) {

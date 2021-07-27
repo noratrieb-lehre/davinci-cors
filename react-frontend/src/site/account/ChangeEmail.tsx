@@ -14,8 +14,9 @@ const ChangeEmail = () => {
     }, [])
 
     const handleSubmit = ({email}: { email: string }) => {
-
+        userService.changeEmail(email);
     }
+
 
     const formik = useFormik({
         onSubmit: handleSubmit,

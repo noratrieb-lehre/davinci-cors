@@ -1,6 +1,6 @@
 import Axios from "./AxiosInstance";
 
-export default class DiscordRequests {
+export default class DiscordRequest {
     private readonly axios: Axios;
 
     public constructor() {

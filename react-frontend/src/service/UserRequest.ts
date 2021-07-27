@@ -44,14 +44,14 @@ export default class UserRequest {
         })
     }
 
-    public async deleteUser(): Promise<void> {
-        await this.axios.axios.delete('/users/me');
-    }
-
     public async changePassword(password: string, oldPassword: string) {
         await this.axios.axios.patch('/users/me/password', {
             password,
             oldPassword
         })
     }
+    public async deleteUser(): Promise<void> {
+        await this.axios.axios.delete('/users/me');
+    }
+
 }
