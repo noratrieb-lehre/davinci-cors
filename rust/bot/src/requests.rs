@@ -2,7 +2,7 @@ use crate::error::BotResult;
 use dto::{Class, Event, GetEventQueryParams, Timetable};
 use reqwest::header::HeaderMap;
 use reqwest::Client;
-use tracing::debug;
+use tracing::{debug, info};
 
 const BASE_URL: &str = "http://localhost:8080/api";
 
@@ -15,7 +15,9 @@ impl CorsClient {
         let mut headers = HeaderMap::new();
         headers.insert(
             "Authorization",
-            format!("Bearer {}", token).parse().unwrap(),
+            format!("Bearer {}", token)
+                .parse()
+                .expect("Authorization header invalid"),
         );
         Self {
             client: Client::builder()
@@ -39,13 +41,14 @@ impl CorsClient {
         let res = self
             .client
             .get(format!(
-                "{}/classes/{}/events{}",
+                "{}/classes/{}/events?{}",
                 BASE_URL, class_id, params
             ))
             .send()
             .await?;
 
         debug!(status = %res.status());
+        debug!(params = %params);
 
         let events = res.json().await?;
         Ok(events)

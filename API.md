@@ -3,15 +3,19 @@
 * Version 0.1
 * Base Route: `/api`
 
-### Event Dao
+## Dtos
+<field>? -> Optional for requests, always present in responses
+<field>?? -> Optional for requests, optional responses
+
+### Event Dto
 
 ```json
 {
-  "id": "uuid",
+  "id?": "uuid",
   "type": "EventType",
   "name": "string",
   "start": "Timestamp",
-  "end?": "Timestamp",
+  "end?": "Timestamp | null",
   "description": "string"
 }
 ```
@@ -24,13 +28,13 @@
 
 `number`, UTC Unix Timestamp in milliseconds
 
-### Class Dao
+### Class Dto
 
 ```json
 {
-  "id": "uuid",
+  "id?": "uuid",
   "owner": "User",
-  "members?": [
+  "members??": [
     "Member"
   ],
   "name": "string",
@@ -38,30 +42,30 @@
 }
 ```
 
-### User Dao
+### User Dto
 
 ```json
 {
-  "id": "uuid",
+  "id?": "uuid",
   "email": "string",
-  "description": "string",
-  "classes?": [
+  "description?": "string",
+  "classes??": [
     "Class"
   ]
 }
 ```
 
-### Member Dao
+### Member Dto
 
 ```json
 {
-  "user": "uuid",
+  "user?": "uuid",
   "displayName": "string",
   "role": "owner | admin | member"
 }
 ```  
 
-### Timetable Dao
+### Timetable Dto
 
 ```json
 [
@@ -175,7 +179,7 @@ Requires Token
 
 `POST /users`           
 *Request*           
-`User` with password, id optional (will be overriden) and description optional
+`User` with password
 *Response*           
 Refresh-Token: Bearer token              
 Token: Bearer token         
@@ -187,6 +191,8 @@ Requires Token
 `DELETE /users/me`
 
 ### Classes
+
+Getting information about a class requires being in that class
 
 #### Get class
 
@@ -214,7 +220,7 @@ Requires Token
 #### Put class
 
 `PUT /classes/{uuid}`   
-Requires Token    
+Requires Token & Admin     
 *Request*    
 `Class`  (`members` field ignored)  
 *Response*    
@@ -223,14 +229,14 @@ Requires Token
 #### Delete Class
 
 `DELETE /classes/{uuid}`  
-Requires Token  
+Requires Token & Owner  
 *Response*  
 "Deleted class."
 
 ### Class member
 
 ### Put class member
-Requires Token and Admin  
+Requires Token & Admin  
 `PUT /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
@@ -238,7 +244,7 @@ Requires Token and Admin
 `Member`
 
 ### Delete class member
-Requires Token and Admin  
+Requires Token & Admin  
 `DELETE /classes/{uuid}/members/{uuid}`  
 *Request*  
 `Member`    
@@ -256,7 +262,7 @@ Requires Token
 #### See join request users
 
 `GET /classes/{uuid}/requests`  
-Requires Token  
+Requires Token & Admin  
 *Request*
 
 ```json
@@ -268,7 +274,7 @@ Requires Token
 #### Accept Member
 
 `POST /classes/{uuid}/requests/{uuid}`  
-Requires Token  
+Requires Token & Admin  
 *Request*
 
 ```json
@@ -302,7 +308,7 @@ Parameters not required
 #### Post Event
 
 `POST /classes/{uuid}/events`  
-Requires Token  
+Requires Token & Admin  
 *Request*  
 `Event` without UUID required  
 *Response*  
@@ -311,7 +317,7 @@ Requires Token
 #### Put Event
 
 `POST /classes/{uuid}/events/{uuid}`  
-Requires Token  
+Requires Token & Admin  
 *Request*  
 `Event`  
 *Response*  
@@ -320,7 +326,7 @@ Requires Token
 #### Delete Event
 
 `DELETE /classes/{uuid}/events/{uuid}`  
-Requires Token
+Requires Token & Admin
 
 ### Timetable
 
@@ -336,7 +342,7 @@ Requires Token
 #### POST Timetable
 
 `POST /classes/{uuid}/timetable`  
-Requires Token  
+Requires Token & Admin  
 *Response*  
 `Timetable`
 
@@ -344,17 +350,17 @@ Requires Token
 #### PUT Timetable
 
 `PUT /classes/{uuid}/timetable`  
-Requires Token  
+Requires Token & Admin  
 *Request*  
 `Timetable`  
 *Response*  
 `Timetable`
 
 
-## Bot routes
+## Discord routes
 
 ### Link user with discord user
-Requires token
+Requires token  
 `POST /users/me/link`
 *Request*
 ```json
@@ -364,7 +370,7 @@ Requires token
 ```
 
 ### Link guild with class
-Requires token and Owner
+Requires token & Owner  
 `POST /classes/{uuid}/link`
 *Request*
 ```json
@@ -376,13 +382,13 @@ Requires token and Owner
 #### Get class with discord snowflake
 
 `GET /classes/discord/{snowflake}`  
-Requires Token  
+Bot only 
 *Response*  
 `Class`
 
 #### Get user with discord snowflake
 
 `GET /users/discord/{snowflake}`  
-Requires Token  
+Bot only  
 *Response*  
 `User`

@@ -40,7 +40,7 @@ async fn main() -> Result<(), Report> {
     info!("Starting Server");
 
     HttpServer::new(move || {
-        let cors = Cors::permissive();
+        let cors = Cors::permissive().expose_headers(["token", "refresh-token"]);
 
         App::new()
             .wrap(cors)

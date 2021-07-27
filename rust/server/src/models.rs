@@ -84,7 +84,7 @@ pub struct NewEvent<'a> {
     pub e_type: i32,
     pub name: &'a str,
     pub start: &'a chrono::NaiveDateTime,
-    pub end: &'a chrono::NaiveDateTime,
+    pub end: Option<&'a chrono::NaiveDateTime>,
     pub description: &'a str,
 }
 

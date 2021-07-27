@@ -14,6 +14,7 @@ use chrono::NaiveDateTime;
 use dto::{
     Class, Event, GetEventQueryParams, Member, MemberAcceptDto, MemberRole, Snowflake, Timetable,
 };
+use tracing::debug;
 use uuid::Uuid;
 
 pub(super) fn class_config(cfg: &mut ServiceConfig) {
@@ -287,6 +288,9 @@ async fn get_events(
 ) -> HttpResult {
     let GetEventQueryParams { before, after } = query.into_inner();
 
+    let before = before.map(|b| b / 1000);
+    let after = after.map(|a| a / 1000);
+
     let events = block(move || match (before, after) {
         (None, None) => actions::event::get_events_by_class(&db, *class_id),
         (Some(before), Some(after)) => actions::event::get_events_by_class_filtered_both(
@@ -295,11 +299,10 @@ async fn get_events(
             NaiveDateTime::from_timestamp(before, 0),
             NaiveDateTime::from_timestamp(after, 0),
         ),
-        (Some(before), None) => actions::event::get_events_by_class_filtered_both(
+        (Some(before), None) => actions::event::get_events_by_class_filtered_before(
             &db,
             *class_id,
             NaiveDateTime::from_timestamp(before, 0),
-            NaiveDateTime::from_timestamp(0, 0),
         ),
         (None, Some(after)) => actions::event::get_events_by_class_filtered_after(
             &db,
@@ -324,13 +327,16 @@ async fn create_event(
     }
 
     let event = block(move || {
+        let end = event
+            .end
+            .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
         let new_event = NewEvent {
             id: uuid::Uuid::new_v4(),
             class: *class_id,
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
+            end: end.as_ref(),
             description: &event.description,
         };
 
@@ -355,13 +361,16 @@ async fn edit_event(
     let path = path.into_inner();
 
     let event = block(move || {
+        let end = event
+            .end
+            .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
         let new_event = NewEvent {
             id: path.1,
             class: path.0,
             e_type: event.r#type as i32,
             name: &event.name,
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
-            end: &chrono::NaiveDateTime::from_timestamp(event.end.unwrap_or(0) / 1000, 0),
+            end: end.as_ref(),
             description: &event.description,
         };
 
@@ -480,7 +489,7 @@ async fn get_class_by_discord(
     db: Data<Pool>,
 ) -> HttpResult {
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::Unauthorized("not a bto")); // very secret route
+        return Err(ServiceErr::Unauthorized("not a bot")); // very secret route
     }
 
     let class = block(move || actions::class::get_class_by_discord(&db, &class_id))

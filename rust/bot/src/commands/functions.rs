@@ -4,8 +4,8 @@
 use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Utc, Weekday};
 use dto::Timetable;
 
-pub fn utc_from_day_timestamp(time: i64) -> DateTime<Utc> {
-    Utc.from_utc_datetime(&NaiveDateTime::from_timestamp(time, 0))
+pub fn from_utc_timestamp(time: i64) -> DateTime<Utc> {
+    Utc.from_utc_datetime(&NaiveDateTime::from_timestamp(time / 1000, 0))
 }
 
 pub fn absolute_time_as_weekday(now: chrono::DateTime<Utc>) -> (i64, Weekday) {
@@ -27,7 +27,7 @@ pub fn wie_lange_noch(
         .find(|lesson| lesson.start < time && lesson.end > time);
 
     let next = day_table.iter().find(|lesson| {
-        (cur_lesson.is_some() && lesson.start > cur_lesson.unwrap().start) || (lesson.start > time)
+        (cur_lesson.map(|ls| ls.start) < Some(lesson.start)) || (lesson.start > time)
     });
     (cur_lesson, next)
 }

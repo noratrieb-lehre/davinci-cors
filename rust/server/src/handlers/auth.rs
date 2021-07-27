@@ -47,7 +47,6 @@ async fn refresh_token(
         let new_token = create_normal_jwt(claims.uid, &e_key)?;
         Ok(HttpResponse::Ok()
             .header("token", format!("Bearer {}", new_token.0))
-            .header("access-control-expose-headers", "*") // todo dont
             .json(dto::RefreshResponse {
                 expires: new_token.1,
             }))
@@ -72,7 +71,6 @@ async fn login(
             Ok(HttpResponse::Ok()
                 .header("token", format!("Bearer {}", token))
                 .header("refresh-token", format!("Bearer {}", refresh_token))
-                .header("access-control-expose-headers", "*") // todo dont
                 .json(LoginResponse {
                     userid: user.id,
                     expires,
