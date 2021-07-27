@@ -102,7 +102,3 @@ CREATE TABLE events
             REFERENCES event_types (id)
             ON DELETE RESTRICT
 );
-
-SELECT * from events
-WHERE start < 'before'
-AND COALESCE("end", start) > 'after'
