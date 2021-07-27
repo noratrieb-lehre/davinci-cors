@@ -423,4 +423,4 @@ Bot only
 
 Get all events + notification data for events that had their notifications due in the time since the last timestamp.  
 *Response*  
-`Notification[]`
+`{"notifications": "Notification[]", "time": "Timestamp"}`
