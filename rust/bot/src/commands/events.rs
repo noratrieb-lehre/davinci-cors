@@ -1,12 +1,12 @@
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::commands::functions::utc_from_day_timestamp;
+use crate::commands::functions::from_utc_timestamp;
 use crate::error::{BotError, BotResult};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
-use tracing::warn;
+use tracing::{debug, warn};
 
 pub async fn handle_event_command(
     ctx: &Context,
@@ -29,6 +29,7 @@ pub async fn handle_event_command(
 
 async fn show_all_events(ctx: &Context, interaction: &Interaction) -> BotResult<()> {
     let events = get_events(ctx, interaction.guild_id, None, None).await?;
+    warn!(events = ?events);
 
     send_events(ctx, interaction, events.as_slice()).await
 }
@@ -37,11 +38,7 @@ async fn show_next_events(ctx: &Context, interaction: &Interaction) -> BotResult
     let current_time = Utc::now().timestamp_millis();
     let events = get_events(ctx, interaction.guild_id, None, Some(current_time)).await?;
 
-    let events = events
-        .into_iter()
-        .filter(|event| event.end > Some(current_time))
-        .collect::<Vec<_>>();
-
+    warn!(len = %events.len());
     send_events(ctx, interaction, events.as_slice()).await
 }
 
@@ -165,10 +162,10 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
 }
 
 fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    utc_from_day_timestamp(time).format("%d.%m")
+    from_utc_timestamp(time).format("%d.%m")
 }
 fn format_datetime(
     time: i64,
 ) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    utc_from_day_timestamp(time).format("%d.%m.%y %H:%M")
+    from_utc_timestamp(time).format("%d.%m.%Y %H:%M")
 }

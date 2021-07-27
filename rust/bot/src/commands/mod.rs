@@ -8,7 +8,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 use tracing::warn;
 
-use crate::commands::functions::{absolute_time_as_weekday, utc_from_day_timestamp};
+use crate::commands::functions::{absolute_time_as_weekday, from_utc_timestamp};
 use crate::requests::CorsClient;
 use chrono::format::{DelayedFormat, StrftimeItems};
 use chrono::Utc;
@@ -129,7 +129,7 @@ fn wie_lange_noch_embed<'a>(
 }
 
 fn format_time(time: i64) -> DelayedFormat<StrftimeItems<'static>> {
-    utc_from_day_timestamp(time).format("%H:%M:%S")
+    from_utc_timestamp(time).format("%H:%M:%S")
 }
 
 fn info_embed(

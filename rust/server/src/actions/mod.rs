@@ -16,8 +16,8 @@ mod test {
     use super::class::*;
     use super::user::*;
     use crate::actions::event::{
-        get_events_by_class, get_events_by_class_filtered_after, get_events_by_class_filtered_both,
-        insert_event,
+        get_events_by_class, get_events_by_class_filtered_after,
+        get_events_by_class_filtered_before, get_events_by_class_filtered_both, insert_event,
     };
     use crate::actions::Pool;
     use crate::models;
@@ -26,7 +26,7 @@ mod test {
     use dto::{Lesson, Timetable};
 
     fn get_pool() -> Pool {
-        dotenv::dotenv().ok().unwrap();
+        dotenv::dotenv().ok();
         let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
         let manager = ConnectionManager::<PgConnection>::new(database_url);
@@ -203,7 +203,7 @@ mod test {
                     e_type: 1,
                     name: "event1000",
                     start: &NaiveDateTime::from_timestamp(1000, 0),
-                    end: &NaiveDateTime::from_timestamp(2000, 0),
+                    end: Some(&NaiveDateTime::from_timestamp(2000, 0)),
                     description: "event",
                 },
             )
@@ -216,7 +216,7 @@ mod test {
                     e_type: 1,
                     name: "event1000",
                     start: &NaiveDateTime::from_timestamp(2000, 0),
-                    end: &NaiveDateTime::from_timestamp(0, 0),
+                    end: None,
                     description: "event",
                 },
             )
@@ -229,7 +229,7 @@ mod test {
                     e_type: 1,
                     name: "event1000",
                     start: &NaiveDateTime::from_timestamp(0, 0),
-                    end: &NaiveDateTime::from_timestamp(10000, 0),
+                    end: Some(&NaiveDateTime::from_timestamp(10000, 0)),
                     description: "event",
                 },
             )
@@ -246,12 +246,20 @@ mod test {
             chrono::NaiveDateTime::from_timestamp(0, 0),
         )
         .unwrap();
+        assert_eq!(events.len(), 3);
+
+        let events = get_events_by_class_filtered_before(
+            &db,
+            class.id,
+            chrono::NaiveDateTime::from_timestamp(0, 0),
+        )
+        .unwrap();
         assert_eq!(events.len(), 0);
 
         let events = get_events_by_class_filtered_after(
             &db,
             class.id,
-            chrono::NaiveDateTime::from_timestamp(9000, 0),
+            chrono::NaiveDateTime::from_timestamp(1, 0),
         )
         .unwrap();
         assert_eq!(events.len(), 3);
@@ -262,7 +270,7 @@ mod test {
             chrono::NaiveDateTime::from_timestamp(1000000, 0),
         )
         .unwrap();
-        assert_eq!(events.len(), 3);
+        assert_eq!(events.len(), 0);
 
         let events = get_events_by_class_filtered_both(
             &db,
@@ -272,6 +280,15 @@ mod test {
         )
         .unwrap();
         assert_eq!(events.len(), 2);
+
+        let events = get_events_by_class_filtered_both(
+            &db,
+            class.id,
+            NaiveDateTime::from_timestamp(2001, 0),
+            chrono::NaiveDateTime::from_timestamp(1999, 0),
+        )
+        .unwrap();
+        assert_eq!(events.len(), 3);
 
         delete_class(&db, class.id).unwrap();
         delete_user(&db, owner.id).unwrap();

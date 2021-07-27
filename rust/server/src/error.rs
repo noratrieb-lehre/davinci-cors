@@ -3,6 +3,7 @@ use actix_web::{HttpResponse, ResponseError};
 use diesel::result::DatabaseErrorKind;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use tracing::error;
 
 pub type ServiceResult<T> = Result<T, ServiceErr>;
 
@@ -41,9 +42,9 @@ impl Display for ServiceErr {
             f,
             "{}",
             match self {
-                ServiceErr::ConnectionNotFound(err) => format!("{}", err),
-                ServiceErr::DbActionFailed(err) => format!("{}", err),
-                ServiceErr::JWTCreationError(err) => format!("{}", err),
+                ServiceErr::ConnectionNotFound(err) => format!("ConnectionNotFound: {}", err),
+                ServiceErr::DbActionFailed(err) => format!("DbActionFailed: {}", err),
+                ServiceErr::JWTCreationError(err) => format!("JWTCreationError: {}", err),
                 ServiceErr::TokenExpiredError => "auth/expired".to_string(),
                 ServiceErr::JWTokenError => "auth/invalid".to_string(),
                 ServiceErr::NotFound => "Not found".to_string(),
@@ -70,7 +71,10 @@ impl ResponseError for ServiceErr {
             ServiceErr::Unauthorized(msg) => HttpResponse::Unauthorized().body(*msg),
             ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("auth/no-admin"),
             ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg.to_string()),
-            err => HttpResponse::InternalServerError().body(err.to_string()),
+            err => {
+                error!(%err);
+                HttpResponse::InternalServerError().finish()
+            }
         }
     }
 }
@@ -81,6 +85,9 @@ impl From<diesel::result::Error> for ServiceErr {
             diesel::result::Error::NotFound => Self::NotFound,
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
                 Self::Conflict("request/already-exists")
+            }
+            diesel::result::Error::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, _) => {
+                Self::Conflict("request/does-not-exist")
             }
             _ => Self::DbActionFailed(err),
         }
