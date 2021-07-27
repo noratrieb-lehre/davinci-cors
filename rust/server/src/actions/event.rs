@@ -97,18 +97,7 @@ pub fn get_notifications(
 ) -> ServiceResult<(chrono::NaiveDateTime, Vec<FromNotificationQuery>)> {
     let conn = db.get()?;
 
-    #[derive(Debug, QueryableByName)]
-    struct CurrentTimestamp {
-        #[sql_type = "Timestamp"]
-        current_timestamp: chrono::NaiveDateTime,
-    }
-
-    let current_time = sql_query("SELECT current_timestamp")
-        .load::<CurrentTimestamp>(&conn)?
-        .into_iter()
-        .next()
-        .expect("SQL broke")
-        .current_timestamp;
+    let current_time = chrono::Utc::now().naive_utc();
 
     // See the comment in the sql file
     let notifications = sql_query(include_str!("get_notifications.sql"))

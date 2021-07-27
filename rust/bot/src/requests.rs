@@ -1,8 +1,8 @@
 use crate::error::BotResult;
-use dto::{Class, Event, GetEventQueryParams, Timetable};
+use dto::{Class, Event, GetEventQueryParams, NotificationRes, Timetable};
 use reqwest::header::HeaderMap;
 use reqwest::Client;
-use tracing::debug;
+use tracing::{debug, info};
 
 const BASE_URL: &str = "http://localhost:8080/api";
 
@@ -27,6 +27,16 @@ impl CorsClient {
         }
     }
 
+    pub async fn get_notifications(&self, old_timestamp: i64) -> BotResult<NotificationRes> {
+        info!(after = %old_timestamp, "Getting notifications");
+
+        let res = self.client.get("/bot/notifications").send().await?;
+        debug!(res = %res.status(), "Get notification response status");
+
+        let data = res.json::<NotificationRes>().await?;
+        Ok(data)
+    }
+
     pub async fn get_events(
         &self,
         guild_id: u64,
@@ -47,8 +57,8 @@ impl CorsClient {
             .send()
             .await?;
 
-        debug!(status = %res.status());
-        debug!(params = %params);
+        debug!(status = %res.status(), "Get events status");
+        debug!(params = %params, "Get events sent params");
 
         let events = res.json().await?;
         Ok(events)
