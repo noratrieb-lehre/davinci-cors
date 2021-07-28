@@ -468,9 +468,9 @@ Bot only
 ```json
 {
   "id": "Snowflake",
-  "notifChannel": "Snowflake | null",
-  "notifPingRole": "Snowflake | null",
-  "notifPingEveryone": "boolean"
+  "notifChannel?": "Snowflake | null",
+  "notifPingRole?": "Snowflake | null",
+  "notifPingEveryone?": "boolean"
 }
 ```
 #### Get notifications
