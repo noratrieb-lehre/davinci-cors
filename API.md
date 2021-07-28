@@ -43,7 +43,8 @@
     "Member"
   ],
   "name": "string",
-  "description": "string"
+  "description": "string",
+  "discordId?": "string | null"
 }
 ```
 
