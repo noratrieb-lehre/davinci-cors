@@ -276,6 +276,12 @@ Errors:
 `401 no-owner` on not being owner  
 
 ### Class member
+  
+### Get class member
+Requires Token  
+`GET /classes/{uuid}/members/{uuid}`     
+*Response*  
+`Member`
 
 ### Put class member
 Requires Token & Admin  
