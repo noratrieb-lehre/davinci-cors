@@ -48,7 +48,7 @@ impl Claims {
 
         match authorization::Authorization::<Bearer>::parse(req) {
             Ok(auth) => validate_token(auth.into_scheme().token(), key),
-            Err(_) => Err(ServiceErr::Unauthorized("auth/no-token")),
+            Err(_) => Err(ServiceErr::Unauthorized("no-token")),
         }
         .and_then(|claims| match claims.refresh {
             true => Err(ServiceErr::Unauthorized(
@@ -70,7 +70,7 @@ impl FromRequest for Role {
         let class_id = req
             .match_info()
             .get("classid")
-            .ok_or(ServiceErr::BadRequest("request/no-class-id"))
+            .ok_or(ServiceErr::BadRequest("no-class-id"))
             .and_then(|id| uuid::Uuid::parse_str(id).map_err(|e| e.into()));
 
         let claims = Claims::from_request_sync(req);
@@ -79,7 +79,7 @@ impl FromRequest for Role {
             get_member_role(db, class_id, claims)
                 .await
                 .map_err(|err| match err {
-                    ServiceErr::NotFound => ServiceErr::Unauthorized("auth/no-access"),
+                    ServiceErr::NotFound => ServiceErr::Unauthorized("no-access"),
                     err => err,
                 })
         })

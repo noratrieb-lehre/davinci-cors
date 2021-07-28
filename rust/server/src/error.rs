@@ -45,15 +45,15 @@ impl Display for ServiceErr {
                 ServiceErr::ConnectionNotFound(err) => format!("ConnectionNotFound: {}", err),
                 ServiceErr::DbActionFailed(err) => format!("DbActionFailed: {}", err),
                 ServiceErr::JWTCreationError(err) => format!("JWTCreationError: {}", err),
-                ServiceErr::TokenExpiredError => "auth/expired".to_string(),
-                ServiceErr::JWTokenError => "auth/invalid".to_string(),
+                ServiceErr::TokenExpiredError => "token-expired".to_string(),
+                ServiceErr::JWTokenError => "invalid-token".to_string(),
                 ServiceErr::NotFound => "Not found".to_string(),
                 ServiceErr::InternalServerError(msg) => format!("Internal Server Error: {}", msg),
                 ServiceErr::Unauthorized(msg) => msg.to_string(),
                 ServiceErr::IntoDTOError(msg) => msg.to_string(),
                 ServiceErr::BadRequest(msg) => msg.to_string(),
                 ServiceErr::Conflict(msg) => msg.to_string(),
-                ServiceErr::NoAdminPermissions => "auth/no-admin".to_string(),
+                ServiceErr::NoAdminPermissions => "perms/no-admin".to_string(),
             }
         )
     }
@@ -63,14 +63,12 @@ impl ResponseError for ServiceErr {
     fn error_response(&self) -> HttpResponse {
         debug!(err = %self, "an error occurred");
         match self {
-            ServiceErr::TokenExpiredError => {
-                HttpResponse::Unauthorized().body("auth/token-expired")
-            }
-            ServiceErr::JWTokenError => HttpResponse::BadRequest().body("auth/invalid-token"),
+            ServiceErr::TokenExpiredError => HttpResponse::Unauthorized().body("token-expired"),
+            ServiceErr::JWTokenError => HttpResponse::Unauthorized().body("invalid-token"),
             ServiceErr::BadRequest(msg) => HttpResponse::BadRequest().body(*msg),
             ServiceErr::NotFound => HttpResponse::NotFound().body("Not Found"),
             ServiceErr::Unauthorized(msg) => HttpResponse::Unauthorized().body(*msg),
-            ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("auth/no-admin"),
+            ServiceErr::NoAdminPermissions => HttpResponse::Unauthorized().body("no-admin"),
             ServiceErr::Conflict(msg) => HttpResponse::Conflict().body(msg.to_string()),
             err => {
                 error!(%err, "an error occurred");
@@ -89,11 +87,11 @@ impl From<diesel::result::Error> for ServiceErr {
             }
             diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
                 debug!(%err, "Handled Db error occurred");
-                Self::Conflict("request/already-exists")
+                Self::Conflict("already-exists")
             }
             diesel::result::Error::DatabaseError(DatabaseErrorKind::ForeignKeyViolation, _) => {
                 debug!(%err, "Handled Db error occurred");
-                Self::Conflict("request/does-not-exist")
+                Self::Conflict("does-not-exist")
             }
             _ => Self::DbActionFailed(err),
         }
@@ -108,7 +106,7 @@ impl From<r2d2::Error> for ServiceErr {
 
 impl From<uuid::Error> for ServiceErr {
     fn from(_: uuid::Error) -> Self {
-        Self::BadRequest("request/invalid-uuid")
+        Self::BadRequest("invalid-uuid")
     }
 }
 

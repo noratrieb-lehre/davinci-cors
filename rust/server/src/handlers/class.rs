@@ -123,7 +123,7 @@ async fn delete_class(class_id: Path<Uuid>, db: Data<Pool>, role: Role) -> HttpR
     debug!(%class_id, ?role, "delete class");
 
     if *role != MemberRole::Owner {
-        return Err(ServiceErr::Unauthorized("auth/no-owner"));
+        return Err(ServiceErr::Unauthorized("no-owner"));
     }
 
     let deleted_amount =
@@ -155,12 +155,12 @@ async fn edit_member(
 
     // Cannot edit self
     if claims.uid == member.user {
-        return Err(ServiceErr::BadRequest("auth/edit-own-permission"));
+        return Err(ServiceErr::Unauthorized("edit-own-permission"));
     }
 
     // Can only set target permissions lower than own
     if member.role >= *role {
-        return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
+        return Err(ServiceErr::Unauthorized("not-enough-permissions"));
     }
 
     let member = block(move || {
@@ -168,7 +168,7 @@ async fn edit_member(
 
         // Can only edit members lower than self
         if old_member.role >= role.0 as i32 {
-            return Err(ServiceErr::BadRequest("auth/not-enough-permissions"));
+            return Err(ServiceErr::Unauthorized("not-enough-permissions"));
         }
 
         let member = NewMember {
@@ -202,11 +202,20 @@ async fn delete_member(
 
     // Class must always have an owner
     if claims.uid == member_id && *role == MemberRole::Owner {
-        return Err(ServiceErr::BadRequest("class/must-have-owner"));
+        return Err(ServiceErr::BadRequest("must-have-owner"));
     }
 
-    let deleted_amount =
-        block(move || actions::class::delete_member(&db, member_id, class_id)).await?;
+    let deleted_amount = block(move || {
+        let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
+
+        // Can only edit members lower than self
+        if old_member.role >= role.0 as i32 {
+            return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+        }
+
+        actions::class::delete_member(&db, member_id, class_id)
+    })
+    .await?;
 
     match deleted_amount {
         0 => Err(ServiceErr::NotFound),
@@ -266,7 +275,7 @@ async fn accept_member(
         if accept.accept {
             let (member, _) = actions::class::get_member(&db, member_id, class_id)?;
             if member.role != PENDING {
-                return Err(ServiceErr::BadRequest("class/member-not-pending"));
+                return Err(ServiceErr::BadRequest("member-not-pending"));
             }
             let new_member = NewMember {
                 user: member_id,
@@ -354,6 +363,10 @@ async fn create_event(
         let end = event
             .end
             .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
+        let notification = event
+            .notification
+            .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
+
         let new_event = NewEvent {
             id: uuid::Uuid::new_v4(),
             class: *class_id,
@@ -362,7 +375,7 @@ async fn create_event(
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
             end: end.as_ref(),
             description: &event.description,
-            notification: None,
+            notification: notification.as_ref(),
         };
 
         actions::event::insert_event(&db, new_event)
@@ -518,7 +531,7 @@ async fn link_class_with_discord(
     debug!(%class_id, ?role, ?id, "link class with discord");
 
     if *role != MemberRole::Owner {
-        return Err(ServiceErr::BadRequest("auth/no-owner"));
+        return Err(ServiceErr::BadRequest("no-owner"));
     }
 
     let class = block(move || {

@@ -64,7 +64,7 @@ async fn show_filter_events(
 
         send_events(ctx, interaction, events.as_slice()).await
     } else {
-        return Err(BotError::Other("event show filter has invalid option"));
+        Err(BotError::Other("event show filter has invalid option"))
     }
 }
 
@@ -79,17 +79,21 @@ async fn show_search_events(
         .ok_or(BotError::Other("event show search has no option"))?;
 
     if let Some(serde_json::Value::String(query)) = &typ.value {
+        let query = query.to_lowercase();
         let events = get_events(ctx, interaction.guild_id, None, None)
             .await?
             .into_iter()
-            .filter(|event| event.name.contains(query) || event.description.contains(query))
+            .filter(|event| {
+                event.name.to_lowercase().contains(&query)
+                    || event.description.to_lowercase().contains(&query)
+            })
             .collect::<Vec<_>>();
 
         let events = events;
 
         send_events(ctx, interaction, events.as_slice()).await
     } else {
-        return Err(BotError::Other("event show search has invalid option"));
+        Err(BotError::Other("event show search has invalid option"))
     }
 }
 
@@ -130,7 +134,13 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
         .iter()
         .map(|event| {
             let end_value = if let Some(end) = event.end {
-                format!(" - {} CEST", format_datetime(end))
+                format!(" - {}", format_datetime(end))
+            } else {
+                "".to_string()
+            };
+
+            let notification = if let Some(time) = event.notification {
+                format!("\nBenachrichtigung um {}", format_datetime(time))
             } else {
                 "".to_string()
             };
@@ -138,10 +148,11 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             (
                 format!("{} | {}", format_date(event.start), event.name),
                 format!(
-                    "{} CEST{} \n {}",
+                    "{}{} \n {}{}",
                     format_datetime(event.start),
                     end_value,
-                    event.description
+                    event.description,
+                    notification
                 ),
                 true,
             )
@@ -163,5 +174,5 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
 }
 
 fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    from_utc_timestamp(time).format("%d.%m")
+    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m")
 }

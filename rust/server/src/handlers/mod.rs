@@ -27,17 +27,18 @@ pub fn config(cfg: &mut ServiceConfig) {
 }
 
 pub fn other_config(cfg: &mut ServiceConfig) {
-    cfg.route("/hugo", get().to(get_hugo)).service(
-        scope("/users")
-            .route("", post().to(create_user))
-            .route("/me", get().to(get_own_user))
-            .route("/me", put().to(edit_own_user))
-            .route("/me", delete().to(delete_own_user))
-            .route("/me/password", patch().to(change_password))
-            .route("/me/link", post().to(link_user_with_discord))
-            .route("/discord/{snowflake}", post().to(get_user_by_discord))
-            .route("/bot/notifications", get().to(get_notifications)),
-    );
+    cfg.route("/hugo", get().to(get_hugo))
+        .route("/bot/notifications", get().to(get_notifications))
+        .service(
+            scope("/users")
+                .route("", post().to(create_user))
+                .route("/me", get().to(get_own_user))
+                .route("/me", put().to(edit_own_user))
+                .route("/me", delete().to(delete_own_user))
+                .route("/me/password", patch().to(change_password))
+                .route("/me/link", post().to(link_user_with_discord))
+                .route("/discord/{snowflake}", post().to(get_user_by_discord)),
+        );
 }
 
 async fn get_hugo() -> HttpResponse {
@@ -139,6 +140,14 @@ async fn change_password(
     debug!(uid = %claims.uid, "change user password");
 
     let user = block(move || {
+        let user = actions::user::get_user_by_id(&db, claims.uid)?;
+        let validate =
+            actions::user::validate_user_password(&db, &user.email, &password.old_password)?;
+
+        if validate.is_none() {
+            return Err(ServiceErr::Unauthorized("wrong-password"));
+        }
+
         actions::user::change_user_password(
             &db,
             models::User {
@@ -189,6 +198,7 @@ async fn get_notifications(
     db: Data<Pool>,
     claims: Claims,
 ) -> HttpResult {
+    debug!(?params, "Called get notifications");
     if !claims.uid.is_nil() {
         return Err(ServiceErr::NotFound); // very secret route
     }

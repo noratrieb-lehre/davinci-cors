@@ -1,16 +1,14 @@
 use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
-use crate::models::{Event, FromNotificationQuery, NewEvent};
+use crate::models::{Class, Event, Guild, NewEvent};
 
 use crate::error::ServiceResult;
 use crate::schema::events::dsl::*;
-use diesel::sql_types::{Nullable, Timestamp};
+use diesel::sql_types::{Nullable, Timestamp, VarChar};
 use diesel::{
-    delete, insert_into, sql_query, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl,
+    delete, insert_into, BoolExpressionMethods, ExpressionMethods, JoinOnDsl, SaveChangesDsl,
 };
 use uuid::Uuid;
-
-sql_function!(fn coalesce(a: Nullable<Timestamp>, b: Timestamp) -> Timestamp);
 
 pub fn get_events_by_class(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
@@ -26,6 +24,8 @@ pub fn get_events_by_class_filtered_after(
     after: chrono::NaiveDateTime,
 ) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
+
+    sql_function!(fn coalesce(a: Nullable<Timestamp>, b: Timestamp) -> Timestamp);
 
     let vec: Vec<Event> = events
         .filter(class.eq(class_id).and(coalesce(end, start).gt(after)))
@@ -55,6 +55,8 @@ pub fn get_events_by_class_filtered_both(
     after: chrono::NaiveDateTime,
 ) -> ServiceResult<Vec<Event>> {
     let conn = db.get()?;
+
+    sql_function!(fn coalesce(a: Nullable<Timestamp>, b: Timestamp) -> Timestamp);
 
     let vec: Vec<Event> = events
         .filter(
@@ -94,15 +96,25 @@ pub fn delete_event(db: &Pool, event_id: Uuid) -> ServiceResult<usize> {
 pub fn get_notifications(
     db: &Pool,
     since: chrono::NaiveDateTime,
-) -> ServiceResult<(chrono::NaiveDateTime, Vec<FromNotificationQuery>)> {
+) -> ServiceResult<(chrono::NaiveDateTime, Vec<(Event, (Class, Guild))>)> {
+    use crate::schema::classes::dsl::{classes, discord_id};
+    use crate::schema::guilds::dsl::{guilds, id as gid, notif_channel};
+
     let conn = db.get()?;
 
     let current_time = chrono::Utc::now().naive_utc();
 
-    // See the comment in the sql file
-    let notifications = sql_query(include_str!("get_notifications.sql"))
-        .bind::<Timestamp, _>(current_time)
-        .bind::<Timestamp, _>(since)
+    sql_function!(fn coalesce(a: Nullable<VarChar>, b: VarChar) -> VarChar);
+
+    let notifications = events
+        .inner_join(classes.inner_join(guilds.on(coalesce(discord_id, "").eq(gid))))
+        .filter(
+            notification
+                .is_not_null()
+                .and(notification.lt(current_time))
+                .and(notification.gt(since))
+                .and(notif_channel.is_not_null()),
+        )
         .load(&conn)?;
 
     Ok((current_time, notifications))

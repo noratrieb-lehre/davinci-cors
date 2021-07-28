@@ -40,7 +40,7 @@ async fn refresh_token(
     d_key: web::Data<DecodingKey<'static>>,
 ) -> HttpResult {
     let auth = authorization::Authorization::<Bearer>::parse(&req)
-        .map_err(|_| ServiceErr::Unauthorized("auth/no-token"))?;
+        .map_err(|_| ServiceErr::Unauthorized("no-token"))?;
 
     let claims = validate_token(auth.into_scheme().token(), &d_key)?;
 
@@ -54,7 +54,7 @@ async fn refresh_token(
                 expires: new_token.1,
             }))
     } else {
-        Err(ServiceErr::Unauthorized("auth/wrong-token-kind"))
+        Err(ServiceErr::Unauthorized("wrong-token-kind"))
     }
 }
 

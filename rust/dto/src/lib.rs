@@ -24,6 +24,8 @@ pub struct Event {
     #[serde(default)]
     pub end: Option<Timestamp>,
     pub description: String,
+    #[serde(default)]
+    pub notification: Option<Timestamp>,
 }
 
 /// The type of a class event
@@ -188,8 +190,10 @@ pub struct GetEventQueryParams {
 
 /// # IMPORTANT: never log the password
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ChangePasswordReq {
     pub password: String,
+    pub old_password: String,
 }
 
 /// A single notification that should be sent out by the bot

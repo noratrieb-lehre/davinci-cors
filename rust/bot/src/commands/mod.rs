@@ -173,5 +173,5 @@ fn info_embed(
 pub fn format_datetime(
     time: i64,
 ) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m.%Y %H:%M")
+    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m.%Y %H:%M CEST")
 }

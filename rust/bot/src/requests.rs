@@ -30,8 +30,15 @@ impl CorsClient {
     pub async fn get_notifications(&self, old_timestamp: i64) -> BotResult<NotificationRes> {
         info!(after = %old_timestamp, "Getting notifications");
 
-        let res = self.client.get("/bot/notifications").send().await?;
-        debug!(res = %res.status(), "Get notification response status");
+        let res = self
+            .client
+            .get(format!(
+                "{}/bot/notifications?since={}",
+                BASE_URL, old_timestamp
+            ))
+            .send()
+            .await?;
+        info!(res = %res.status(), "Get notification response status");
 
         let data = res.json::<NotificationRes>().await?;
         Ok(data)
