@@ -2,8 +2,8 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use crate::commands::format_datetime;
-use crate::commands::functions::{from_utc_timestamp, from_utc_to_cest};
 use crate::error::{BotError, BotResult};
+use crate::functions::{from_utc_timestamp, from_utc_to_cest, limit_length};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
@@ -116,13 +116,19 @@ async fn send_events(
     interaction: &Interaction,
     events: &[dto::Event],
 ) -> BotResult<()> {
+    let events = events
+        .iter()
+        .take(10)
+        .map(|event| event.clone())
+        .collect::<Vec<_>>(); // todo oh
+
     Ok(interaction
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message
-                        .create_embed(|embed| event_embed(embed, events))
+                        .create_embed(|embed| event_embed(embed, events.as_slice()))
                         .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                 })
         })
@@ -130,9 +136,13 @@ async fn send_events(
 }
 
 fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut CreateEmbed {
+    const MAX_DESCRIPTION_LENGTH: usize = 100;
+
     let mut fields = events
         .iter()
         .map(|event| {
+            let description = limit_length(&event.description, MAX_DESCRIPTION_LENGTH);
+
             let end_value = if let Some(end) = event.end {
                 format!(" - {}", format_datetime(end))
             } else {
@@ -140,7 +150,7 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             };
 
             let notification = if let Some(time) = event.notification {
-                format!("\n> Benachrichtigung um {}", format_datetime(time))
+                format!("\n\n> Benachrichtigung um {}", format_datetime(time))
             } else {
                 "".to_string()
             };
@@ -148,10 +158,10 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             (
                 format!("{} | {}", format_date(event.start), event.name),
                 format!(
-                    "{}{} \n {}{}",
+                    "{}{} \n\n {}{}",
                     format_datetime(event.start),
                     end_value,
-                    event.description,
+                    description,
                     notification
                 ),
                 true,

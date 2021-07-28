@@ -1,5 +1,6 @@
 use crate::commands::format_datetime;
 use crate::error::{BotError, BotResult};
+use crate::functions::limit_length;
 use crate::requests::CorsClient;
 use dto::Notification;
 use serenity::builder::CreateEmbed;
@@ -108,11 +109,15 @@ async fn send_notifications(http: &CacheAndHttp, client: &CorsClient) -> BotResu
 }
 
 fn notification_embed<'a>(embed: &'a mut CreateEmbed, notif: &Notification) -> &'a mut CreateEmbed {
+    const MAX_DESCRIPTION_LENGTH: usize = 1000;
+
+    let description = limit_length(&notif.event.description, MAX_DESCRIPTION_LENGTH);
+
     embed
         .title(format!("Benachrichtigung für {}", notif.event.name))
         .field(
             format!("Start: {}", format_datetime(notif.event.start)),
-            &notif.event.description,
+            &description,
             false,
         )
 }

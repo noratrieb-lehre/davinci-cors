@@ -143,6 +143,7 @@ pub mod conversion {
                 members: vec![],
                 name: self.name,
                 description: self.description,
+                discord_id: self.discord_id,
             })
         }
     }
@@ -162,6 +163,7 @@ pub mod conversion {
                 members: actual_members,
                 name: class.name,
                 description: class.description,
+                discord_id: class.discord_id,
             })
         }
     }

@@ -36,6 +36,18 @@ pub fn wie_lange_noch(
     (cur_lesson, next)
 }
 
+pub fn limit_length(string: &str, len: usize) -> String {
+    let mut result = string
+        .char_indices()
+        .take_while(|(i, _)| *i < len)
+        .map(|(_, c)| c)
+        .collect::<String>(); // todo oh
+    if result.len() > len - 5 {
+        result.push_str("...");
+    }
+    result
+}
+
 #[cfg(test)]
 mod test {
     use chrono::*;
