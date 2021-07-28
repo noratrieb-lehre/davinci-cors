@@ -159,7 +159,7 @@ async fn edit_member(
     }
 
     // Can only set target permissions lower than own
-    if member.role >= *role {
+    if member.role <= *role {
         return Err(ServiceErr::Unauthorized("not-enough-permissions"));
     }
 
@@ -167,7 +167,7 @@ async fn edit_member(
         let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
 
         // Can only edit members lower than self
-        if old_member.role >= role.0 as i32 {
+        if old_member.role <= role.0 as i32 {
             return Err(ServiceErr::Unauthorized("not-enough-permissions"));
         }
 
