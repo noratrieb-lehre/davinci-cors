@@ -314,9 +314,7 @@ Requires Token & Admin
 *Request*
 
 ```json
-[
-  "User"
-]
+["Member"]
 ```
 
 #### Accept Member
