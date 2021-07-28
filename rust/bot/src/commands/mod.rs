@@ -15,6 +15,7 @@ use crate::requests::CorsClient;
 mod events;
 mod functions;
 mod setup;
+mod setup_command;
 
 pub async fn create_interaction_response<'a>(
     ctx: &Context,
@@ -25,6 +26,7 @@ pub async fn create_interaction_response<'a>(
         "info" => info(ctx, &interaction).await?,
         "event" => events::handle_event_command(ctx, &interaction, &data.options).await?,
         "wielangenoch" => wie_lange_noch(ctx, interaction).await?,
+        "setup" => setup_command::handle_setup_command(ctx, interaction, &data.options).await?,
         name => debug!("{}, {:#?}", name, data.options),
     }
     Ok(())

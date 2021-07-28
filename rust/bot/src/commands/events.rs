@@ -7,7 +7,7 @@ use crate::error::{BotError, BotResult};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
-use tracing::debug;
+use tracing::{debug, warn};
 
 pub async fn handle_event_command(
     ctx: &Context,
@@ -20,9 +20,9 @@ pub async fn handle_event_command(
             "next" => show_next_events(ctx, interaction).await?,
             "filter" => show_filter_events(ctx, interaction, subcommand).await?,
             "search" => show_search_events(ctx, interaction, subcommand).await?,
-            _ => debug!(?subcommand, "Invalid subcommand"),
+            _ => warn!(?subcommand, "Invalid subcommand"),
         },
-        None => debug!("No subcommand"),
+        None => warn!("No subcommand"),
     }
 
     Ok(())

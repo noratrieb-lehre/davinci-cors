@@ -131,7 +131,6 @@ pub const PENDING: i32 = 3;
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
     use crate::models::{Class, Event, Guild, Member, MemberRole, User, PENDING};
-    use dto::Notification;
 
     pub trait IntoDto<T> {
         fn into_dto(self) -> ServiceResult<T>;
@@ -279,7 +278,7 @@ pub mod conversion {
     }
 
     impl IntoDto<dto::Notification> for (Event, (Class, Guild)) {
-        fn into_dto(self) -> ServiceResult<Notification> {
+        fn into_dto(self) -> ServiceResult<dto::Notification> {
             let (event, (_, guild)) = self;
             Ok(dto::Notification {
                 event: event.into_dto()?,
@@ -287,6 +286,17 @@ pub mod conversion {
                 channel: guild.notif_channel.expect("Notif channel"),
                 role_ping: guild.notif_ping_role,
                 everyone_ping: guild.notif_ping_everyone,
+            })
+        }
+    }
+
+    impl IntoDto<dto::Guild> for Guild {
+        fn into_dto(self) -> ServiceResult<dto::Guild> {
+            Ok(dto::Guild {
+                id: self.id,
+                notif_channel: self.notif_channel,
+                notif_ping_role: self.notif_ping_role,
+                notif_ping_everyone: self.notif_ping_everyone,
             })
         }
     }

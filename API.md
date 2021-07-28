@@ -445,7 +445,7 @@ Bot only
 *Response*  
 `User`
 
-#### Notifications
+### Notifications
 ##### Notification
 ```json
 {
@@ -455,11 +455,32 @@ Bot only
   "rolePing": "SnowflakeId | null",
   "everyonePing": "boolean"
 }
-```  
-  
-`/bot/notifications?since=lastTimestamp`  
+```
+
+##### Guild Dto
+
+```json
+{
+  "id": "Snowflake",
+  "notifChannel": "Snowflake | null",
+  "notifPingRole": "Snowflake | null",
+  "notifPingEveryone": "boolean"
+}
+```
+#### Get notifications
+`GET /bot/notifications?since=lastTimestamp`  
 Bot only  
 
 Get all events + notification data for events that had their notifications due in the time since the last timestamp.  
 *Response*  
 `{"notifications": "Notification[]", "time": "Timestamp"}`
+
+#### Put Guild
+`PUT /bot/guilds`  
+Bot only  
+
+Change guild settings  
+*Request*  
+`Guild`  
+*Response*  
+`Guild`

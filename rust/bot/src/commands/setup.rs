@@ -72,7 +72,51 @@ fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateAppli
                         })
                 })
         })
-        .create_application_command(|commands| {
-            commands.name("info").description("Botinformationen")
+        .create_application_command(|command| command.name("info").description("Botinformationen"))
+        .create_application_command(|command| {
+            command
+                .name("setup")
+                .description("Servereinstellungen")
+                .create_option(|option| {
+                    option
+                        .name("notification_channel")
+                        .description("Channel für Benachrichtigungen (leer zum Aussschalten)")
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                        .create_sub_option(|option| {
+                            option
+                                .name("channel")
+                                .description("Der Channel für Benachrichtigungen")
+                                .kind(ApplicationCommandOptionType::Channel)
+                                .required(false)
+                        })
+                })
+                .create_option(|option| {
+                    option
+                        .name("notification_everyone_ping")
+                        .description("@everyone in Benachrichtigungen pingen")
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                        .create_sub_option(|option| {
+                            option
+                                .name("everyone")
+                                .description("@everyone pingen")
+                                .kind(ApplicationCommandOptionType::Boolean)
+                                .required(true)
+                        })
+                })
+                .create_option(|option| {
+                    option
+                        .name("notification_role_ping")
+                        .description(
+                            "Eine Rolle in Benachrichtigungen pingen (leer zum Aussschalten)",
+                        )
+                        .kind(ApplicationCommandOptionType::SubCommand)
+                        .create_sub_option(|option| {
+                            option
+                                .name("role")
+                                .description("Die role zum pingen")
+                                .kind(ApplicationCommandOptionType::Role)
+                                .required(false)
+                        })
+                })
         })
 }

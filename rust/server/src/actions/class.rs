@@ -1,7 +1,9 @@
 use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
 use crate::error::{ServiceErr, ServiceResult};
-use crate::models::{Class, Member, MemberRole, NewClass, NewMember, Timetable, PENDING};
+use crate::models::{
+    Class, Guild, Member, MemberRole, NewClass, NewGuild, NewMember, Timetable, PENDING,
+};
 use crate::schema::classes::dsl::*;
 use diesel::{
     delete, insert_into, update, BoolExpressionMethods, ExpressionMethods, SaveChangesDsl,
@@ -157,6 +159,11 @@ pub fn delete_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
     Ok(delete(timetables)
         .filter(class.eq(class_id))
         .execute(&conn)?)
+}
+
+pub fn change_guild_settings(db: &Pool, guild: NewGuild) -> ServiceResult<Guild> {
+    let conn = db.get()?;
+    Ok(guild.save_changes(&*conn)?)
 }
 
 pub fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {

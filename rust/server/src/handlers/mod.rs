@@ -37,7 +37,7 @@ pub fn other_config(cfg: &mut ServiceConfig) {
                 .route("/me", delete().to(delete_own_user))
                 .route("/me/password", patch().to(change_password))
                 .route("/me/link", post().to(link_user_with_discord))
-                .route("/discord/{snowflake}", post().to(get_user_by_discord)),
+                .route("/discord/{snowflake}", get().to(get_user_by_discord)),
         );
 }
 
@@ -182,8 +182,10 @@ async fn link_user_with_discord(
 }
 
 async fn get_user_by_discord(user_id: Path<String>, db: Data<Pool>, claims: Claims) -> HttpResult {
+    debug!(uid = %claims.uid, ?user_id, "get user by discord");
+
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::NotFound); // very secret route
+        return Err(ServiceErr::Unauthorized("bot-only"));
     }
 
     let user = block(move || actions::user::get_user_by_discord(&db, &user_id))
@@ -200,7 +202,7 @@ async fn get_notifications(
 ) -> HttpResult {
     debug!(?params, "Called get notifications");
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::NotFound); // very secret route
+        return Err(ServiceErr::Unauthorized("bot-only"));
     }
 
     let (time, notifications) = block(move || {

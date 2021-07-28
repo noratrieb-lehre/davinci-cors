@@ -5,14 +5,14 @@ use crate::handlers::extractors::Role;
 use crate::handlers::HttpResult;
 use crate::models;
 use crate::models::conversion::IntoDto;
-use crate::models::{NewClass, NewEvent, NewMember, PENDING};
+use crate::models::{NewClass, NewEvent, NewGuild, NewMember, PENDING};
 use actix_web::web::{
     block, delete, get, post, put, scope, Data, Json, Path, Query, ServiceConfig,
 };
 use actix_web::HttpResponse;
 use chrono::NaiveDateTime;
 use dto::{
-    Class, Event, GetEventQueryParams, Member, MemberAcceptDto, MemberRole, SingleSnowflake,
+    Class, Event, GetEventQueryParams, Guild, Member, MemberAcceptDto, MemberRole, SingleSnowflake,
     Timetable,
 };
 use tracing::debug;
@@ -24,11 +24,13 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
             "/classes/discord/{snowflake}",
             get().to(get_class_by_discord),
         )
+        .route("/bot/guilds", put().to(edit_guild_settings))
         .service(
             scope("/classes/{classid}")
                 .route("", get().to(get_class))
                 .route("", put().to(edit_class))
                 .route("", delete().to(delete_class))
+                .route("/members/{uuid}", get().to(get_member))
                 .route("/members/{uuid}", put().to(edit_member))
                 .route("/members/{uuid}", delete().to(delete_member))
                 .route("/join", post().to(request_join))
@@ -135,6 +137,17 @@ async fn delete_class(class_id: Path<Uuid>, db: Data<Pool>, role: Role) -> HttpR
         1 => HttpResponse::Ok().body("Deleted class."),
         _ => unreachable!(),
     })
+}
+
+async fn get_member(path: Path<(Uuid, Uuid)>, _role: Role, db: Data<Pool>) -> HttpResult {
+    let (class_id, member_id) = path.into_inner();
+    debug!(%class_id, %member_id, ?_role, "get member");
+
+    let member = block(move || actions::class::get_member(&db, member_id, class_id))
+        .await?
+        .into_dto()?;
+
+    Ok(HttpResponse::Ok().json(member))
 }
 
 async fn edit_member(
@@ -404,6 +417,9 @@ async fn edit_event(
         let end = event
             .end
             .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
+        let notification = event
+            .notification
+            .map(|ts| chrono::NaiveDateTime::from_timestamp(ts / 1000, 0));
         let new_event = NewEvent {
             id: event_id,
             class: class_id,
@@ -412,7 +428,7 @@ async fn edit_event(
             start: &chrono::NaiveDateTime::from_timestamp(event.start / 1000, 0),
             end: end.as_ref(),
             description: &event.description,
-            notification: None,
+            notification: notification.as_ref(),
         };
 
         actions::event::update_event(&db, new_event)
@@ -551,7 +567,7 @@ async fn get_class_by_discord(
     debug!(%class_id, uid = %claims.uid, "get class by discord");
 
     if !claims.uid.is_nil() {
-        return Err(ServiceErr::Unauthorized("not a bot")); // very secret route
+        return Err(ServiceErr::Unauthorized("bot-only"));
     }
 
     let class = block(move || actions::class::get_class_by_discord(&db, &class_id))
@@ -559,4 +575,27 @@ async fn get_class_by_discord(
         .into_dto()?;
 
     Ok(HttpResponse::Ok().json(class))
+}
+
+async fn edit_guild_settings(claims: Claims, db: Data<Pool>, guild: Json<Guild>) -> HttpResult {
+    debug!(?guild, uid = %claims.uid, "get class by discord");
+
+    if !claims.uid.is_nil() {
+        return Err(ServiceErr::Unauthorized("bot-only"));
+    }
+
+    let guild = block(move || {
+        actions::class::change_guild_settings(
+            &db,
+            NewGuild {
+                id: &guild.id,
+                notif_channel: guild.notif_channel.as_deref(),
+                notif_ping_role: guild.notif_ping_role.as_deref(),
+                notif_ping_everyone: guild.notif_ping_everyone,
+            },
+        )
+    })
+    .await?
+    .into_dto()?;
+    Ok(HttpResponse::Ok().json(guild))
 }

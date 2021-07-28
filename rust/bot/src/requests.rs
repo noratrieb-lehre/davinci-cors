@@ -1,8 +1,10 @@
 use crate::error::BotResult;
 use dto::{Class, Event, GetEventQueryParams, NotificationRes, Timetable};
 use reqwest::header::HeaderMap;
-use reqwest::Client;
+use reqwest::{Client, StatusCode};
+use serenity::model::id::UserId;
 use tracing::{debug, info};
+use uuid::Uuid;
 
 const BASE_URL: &str = "http://localhost:8080/api";
 
@@ -88,14 +90,59 @@ impl CorsClient {
         }
     }
 
-    async fn get_class(&self, guild_id: u64) -> BotResult<Class> {
-        let rse = self
+    pub async fn edit_guild_settings(&self, guild: &dto::Guild) -> BotResult<()> {
+        let res = self
+            .client
+            .put(format!("{}/bot/guilds", BASE_URL))
+            .json(guild)
+            .send()
+            .await?;
+
+        debug!(status = %res.status());
+        res.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn get_member(&self, id: UserId, class_id: Uuid) -> BotResult<Option<dto::Member>> {
+        info!("gettings member...");
+        let res = self
+            .client
+            .get(format!("{}/users/discord/{}", BASE_URL, id.0))
+            .send()
+            .await?;
+
+        info!(status = %res.status(), "Get user");
+        if let StatusCode::NOT_FOUND = res.status() {
+            return Ok(None);
+        }
+
+        let user = res.json::<dto::User>().await?;
+        let res2 = self
+            .client
+            .get(format!(
+                "{}/classes/{}/members/{}",
+                BASE_URL, class_id, user.id
+            ))
+            .send()
+            .await?;
+
+        info!(status = %res2.status(), "Get member");
+        if let StatusCode::NOT_FOUND = res2.status() {
+            return Ok(None);
+        }
+        let member = res2.json::<dto::Member>().await?;
+
+        Ok(Some(member))
+    }
+
+    pub async fn get_class(&self, guild_id: u64) -> BotResult<Class> {
+        let res = self
             .client
             .get(format!("{}/classes/discord/{}", BASE_URL, guild_id))
             .send()
             .await?;
-        debug!(status = %rse.status());
-        let class = rse.json::<dto::Class>().await?;
+        debug!(status = %res.status());
+        let class = res.json::<dto::Class>().await?;
         Ok(class)
     }
 }

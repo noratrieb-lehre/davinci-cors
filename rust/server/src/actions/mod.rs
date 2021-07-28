@@ -205,6 +205,7 @@ mod test {
                     start: &NaiveDateTime::from_timestamp(1000, 0),
                     end: Some(&NaiveDateTime::from_timestamp(2000, 0)),
                     description: "event",
+                    notification: None,
                 },
             )
             .unwrap(),
@@ -218,6 +219,7 @@ mod test {
                     start: &NaiveDateTime::from_timestamp(2000, 0),
                     end: None,
                     description: "event",
+                    notification: None,
                 },
             )
             .unwrap(),
@@ -231,6 +233,7 @@ mod test {
                     start: &NaiveDateTime::from_timestamp(0, 0),
                     end: Some(&NaiveDateTime::from_timestamp(10000, 0)),
                     description: "event",
+                    notification: None,
                 },
             )
             .unwrap(),

@@ -217,3 +217,12 @@ pub struct NotificationRes {
 pub struct NotificationQueryParams {
     pub since: i64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Guild {
+    pub id: Snowflake,
+    pub notif_channel: Option<Snowflake>,
+    pub notif_ping_role: Option<Snowflake>,
+    pub notif_ping_everyone: bool,
+}
