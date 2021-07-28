@@ -4,5 +4,6 @@ export default interface Class {
     "id": string,
     "members": Array<Member>,
     "name": string,
-    "description": string
+    "description": string,
+    "discordId"?: string
 }

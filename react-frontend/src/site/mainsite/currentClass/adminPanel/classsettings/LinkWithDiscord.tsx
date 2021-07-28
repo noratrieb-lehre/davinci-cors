@@ -11,8 +11,8 @@ const validationScheme = Yup.object().shape({
 })
 
 const LinkWithDiscord = () => {
-    const userService = useContext(UserServiceContext);
     const currentClass = useContext(CurrentClass);
+    const userService = useContext(UserServiceContext);
 
     const handleSubmit = ({snowflake}: { snowflake: string }) => {
         userService.linkClassToGuild(currentClass!.id, snowflake);

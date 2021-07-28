@@ -20,36 +20,29 @@ export default class MemberRequest {
         await this.axios.axios.delete(`/classes/${classId}/members/${memberId}`)
     }
 
-    public async requestToJoinClass(classId: string): Promise<ErrorMessage> {
-        let errMessage = undefined;
+    public async requestToJoinClass(classId: string): Promise<void> {
         await this.axios.axios.post(`/classes/${classId}/join`).catch((err) => {
-            switch (err.response.status) {
-                case 409:
-                    errMessage = 'already-joined'
-                    break
-                case 401:
-                    errMessage = 'not-authorized'
-                    break
-                case 404:
-                    errMessage = 'class-not-found'
-                    break;
-                default:
-                    errMessage = 'other-error'
-            }
+            throw new Error(err.response.data)
         })
-        return errMessage || 'success'
     }
 
     public async getPendingMembers(classId: string): Promise<Array<Member>> {
-        return await this.axios.axios.get<Array<Member>>(`/classes/${classId}/requests`).then(r => r.data);
+        return await this.axios.axios.get<Array<Member>>(`/classes/${classId}/requests`).then(r => r.data).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
     public async getMembers(classId: string): Promise<Array<Member>> {
-        return await this.axios.axios.get<Class>(`/classes/${classId}`).then(r => r.data.members);
+        return await this.axios.axios.get<Class>(`/classes/${classId}`).then(r => r.data.members).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
     public async updateClassMember(classId: string, member: Member): Promise<void> {
-        return await this.axios.axios.put(`/classes/${classId}/members/${member.user}`, member)
+        await this.axios.axios.put(`/classes/${classId}/members/${member.user}`, member).catch((err) => {
+            throw new Error(err.response.data)
+        })
+        return;
     }
 }
 

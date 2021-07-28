@@ -13,11 +13,15 @@ export default class UserRequest {
         return await this.axios.axios.post<{ userid: string, expires: number }>('/login', {
             email,
             password
-        }).catch(err => console.error(err.response)) as AxiosResponse;
+        }).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
     public async getCurrentUser(): Promise<User> {
-        return await this.axios.axios.get<User>('/users/me').then(r => r.data);
+        return await this.axios.axios.get<User>('/users/me').then(r => r.data).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
     public async createAccount(user: PostUser): Promise<AxiosResponse<{ user: User, expires: number }>> {
@@ -25,7 +29,9 @@ export default class UserRequest {
             password: user.password,
             email: user.email,
             description: user.description,
-        }).catch(err => console.error(err.response)) as AxiosResponse
+        }).catch((err) => {
+            throw new Error(err.response.data)
+        })
     }
 
     public async changeEmail(email: string) {
@@ -33,6 +39,8 @@ export default class UserRequest {
         await this.axios.axios.put('/users/me', {
             ...response,
             email
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
@@ -41,6 +49,8 @@ export default class UserRequest {
         await this.axios.axios.put('/users/me', {
             ...response,
             description
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
@@ -48,11 +58,15 @@ export default class UserRequest {
         await this.axios.axios.patch('/users/me/password', {
             password,
             oldPassword
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
     public async deleteUser(): Promise<void> {
-        await this.axios.axios.delete('/users/me');
+        await this.axios.axios.delete('/users/me').catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
 }
