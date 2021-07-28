@@ -50,6 +50,7 @@ export default class UserRequest {
             oldPassword
         })
     }
+
     public async deleteUser(): Promise<void> {
         await this.axios.axios.delete('/users/me');
     }

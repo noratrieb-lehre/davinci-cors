@@ -42,6 +42,7 @@ const NewLesson = () => {
 
     useEffect(() => {
         userService.getTimeTable(currentClass!.id).then(setTimetable);
+        // eslint-disable-next-line
     }, [currentClass])
 
     const onSubmit = ({subject, start, end, description, day}: SubmitValues) => {
@@ -73,8 +74,10 @@ const NewLesson = () => {
                                 <Col>
                                     <FormGroup>
                                         <FormLabel>Name der Lektion</FormLabel>
-                                        <FormControl name="subject" type="text" onChange={formik.handleChange} isInvalid={!!formik.errors.subject}/>
-                                        <Alert variant={'danger'} show={!!formik.errors.subject}>{formik.errors.subject}</Alert>
+                                        <FormControl name="subject" type="text" onChange={formik.handleChange}
+                                                     isInvalid={!!formik.errors.subject}/>
+                                        <Alert variant={'danger'}
+                                               show={!!formik.errors.subject}>{formik.errors.subject}</Alert>
                                     </FormGroup>
                                 </Col>
                             </Row>
@@ -83,7 +86,8 @@ const NewLesson = () => {
                                     <FormGroup>
                                         <FormLabel>Start der Lektion</FormLabel>
                                         <Datetime dateFormat={false} timeFormat={true}/>
-                                        <Alert variant={'danger'} show={!!formik.errors.start}>{formik.errors.start}</Alert>
+                                        <Alert variant={'danger'}
+                                               show={!!formik.errors.start}>{formik.errors.start}</Alert>
                                     </FormGroup>
                                 </Col>
                                 <Col>
@@ -101,8 +105,11 @@ const NewLesson = () => {
                                     <FormGroup>
                                         <FormLabel>Beschreibung</FormLabel>
                                         <FormControl as={'textarea'} name={'description'} rows={10}
-                                                     style={{resize: 'none', overflowY: 'auto'}} onChange={formik.handleChange} isInvalid={!!formik.errors.description}/>
-                                        <Alert variant={'danger'} show={!!formik.errors.description}>{formik.errors.description}</Alert>
+                                                     style={{resize: 'none', overflowY: 'auto'}}
+                                                     onChange={formik.handleChange}
+                                                     isInvalid={!!formik.errors.description}/>
+                                        <Alert variant={'danger'}
+                                               show={!!formik.errors.description}>{formik.errors.description}</Alert>
 
                                     </FormGroup>
                                 </Col>
@@ -136,7 +143,8 @@ const NewLesson = () => {
                 )
             }
             {
-                !timetable && <Button onClick={() => userService.createTimetable(currentClass!.id)}>Stundenplan erstellen</Button>
+                !timetable &&
+                <Button onClick={() => userService.createTimetable(currentClass!.id)}>Stundenplan erstellen</Button>
             }
         </Container>
     );

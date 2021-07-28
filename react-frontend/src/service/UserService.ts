@@ -9,11 +9,12 @@ import TimetableRequest from "./TimetableRequest";
 import UserRequest from "./UserRequest";
 import EventRequest from "./EventRequest";
 import ClassRequest from "./ClassRequest";
-import MemberRequest from "./MemberRequest";
+import MemberRequest, {ErrorMessage} from "./MemberRequest";
 import Axios from "./AxiosInstance";
 import axios from "axios";
 import DiscordRequest from "./DiscordRequest";
 
+const memberRoles: Array<MemberRole> = ['owner', "member", "admin"]
 
 export default class UserService {
     private onUserChangeHandler: Array<(user?: User) => void> = [];
@@ -25,7 +26,6 @@ export default class UserService {
     private readonly discordRequest: DiscordRequest
     private readonly axios: Axios;
     private refreshToken?: string;
-    private currentUserID?: string;
 
     public constructor() {
         this.axios = Axios.getInstance();
@@ -35,7 +35,7 @@ export default class UserService {
         this.classRequest = new ClassRequest();
         this.memberRequest = new MemberRequest();
         this.discordRequest = new DiscordRequest();
-        const refreshToken = localStorage.getItem('refresh-token')
+        const refreshToken = localStorage.getItem('refresh-token') as string
         if (refreshToken) {
             this.refreshToken = refreshToken;
             axios.get('http://localhost:8080/api/token', {
@@ -45,29 +45,39 @@ export default class UserService {
             }).then(val => {
                 this.setToken(val.headers);
                 this.getCurrentUser().then(value => {
-                    this.currentUserID = value.id;
+                    this._currentUserID = value.id;
                     this.triggerOnAuthStateChange(value)
                 })
             })
         }
     }
 
+    private _currentUserID?: string;
+
+    get currentUserID(): string | undefined {
+        return this._currentUserID;
+    }
+
     public async getCurrentUser(): Promise<User> {
         return await this.userRequest.getCurrentUser();
     }
 
-    public async logout(): Promise<void> {
-        localStorage.removeItem('refresh-token')
-        this.triggerOnAuthStateChange(undefined);
+    public logout() {
+        localStorage.removeItem('refresh-token');
+        window.location.href = `${window.location.protocol}//${window.location.host}/`;
+    }
+
+    public async requestToJoinClass(classID: string): Promise<ErrorMessage> {
+        return await this.memberRequest.requestToJoinClass(classID)
     }
 
     public async login(email: string, password: string): Promise<void> {
         const loginResponse = await this.userRequest.login(email, password);
-        this.currentUserID = loginResponse.data.userid;
+        this._currentUserID = loginResponse.data.userid;
 
         this.setToken(loginResponse.headers);
         this.updateToken(loginResponse.data.expires);
-        localStorage.setItem('refresh-token', loginResponse.headers['refresh-token'])
+        localStorage.setItem('refresh-token', loginResponse.headers['refresh-token'] as string)
         this.triggerOnAuthStateChange(await this.getCurrentUser());
     }
 
@@ -76,12 +86,12 @@ export default class UserService {
         this.setToken(response.headers);
         this.updateToken(response.data.expires);
         const newUser = response.data.user;
-        this.currentUserID = response.data.user.id;
+        this._currentUserID = response.data.user.id;
         this.triggerOnAuthStateChange(newUser);
     }
 
     public isAdmin(currentClass: Class): boolean {
-        const role = currentClass.members.filter(val => this.currentUserID === val.user)[0]?.role;
+        const role = currentClass.members.filter(val => this._currentUserID === val.user)[0]?.role;
         return role === 'owner' || role === 'admin'
     }
 
@@ -125,10 +135,17 @@ export default class UserService {
         await this.eventRequest.createEvent(classID, event)
     }
 
-    public async getPendingMembers(classId: string): Promise<Array<User>> {
+    public async getPendingMembers(classId: string): Promise<Array<Member>> {
         return await this.memberRequest.getPendingMembers(classId);
     }
 
+    public async getMembers(classId: string): Promise<Array<Member>> {
+        return await this.memberRequest.getMembers(classId);
+    }
+
+    public async updateClassMember(classId: string, member: Member): Promise<void> {
+        return await this.memberRequest.updateClassMember(classId, member)
+    }
 
     public async replyToRequest(classID: string, userID: string, accept: boolean): Promise<void> {
         await this.memberRequest.replyToRequest(classID, userID, accept);
@@ -161,10 +178,13 @@ export default class UserService {
         }
     }
 
+    public getRolesBelow(role: MemberRole): Array<MemberRole> {
+        return [...memberRoles].slice(memberRoles.indexOf(role) + 1)
+    }
+
     private triggerOnAuthStateChange(user?: User) {
         this.onUserChangeHandler.forEach(handler => handler(user))
     }
-
 
     private updateToken(expireDate: number) {
         if (this.refreshToken) {
@@ -183,7 +203,7 @@ export default class UserService {
     }
 
     private setToken(header: any) {
-        if(header['refresh-token'])
+        if (header['refresh-token'])
             this.refreshToken = header['refresh-token']
         this.axios.setAxios(header['token']);
     }

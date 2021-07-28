@@ -36,6 +36,7 @@ const WieLangeNoch = () => {
                 setCurrentTimeTable(val[getIndex(new Date())].sort((a, b) => a.end - b.end))
             }
         })
+        // eslint-disable-next-line
     }, [currentClass])
 
     useEffect(() => {
@@ -63,6 +64,7 @@ const WieLangeNoch = () => {
             }, 1000)
             setCurrentInterval(interval);
         }
+        // eslint-disable-next-line
     }, [currentTimeTable])
 
 

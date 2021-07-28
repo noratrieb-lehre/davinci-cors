@@ -1,26 +1,33 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {Button, Col, Container, ListGroup, ModalTitle, Row} from "react-bootstrap";
 import {CurrentClass} from "../ClassView";
-import User from "../../../../data/user/User";
 import {UserServiceContext} from "../../../Router";
 import * as Icon from 'react-bootstrap-icons';
+import Member from "../../../../data/user/Member";
 
 const PendingMembers = () => {
     const currentClass = useContext(CurrentClass);
     const userService = useContext(UserServiceContext);
-    const [pendingMembers, setPendingMembers] = useState<Array<User>>();
+    const [pendingMembers, setPendingMembers] = useState<Array<Member>>([]);
+
+    const sendApprovalOrDenial = (bool: boolean, userId: string) => {
+        userService.replyToRequest(currentClass!.id, userId, bool).then(() => {
+            setPendingMembers((arr) => arr.filter(val => val.user !== userId))
+        });
+    }
 
     useEffect(() => {
         userService.getPendingMembers(currentClass!.id).then(setPendingMembers)
+        // eslint-disable-next-line
     }, [])
 
     return (
         <Container>
-
             {
                 pendingMembers && pendingMembers.length > 0 && <>
                     <hr/>
                     <ModalTitle>Anfragen von Benutzer</ModalTitle>
+                    <br/>
                 </>
             }
             <ListGroup>
@@ -28,14 +35,20 @@ const PendingMembers = () => {
                     pendingMembers?.map(val =>
                         <ListGroup.Item>
                             <Row>
-                                <Col>{val.email}</Col>
-                                <Col><Button variant={'outline-success'}><Icon.Check color={'green'}/></Button></Col>
-                                <Col><Button variant={'outline-danger'}><Icon.X color={'red'}/></Button></Col>
+                                <Col sm={8} className={'d-flex align-items-center'}>{val.displayName}</Col>
+                                <Col sm={2}><Button variant={'outline-success'}
+                                                    onClick={() => sendApprovalOrDenial(true, val.user)}><Icon.Check
+                                    color={'green'} size={30}/></Button></Col>
+                                <Col sm={2}><Button variant={'outline-danger'}
+                                                    onClick={() => sendApprovalOrDenial(false, val.user)}><Icon.X
+                                    color={'red'} size={30}/></Button></Col>
                             </Row>
                         </ListGroup.Item>
                     )
                 }
             </ListGroup>
+            <br/>
+            <hr/>
         </Container>
     );
 };

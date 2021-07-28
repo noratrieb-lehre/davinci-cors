@@ -25,9 +25,10 @@ const ClassView = () => {
     }, [id, userService])
 
     useEffect(() => {
-        if (currentClass){
+        if (currentClass) {
             setIsAdmin(userService.isAdmin(currentClass))
         }
+        // eslint-disable-next-line
     }, [currentClass])
 
     const onTabSelect = (key: string | null) => {

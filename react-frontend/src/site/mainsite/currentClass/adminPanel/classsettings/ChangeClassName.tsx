@@ -10,7 +10,7 @@ const validationScheme = Yup.object().shape({
 })
 
 const ChangeClassName = () => {
-    const handleSubmit = ({name}: {name: string}) => {
+    const handleSubmit = ({name}: { name: string }) => {
 
     }
     const formik = useFormik({

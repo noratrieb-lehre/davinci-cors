@@ -15,6 +15,7 @@ const Timetable = () => {
                 setTimeTable(val)
             })
         }
+        // eslint-disable-next-line
     }, [currentClass])
     return (
         <Container>

@@ -2,6 +2,7 @@ import React from 'react';
 import {Button, Col, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import {useFormik} from "formik";
 import * as Yup from 'yup'
+
 const validationScheme = Yup.object().shape({
     'description': Yup.string()
         .max(1000, 'Die Beschreibung kann maximal 1000 Zeichen lang sein')
@@ -9,7 +10,7 @@ const validationScheme = Yup.object().shape({
 })
 
 const ChangeClassDescription = () => {
-    const handleSubmit = ({description}: {description: string}) => {
+    const handleSubmit = ({description}: { description: string }) => {
 
     }
     const formik = useFormik({
@@ -19,7 +20,7 @@ const ChangeClassDescription = () => {
         onSubmit: handleSubmit,
         validateOnChange: false,
         validateOnBlur: true,
-        validationSchema: true
+        validationSchema: validationScheme
     })
     return (
         <Form onSubmit={(e) => {

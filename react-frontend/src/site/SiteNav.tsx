@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Nav, Navbar} from "react-bootstrap";
+import {Button, Nav, Navbar} from "react-bootstrap";
 import {Link, NavLink} from "react-router-dom";
 import {UserServiceContext} from "./Router";
 import UserService from "../service/UserService";
@@ -20,7 +20,7 @@ const SiteNav = () => {
             <Navbar.Brand><Link to={'/'}><img src={CORS} height={75} alt={'Logo von CORS'}/></Link></Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav"/>
             <Navbar.Collapse id="basic-navbar-nav">
-                <Nav className="mr-auto">
+                <Nav className="me-auto">
                     {
                         isLoggedIn ? (
                             <>
@@ -36,6 +36,13 @@ const SiteNav = () => {
                         )
                     }
                 </Nav>
+                {
+                    isLoggedIn && <Nav>
+                        <Nav.Item className={'navbar-right'}>
+                            <Button variant={'outline-primary'} onClick={() => userService.logout()}>Ausloggen</Button>
+                        </Nav.Item>
+                    </Nav>
+                }
             </Navbar.Collapse>
         </Navbar>
     );
