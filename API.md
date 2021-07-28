@@ -300,10 +300,6 @@ Errors:
 ### Delete class member
 Requires Token & Admin  
 `DELETE /classes/{uuid}/members/{uuid}`  
-*Request*  
-`Member`    
-*Response*  
-`Member`
 
 Errors:  
 `400 must-have-owner` on deleting the owner  
