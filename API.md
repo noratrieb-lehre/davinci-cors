@@ -481,6 +481,13 @@ Get all events + notification data for events that had their notifications due i
 *Response*  
 `{"notifications": "Notification[]", "time": "Timestamp"}`
 
+#### Get Guild
+`Get /bot/guilds/{{snowflake}}`  
+Bot only  
+
+*Response*  
+`Guild`
+  
 #### Put Guild
 `PUT /bot/guilds`  
 Bot only  
