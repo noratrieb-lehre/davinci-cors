@@ -209,7 +209,10 @@ Requires Token
 }
 ```  
 *Response*  
-`User`
+`User`  
+
+Error:
+`401 wrong-passord`
 
 #### Post myself (not hugo)
 
