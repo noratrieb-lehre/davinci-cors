@@ -17,6 +17,7 @@ const Members = () => {
             const roles = userService.getRolesBelow(self.role);
             setMembers(arr.filter(val => roles.indexOf(val.role) !== -1))
         })
+        // eslint-disable-next-line
     }, [currentClass])
     return (
         <Container>

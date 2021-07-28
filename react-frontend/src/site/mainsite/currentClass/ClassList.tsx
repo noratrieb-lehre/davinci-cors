@@ -1,9 +1,10 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {UserServiceContext} from "../../Router";
 import {ListGroup} from "react-bootstrap";
-import {useHistory} from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
 
 const ClassList = () => {
+    const {id} = useParams<{id: string}>();
     const [allClasses, setAllClasses] = useState<Array<{ name: string, id: string }>>([]);
     const userService = useContext(UserServiceContext);
     const history = useHistory();
@@ -18,7 +19,7 @@ const ClassList = () => {
         }
     }
     return (
-        <ListGroup onSelect={selectUserClass}>
+        <ListGroup onSelect={selectUserClass} defaultActiveKey={id || ''}>
             {
                 allClasses.map((val) => <ListGroup.Item eventKey={val.id} key={val.id}>{val.name}</ListGroup.Item>)
             }

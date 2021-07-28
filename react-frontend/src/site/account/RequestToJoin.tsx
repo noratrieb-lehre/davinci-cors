@@ -38,7 +38,8 @@ const RequestToJoin = () => {
         userService.requestToJoinClass(id).then(val => {
             setMessage(possibleMessage[val])
         })
-    }, [])
+        // eslint-disable-next-line
+    }, [id])
     return (
         <Container>
             <ModalTitle>{message.title}</ModalTitle>

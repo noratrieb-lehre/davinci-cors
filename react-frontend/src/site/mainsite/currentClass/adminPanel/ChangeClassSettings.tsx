@@ -2,6 +2,8 @@ import React from 'react';
 import {Container, ModalTitle} from "react-bootstrap";
 import ChangeClassName from "./classsettings/ChangeClassName";
 import ChangeClassDescription from "./classsettings/ChangeClassDescription";
+import CopyLink from "./classsettings/CopyLink";
+import LinkWithDiscord from "./classsettings/LinkWithDiscord";
 
 const ChangeClassSettings = () => {
     return (
@@ -11,6 +13,10 @@ const ChangeClassSettings = () => {
             <ChangeClassName/>
             <br/>
             <ChangeClassDescription/>
+            <br/>
+            <CopyLink/>
+            <br/>
+            <LinkWithDiscord/>
         </Container>
     );
 };

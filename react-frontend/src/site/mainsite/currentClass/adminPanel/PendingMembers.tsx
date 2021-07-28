@@ -23,13 +23,8 @@ const PendingMembers = () => {
 
     return (
         <Container>
-            {
-                pendingMembers && pendingMembers.length > 0 && <>
-                    <hr/>
-                    <ModalTitle>Anfragen von Benutzer</ModalTitle>
-                    <br/>
-                </>
-            }
+            <ModalTitle>Anfragen von Benutzer</ModalTitle>
+            <br/>
             <ListGroup>
                 {
                     pendingMembers?.map(val =>
@@ -48,7 +43,6 @@ const PendingMembers = () => {
                 }
             </ListGroup>
             <br/>
-            <hr/>
         </Container>
     );
 };

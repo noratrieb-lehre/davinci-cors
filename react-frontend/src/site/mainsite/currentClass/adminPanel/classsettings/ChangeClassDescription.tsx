@@ -13,6 +13,7 @@ const ChangeClassDescription = () => {
     const handleSubmit = ({description}: { description: string }) => {
 
     }
+
     const formik = useFormik({
         initialValues: {
             'description': ''
@@ -37,7 +38,7 @@ const ChangeClassDescription = () => {
                     </FormGroup>
                 </Col>
                 <Col>
-                    <Button type={'submit'}>Namen ändern</Button>
+                    <Button type={'submit'}>Beschreibung ändern</Button>
                 </Col>
             </Row>
         </Form>

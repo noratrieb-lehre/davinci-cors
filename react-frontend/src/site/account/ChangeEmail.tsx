@@ -11,6 +11,7 @@ const ChangeEmail = () => {
 
     useEffect(() => {
         userService.getCurrentUser().then(setCurrentUser);
+        // eslint-disable-next-line
     }, [])
 
     const handleSubmit = ({email}: { email: string }) => {
