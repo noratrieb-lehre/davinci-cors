@@ -80,7 +80,7 @@ async fn show_search_events(
 
     if let Some(serde_json::Value::String(query)) = &typ.value {
         let query = query.to_lowercase();
-        let events = get_events(ctx, interaction.guild_id, None, None)
+        let mut events = get_events(ctx, interaction.guild_id, None, None)
             .await?
             .into_iter()
             .filter(|event| {
@@ -89,7 +89,7 @@ async fn show_search_events(
             })
             .collect::<Vec<_>>();
 
-        let events = events;
+        events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 
         send_events(ctx, interaction, events.as_slice()).await
     } else {
@@ -140,7 +140,7 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             };
 
             let notification = if let Some(time) = event.notification {
-                format!("\nBenachrichtigung um {}", format_datetime(time))
+                format!("\n> Benachrichtigung um {}", format_datetime(time))
             } else {
                 "".to_string()
             };

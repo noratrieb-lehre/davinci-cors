@@ -166,6 +166,13 @@ pub fn change_guild_settings(db: &Pool, guild: NewGuild) -> ServiceResult<Guild>
     Ok(guild.save_changes(&*conn)?)
 }
 
+pub fn get_guild_settings(db: &Pool, guild_id: &str) -> ServiceResult<Guild> {
+    use crate::schema::guilds::dsl::guilds;
+
+    let conn = db.get()?;
+    Ok(guilds.find(guild_id).get_result(&conn)?)
+}
+
 pub fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {
     match vec
         .into_iter()

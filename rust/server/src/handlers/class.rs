@@ -25,6 +25,7 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
             get().to(get_class_by_discord),
         )
         .route("/bot/guilds", put().to(edit_guild_settings))
+        .route("/bot/guilds/{snowflake}", get().to(get_guild))
         .service(
             scope("/classes/{classid}")
                 .route("", get().to(get_class))
@@ -578,7 +579,7 @@ async fn get_class_by_discord(
 }
 
 async fn edit_guild_settings(claims: Claims, db: Data<Pool>, guild: Json<Guild>) -> HttpResult {
-    debug!(?guild, uid = %claims.uid, "get class by discord");
+    debug!(?guild, uid = %claims.uid, "edit guild settings");
 
     if !claims.uid.is_nil() {
         return Err(ServiceErr::Unauthorized("bot-only"));
@@ -597,5 +598,18 @@ async fn edit_guild_settings(claims: Claims, db: Data<Pool>, guild: Json<Guild>)
     })
     .await?
     .into_dto()?;
+    Ok(HttpResponse::Ok().json(guild))
+}
+
+async fn get_guild(guild_id: Path<String>, claims: Claims, db: Data<Pool>) -> HttpResult {
+    debug!(?guild_id, uid = %claims.uid, "get guild");
+
+    if !claims.uid.is_nil() {
+        return Err(ServiceErr::Unauthorized("bot-only"));
+    }
+
+    let guild = block(move || actions::class::get_guild_settings(&db, &guild_id))
+        .await?
+        .into_dto()?;
     Ok(HttpResponse::Ok().json(guild))
 }
