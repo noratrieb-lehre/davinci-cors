@@ -16,7 +16,8 @@
   "name": "string",
   "start": "Timestamp",
   "end?": "Timestamp | null",
-  "description": "string"
+  "description": "string",
+  "notification?": "Timestamp | null"
 }
 ```
 
