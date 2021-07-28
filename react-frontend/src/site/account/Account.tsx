@@ -11,6 +11,7 @@ const Account = () => {
     useEffect(() => {
         userService.getCurrentUser().then(setCurrentUser)
         userService.onUserChange(user => setCurrentUser(user))
+        // eslint-disable-next-line
     }, [])
     return (
         <Container className={'text-center'}>

@@ -5,6 +5,11 @@ import {formatType} from "./Calendar";
 import EventType from "../../../../data/event/EventType";
 
 const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => {
+
+    const deleteEvent = () => {
+
+    }
+
     const handleClose = () => {
         setShow(false)
         onClose();
@@ -30,7 +35,10 @@ const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => 
                 }
                 <p>Typ: {formatType(event.type)}</p>
             </Modal.Body>
-            <Modal.Footer><Button onClick={handleClose}>Schliessen</Button></Modal.Footer>
+            <Modal.Footer>
+                <Button onClick={handleClose}>Schliessen</Button>
+                <Button onClick={deleteEvent} variant={'danger'}>Event löschen</Button>
+            </Modal.Footer>
         </Modal>
     );
 };

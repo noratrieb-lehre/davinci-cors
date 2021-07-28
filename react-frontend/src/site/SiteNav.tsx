@@ -13,6 +13,7 @@ const SiteNav = () => {
         userService.onUserChange((user) => {
             setIsLoggedIn(!!user)
         });
+        // eslint-disable-next-line
     }, [])
 
     return (

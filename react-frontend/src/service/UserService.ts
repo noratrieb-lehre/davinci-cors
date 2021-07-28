@@ -81,6 +81,14 @@ export default class UserService {
         this.triggerOnAuthStateChange(await this.getCurrentUser());
     }
 
+    public async changePassword(password: string, oldPassword: string) {
+        return this.userRequest.changePassword(password, oldPassword)
+    }
+
+    public async changeDescription(description: string) {
+        return this.userRequest.changeDescription(description).then(() => window.location.reload())
+    }
+
     public async createAccount(user: PostUser): Promise<void> {
         const response = await this.userRequest.createAccount(user);
         this.setToken(response.headers);
@@ -100,7 +108,7 @@ export default class UserService {
     }
 
     public async createClass(name: string, description: string): Promise<void> {
-        return await this.classRequest.createClass(name, description)
+        return await this.classRequest.createClass(name, description).then(() => window.location.reload())
     }
 
     public getMember(memberList: Array<Member>, userID: string): Member | undefined {
@@ -120,11 +128,11 @@ export default class UserService {
     }
 
     public async createTimetable(classID: string): Promise<void> {
-        return this.timetableRequest.createTimetable(classID);
+        return this.timetableRequest.createTimetable(classID).then(() =>  window.location.reload());
     }
 
     public async updateTimetable(classId: string, timetableDay: TimeTableDay, day: number): Promise<void> {
-        return this.timetableRequest.updateTimetable(classId, timetableDay, day);
+        this.timetableRequest.updateTimetable(classId, timetableDay, day).then(() => window.location.reload());
     }
 
     public async getCalendar(classId: string): Promise<Array<Event>> {
@@ -132,7 +140,7 @@ export default class UserService {
     }
 
     public async createEvent(classID: string, event: Event): Promise<void> {
-        await this.eventRequest.createEvent(classID, event)
+        return await this.eventRequest.createEvent(classID, event).then(() => window.location.reload())
     }
 
     public async getPendingMembers(classId: string): Promise<Array<Member>> {
@@ -144,7 +152,7 @@ export default class UserService {
     }
 
     public async updateClassMember(classId: string, member: Member): Promise<void> {
-        return await this.memberRequest.updateClassMember(classId, member)
+        return await this.memberRequest.updateClassMember(classId, member).then(() => window.location.reload())
     }
 
     public async replyToRequest(classID: string, userID: string, accept: boolean): Promise<void> {
@@ -155,16 +163,16 @@ export default class UserService {
         return this.userRequest.changeEmail(email);
     }
 
-    public async changeDescription(description: string) {
-        return this.userRequest.changeDescription(description)
-    }
-
-    public async changePassword(password: string, oldPassword: string) {
-        return this.userRequest.changePassword(password, oldPassword)
-    }
-
     public async deleteClassMember(classId: string, memberId: string): Promise<void> {
-        await this.memberRequest.deleteClassMember(classId, memberId)
+        await this.memberRequest.deleteClassMember(classId, memberId).then(() => window.location.reload())
+    }
+
+    public async linkClassToGuild(classId: string, snowflake: string) {
+        await this.discordRequest.linkClassToGuild(classId, snowflake)
+    }
+
+    public async linkAccountToDiscord(snowflake: string) {
+        await this.discordRequest.linkAccountToDiscord(snowflake)
     }
 
     public getMemberRole(role: MemberRole): string {
