@@ -2,8 +2,8 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use crate::commands::format_datetime;
-use crate::commands::functions::{from_utc_timestamp, from_utc_to_cest};
 use crate::error::{BotError, BotResult};
+use crate::functions::{from_utc_timestamp, from_utc_to_cest, limit_length};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
@@ -80,7 +80,7 @@ async fn show_search_events(
 
     if let Some(serde_json::Value::String(query)) = &typ.value {
         let query = query.to_lowercase();
-        let mut events = get_events(ctx, interaction.guild_id, None, None)
+        let events = get_events(ctx, interaction.guild_id, None, None)
             .await?
             .into_iter()
             .filter(|event| {
@@ -88,8 +88,6 @@ async fn show_search_events(
                     || event.description.to_lowercase().contains(&query)
             })
             .collect::<Vec<_>>();
-
-        events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 
         send_events(ctx, interaction, events.as_slice()).await
     } else {
@@ -116,13 +114,21 @@ async fn send_events(
     interaction: &Interaction,
     events: &[dto::Event],
 ) -> BotResult<()> {
+    let mut events = events
+        .iter()
+        .take(10)
+        .map(|event| event.clone())
+        .collect::<Vec<_>>(); // todo oh
+
+    events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
+
     Ok(interaction
         .create_interaction_response(&ctx.http, |response| {
             response
                 .kind(InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
                     message
-                        .create_embed(|embed| event_embed(embed, events))
+                        .create_embed(|embed| event_embed(embed, events.as_slice()))
                         .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                 })
         })
@@ -130,9 +136,13 @@ async fn send_events(
 }
 
 fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut CreateEmbed {
+    const MAX_DESCRIPTION_LENGTH: usize = 100;
+
     let mut fields = events
         .iter()
         .map(|event| {
+            let description = limit_length(&event.description, MAX_DESCRIPTION_LENGTH);
+
             let end_value = if let Some(end) = event.end {
                 format!(" - {}", format_datetime(end))
             } else {
@@ -140,7 +150,7 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             };
 
             let notification = if let Some(time) = event.notification {
-                format!("\n> Benachrichtigung um {}", format_datetime(time))
+                format!("\n\n> Benachrichtigung um {}", format_datetime(time))
             } else {
                 "".to_string()
             };
@@ -148,10 +158,10 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
             (
                 format!("{} | {}", format_date(event.start), event.name),
                 format!(
-                    "{}{} \n {}{}",
+                    "{}{} \n\n {}{}",
                     format_datetime(event.start),
                     end_value,
-                    event.description,
+                    description,
                     notification
                 ),
                 true,
@@ -167,10 +177,9 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
         ));
     }
 
-    embed
-        .title("Events")
-        .fields(fields)
-        .footer(|f| f.text("CORS"))
+    embed.title("Events").fields(fields).footer(|f| {
+        f.text("CORS - Es werden maximal 10 Events angezeigt - Nutz 'filter' oder 'search'")
+    })
 }
 
 fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {

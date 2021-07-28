@@ -551,11 +551,15 @@ async fn link_class_with_discord(
         return Err(ServiceErr::BadRequest("no-owner"));
     }
 
-    let class = block(move || {
-        actions::class::set_discord_id_class(&db, *class_id, Some(id.into_inner().snowflake))
-    })
-    .await?
-    .into_dto()?;
+    let snowflake = id.into_inner().snowflake;
+    snowflake
+        .parse::<u64>()
+        .map_err(|_| ServiceErr::BadRequest("invalid-snowflake"))?;
+
+    let class =
+        block(move || actions::class::set_discord_id_class(&db, *class_id, Some(snowflake)))
+            .await?
+            .into_dto()?;
 
     Ok(HttpResponse::Ok().json(class))
 }

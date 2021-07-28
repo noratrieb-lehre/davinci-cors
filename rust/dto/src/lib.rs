@@ -51,6 +51,7 @@ impl EventType {
 
 /// A Class
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Class {
     #[serde(default)]
     pub id: Uuid,
@@ -59,6 +60,8 @@ pub struct Class {
     pub members: Vec<Member>,
     pub name: String,
     pub description: String,
+    #[serde(default)]
+    pub discord_id: Option<String>,
 }
 
 /// A User

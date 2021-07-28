@@ -8,12 +8,12 @@ use tracing::debug;
 use dto::Lesson;
 pub use setup::setup_slash_commands;
 
-use crate::commands::functions::{absolute_time_as_weekday, from_utc_timestamp, from_utc_to_cest};
 use crate::error::{BotError, BotResult};
+use crate::functions;
+use crate::functions::{absolute_time_as_weekday, from_utc_timestamp, from_utc_to_cest};
 use crate::requests::CorsClient;
 
 mod events;
-mod functions;
 mod settings;
 mod setup;
 

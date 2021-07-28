@@ -13,6 +13,7 @@ use crate::requests::CorsClient;
 
 mod commands;
 mod error;
+mod functions;
 mod notifications;
 mod requests;
 
