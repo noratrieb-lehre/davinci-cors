@@ -108,19 +108,19 @@
 `number`, UTC, milliseconds since 00:00
 
 ## Errors
-On every Route:    
-`400 invalid-uuid`  on a request with an invalid uuid (cannot be parsed to a uuid)
-`401 token-expired`  on a request with an expired token
-`401 no-access`  on a request to a guild that the user is not part of
-`500 Internal Server Error` all the time
-Routes that require admin    
-`401 no-admin`  on a request where the user is not admin in that class
-Routes that require owner    
-`401 no-owner`  on a request where the user is not the owner in that class
-  
-Routes that insert/edit something
-`409 already-exists` (on Unique Violation)
-`409 does-not-exist` (on Foreign Key Violation)
+On every Route:        
+`400 invalid-uuid`  on a request with an invalid uuid (cannot be parsed to a uuid)    
+`401 token-expired`  on a request with an expired token    
+`401 no-access`  on a request to a guild that the user is not part of    
+`500 Internal Server Error` all the time    
+Routes that require admin        
+`401 no-admin`  on a request where the user is not admin in that class    
+Routes that require owner        
+`401 no-owner`  on a request where the user is not the owner in that class    
+    
+Routes that insert/edit something  
+`409 already-exists` (on Unique Violation)  
+`409 does-not-exist` (on Foreign Key Violation)  
 
 Others: See routes
 
@@ -270,7 +270,7 @@ Requires Token & Owner
 "Deleted class."
 
 Errors:  
-`401 no-owner` on not being owner
+`401 no-owner` on not being owner  
 
 ### Class member
 
@@ -283,9 +283,9 @@ Requires Token & Admin
 `Member`
 
 Errors:  
-`401 edit-own-permission` on editing the own permissions
-`401 not-enough-permissions` on editing a member with a role higher/equal role to own
-`401 not-enough-permissions` on editing a member to have a higher/equal role than the own
+`401 edit-own-permission` on editing the own permissions  
+`401 not-enough-permissions` on editing a member with a role higher/equal role to own  
+`401 not-enough-permissions` on editing a member to have a higher/equal role than the own  
 
 ### Delete class member
 Requires Token & Admin  
@@ -296,8 +296,8 @@ Requires Token & Admin
 `Member`
 
 Errors:  
-`400 must-have-owner` on deleting the owner
-`401 not-enough-permissions` on deleting a member with a role higher/equal role to own
+`400 must-have-owner` on deleting the owner  
+`401 not-enough-permissions` on deleting a member with a role higher/equal role to own  
 
 
 #### Request join
@@ -332,7 +332,7 @@ Requires Token & Admin
 ```
 
 Errors:
-`400 member-not-pending` on accepting a member that is not pending
+`400 member-not-pending` on accepting a member that is not pending  
 
 ### Events
 
