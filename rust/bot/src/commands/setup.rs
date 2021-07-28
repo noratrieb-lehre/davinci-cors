@@ -75,7 +75,7 @@ fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateAppli
         .create_application_command(|command| command.name("info").description("Botinformationen"))
         .create_application_command(|command| {
             command
-                .name("setup")
+                .name("setting")
                 .description("Servereinstellungen")
                 .create_option(|option| {
                     option
