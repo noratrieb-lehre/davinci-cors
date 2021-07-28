@@ -80,7 +80,7 @@ async fn show_search_events(
 
     if let Some(serde_json::Value::String(query)) = &typ.value {
         let query = query.to_lowercase();
-        let mut events = get_events(ctx, interaction.guild_id, None, None)
+        let events = get_events(ctx, interaction.guild_id, None, None)
             .await?
             .into_iter()
             .filter(|event| {
@@ -88,8 +88,6 @@ async fn show_search_events(
                     || event.description.to_lowercase().contains(&query)
             })
             .collect::<Vec<_>>();
-
-        events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 
         send_events(ctx, interaction, events.as_slice()).await
     } else {
@@ -116,11 +114,13 @@ async fn send_events(
     interaction: &Interaction,
     events: &[dto::Event],
 ) -> BotResult<()> {
-    let events = events
+    let mut events = events
         .iter()
         .take(10)
         .map(|event| event.clone())
         .collect::<Vec<_>>(); // todo oh
+
+    events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 
     Ok(interaction
         .create_interaction_response(&ctx.http, |response| {
@@ -177,10 +177,9 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
         ));
     }
 
-    embed
-        .title("Events")
-        .fields(fields)
-        .footer(|f| f.text("CORS"))
+    embed.title("Events").fields(fields).footer(|f| {
+        f.text("CORS - Es werden maximal 10 Events angezeigt - Nutz 'filter' oder 'search'")
+    })
 }
 
 fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
