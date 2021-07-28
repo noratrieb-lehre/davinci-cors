@@ -172,11 +172,14 @@ async fn link_user_with_discord(
 ) -> HttpResult {
     debug!(uid = %claims.uid, ?id, "link own user with discord");
 
-    let user = block(move || {
-        actions::user::set_discord_id_user(&db, claims.uid, Some(&id.into_inner().snowflake))
-    })
-    .await?
-    .into_dto()?;
+    let snowflake = id.into_inner().snowflake;
+    snowflake
+        .parse::<u64>()
+        .map_err(|_| ServiceErr::BadRequest("invalid-snowflake"))?;
+
+    let user = block(move || actions::user::set_discord_id_user(&db, claims.uid, Some(&snowflake)))
+        .await?
+        .into_dto()?;
 
     Ok(HttpResponse::Ok().json(user))
 }
