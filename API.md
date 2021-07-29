@@ -301,7 +301,6 @@ Requires Token & Admin
 `Member`
 
 Errors:  
-`401 edit-own-permission` on editing the own permissions  
 `401 not-enough-permissions` on editing a member with a role higher/equal role to own  
 `401 not-enough-permissions` on editing a member to have a higher/equal role than the own  
 
