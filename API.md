@@ -316,7 +316,12 @@ Errors:
 `400 must-have-owner` on deleting the owner  
 `401 not-enough-permissions` on deleting a member with a role higher/equal role to own  
 
-
+#### See bans
+`GET /classes({uuid}/bans  
+Requires Token & Admin  
+*Response*  
+`["Member"]`
+  
 #### Request join
 
 `POST /classes/{uuid}/join`    
