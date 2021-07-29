@@ -173,8 +173,9 @@ Token: Bearer token
 `GET /token`
   
 Errors:  
-`401` wrong-token-kind`
-
+`401 wrong-token-kind`
+`401 old-token`
+ 
 *Request*
 
 Authorization: Bearer token
@@ -218,6 +219,8 @@ Requires Token
 }
 ```  
 *Response*  
+  
+Refresh-Token: Bearer token   
 `User`  
 
 Error:
