@@ -68,7 +68,7 @@
   "user?": "uuid",
   "displayName": "string",
   "email??": "string",
-  "role": "owner | admin | member"
+  "role": "owner | admin | member | banned"
 }
 ```  
 
