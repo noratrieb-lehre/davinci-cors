@@ -162,22 +162,24 @@ async fn edit_member(
 
     debug!(%class_id, %member_id, ?own_role, userid = %claims.uid, ?member, "edit member");
 
-    // Only admins can edit others
-    if claims.uid != member_id && !own_role.has_rights() {
-        return Err(ServiceErr::NoAdminPermissions);
-    }
-
-    // Can only set target permissions lower than own
-    if member.role <= *own_role {
-        return Err(ServiceErr::Unauthorized("not-enough-permissions"));
-    }
-
     let member = block(move || {
         let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
 
-        // Can only edit members lower than self
-        if old_member.role <= own_role.0 as i32 {
-            return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+        // if edit other member
+        if claims.uid != member_id {
+            // Only admins can edit others
+            if !own_role.has_rights() {
+                return Err(ServiceErr::NoAdminPermissions);
+            }
+
+            // Can only set target permissions lower than own
+            if member.role <= *own_role {
+                return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+            }
+            // Can only edit members lower than self
+            if old_member.role <= own_role.0 as i32 {
+                return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+            }
         }
 
         // Cannot edit own roles

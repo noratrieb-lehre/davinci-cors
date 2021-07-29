@@ -47,6 +47,7 @@ mod test {
                 password: "xxxxxxsecretxxxxxx",
                 description: "test",
                 discord_id: None,
+                token_version: 0,
             },
         )
         .unwrap();
@@ -165,6 +166,7 @@ mod test {
                 password: "pass_wort",
                 description: "test",
                 discord_id: None,
+                token_version: 0,
             },
         )
         .unwrap();
@@ -304,6 +306,7 @@ mod test {
                 password: "xxxxxxsecretxxxxxx",
                 description: "test",
                 discord_id: None,
+                token_version: 0,
             },
         )
         .unwrap();
