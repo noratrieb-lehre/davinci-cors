@@ -218,6 +218,8 @@ Requires Token
 }
 ```  
 *Response*  
+  
+Refresh-Token: Bearer token   
 `User`  
 
 Error:
