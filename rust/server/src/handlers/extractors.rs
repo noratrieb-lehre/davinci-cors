@@ -1,14 +1,10 @@
 use crate::actions::Pool;
 use crate::error::ServiceErr;
-use crate::handlers::auth::{validate_token, Claims};
+use crate::handlers::auth::Claims;
 use crate::models::conversion::IntoDto;
 use actix_web::dev::Payload;
-use actix_web::http::header::Header;
 use actix_web::{web, FromRequest, HttpRequest};
-use actix_web_httpauth::headers::authorization;
-use actix_web_httpauth::headers::authorization::Bearer;
 use dto::MemberRole;
-use jsonwebtoken::DecodingKey;
 use std::future;
 use std::future::Future;
 use std::ops::Deref;
@@ -37,24 +33,6 @@ impl FromRequest for Claims {
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         future::ready(Self::from_request_sync(req).map_err(|err| err.into()))
-    }
-}
-
-impl Claims {
-    /// The body of the fromRequest implementation, so it can be reused. (non-blocking, since it doesn't do any io)
-    fn from_request_sync(req: &HttpRequest) -> Result<Self, ServiceErr> {
-        let key = req
-            .app_data::<web::Data<DecodingKey>>()
-            .expect("no decoding key found");
-
-        match authorization::Authorization::<Bearer>::parse(req) {
-            Ok(auth) => validate_token(auth.into_scheme().token(), key),
-            Err(_) => Err(ServiceErr::Unauthorized("no-token")),
-        }
-        .and_then(|claims| match claims.refresh {
-            true => Err(ServiceErr::Unauthorized("wrong-token-kind")),
-            false => Ok(claims),
-        })
     }
 }
 

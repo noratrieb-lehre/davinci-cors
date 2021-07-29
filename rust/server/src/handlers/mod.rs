@@ -1,17 +1,11 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
-use crate::handlers::auth::{create_normal_jwt, create_refresh_jwt, Claims};
-use crate::models;
+use crate::handlers::auth::Claims;
 use crate::models::conversion::IntoDto;
-use crate::models::NewUser;
+use actix_web::web::ServiceConfig;
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, Query};
-use actix_web::web::{patch, ServiceConfig};
 use actix_web::HttpResponse;
-use dto::{
-    ChangePasswordReq, NotificationQueryParams, NotificationRes, PostUser, SingleSnowflake, User,
-    UserPostResponse,
-};
-use jsonwebtoken::EncodingKey;
+use dto::{NotificationQueryParams, NotificationRes, SingleSnowflake, User};
 use tracing::debug;
 
 mod auth;
@@ -31,11 +25,9 @@ pub fn other_config(cfg: &mut ServiceConfig) {
         .route("/bot/notifications", get().to(get_notifications))
         .service(
             scope("/users")
-                .route("", post().to(create_user))
                 .route("/me", get().to(get_own_user))
                 .route("/me", put().to(edit_own_user))
                 .route("/me", delete().to(delete_own_user))
-                .route("/me/password", patch().to(change_password))
                 .route("/me/link", post().to(link_user_with_discord))
                 .route("/discord/{snowflake}", get().to(get_user_by_discord)),
         );
@@ -45,47 +37,6 @@ async fn get_hugo() -> HttpResponse {
     debug!("Someone got Hugo!");
 
     HttpResponse::Ok().body("Hugo Boss")
-}
-
-async fn create_user(
-    mut body: Json<PostUser>,
-    db: Data<Pool>,
-    key: Data<EncodingKey>,
-) -> HttpResult {
-    // to make the logging safe - we don't want to leak passwords
-    let password = std::mem::replace(&mut body.password, "**********".to_string());
-
-    debug!(?body, "create a user");
-
-    let user = block(move || {
-        let new_user = NewUser {
-            id: uuid::Uuid::new_v4(),
-            email: &body.email,
-            password: &password,
-            description: &body.description,
-            discord_id: None,
-            token_version: 1,
-        };
-
-        actions::user::insert_user(&db, new_user)
-    })
-    .await?;
-
-    let (token, expires) = create_normal_jwt(user.id, &key)?;
-    let refresh_token = create_refresh_jwt(user.id, &key, 1)?;
-
-    Ok(HttpResponse::Created()
-        .header("Token", format!("Bearer {}", token))
-        .header("Refresh-Token", format!("Bearer {}", refresh_token))
-        .json(UserPostResponse {
-            user: User {
-                id: user.id,
-                email: user.email,
-                description: user.description,
-                classes: None,
-            },
-            expires,
-        }))
 }
 
 async fn get_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
@@ -131,46 +82,6 @@ async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
         1 => HttpResponse::Ok().body("Deleted user."),
         _ => unreachable!(),
     })
-}
-
-async fn change_password(
-    claims: Claims,
-    db: Data<Pool>,
-    e_key: Data<EncodingKey>,
-    password: Json<ChangePasswordReq>,
-) -> HttpResult {
-    debug!(uid = %claims.uid, "change user password");
-
-    let user = block(move || {
-        let user = actions::user::get_user_by_id(&db, claims.uid)?;
-        let validate =
-            actions::user::validate_user_password(&db, &user.email, &password.old_password)?;
-
-        if validate.is_none() {
-            return Err(ServiceErr::Unauthorized("wrong-password"));
-        }
-
-        actions::user::change_user_password(
-            &db,
-            models::User {
-                id: claims.uid,
-                email: "".to_string(),
-                password: password.into_inner().password,
-                description: "".to_string(),
-                discord_id: None,
-                token_version: 0,
-            },
-        )?;
-
-        actions::user::increment_token_version(&db, claims.uid)
-    })
-    .await?;
-
-    let refresh_token = create_refresh_jwt(user.id, &e_key, user.token_version)?;
-
-    Ok(HttpResponse::Ok()
-        .header("Refresh-Token", format!("Bearer {}", refresh_token))
-        .json(user.into_dto()?))
 }
 
 async fn link_user_with_discord(
