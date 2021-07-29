@@ -68,7 +68,7 @@
   "user?": "uuid",
   "displayName": "string",
   "email??": "string",
-  "role": "owner | admin | member"
+  "role": "owner | admin | member | banned"
 }
 ```  
 
@@ -119,7 +119,8 @@ On every Route:
 Routes that require admin        
 `401 no-admin`  on a request where the user is not admin in that class    
 Routes that require owner        
-`401 no-owner`  on a request where the user is not the owner in that class    
+`401 no-owner`  on a request where the user is not the owner in that class 
+`401 banned`  when the member has been banned
     
 Routes that insert/edit something  
 `409 already-exists` (on Unique Violation)  
@@ -315,7 +316,12 @@ Errors:
 `400 must-have-owner` on deleting the owner  
 `401 not-enough-permissions` on deleting a member with a role higher/equal role to own  
 
-
+#### See bans
+`GET /classes({uuid}/bans  
+Requires Token & Admin  
+*Response*  
+`["Member"]`
+  
 #### Request join
 
 `POST /classes/{uuid}/join`    
