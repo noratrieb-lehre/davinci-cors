@@ -60,6 +60,14 @@ pub fn update_user(db: &Pool, user: User) -> ServiceResult<User> {
         .get_result(&conn)?)
 }
 
+pub fn increment_token_version(db: &Pool, uid: Uuid) -> ServiceResult<User> {
+    let conn = db.get()?;
+
+    Ok(update(users.filter(id.eq(uid)))
+        .set(token_version.eq(token_version + 1))
+        .get_result(&conn)?)
+}
+
 pub fn change_user_password(db: &Pool, user: User) -> ServiceResult<User> {
     let conn = db.get()?;
 

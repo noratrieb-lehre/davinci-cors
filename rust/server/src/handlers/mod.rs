@@ -64,6 +64,7 @@ async fn create_user(
             password: &password,
             description: &body.description,
             discord_id: None,
+            token_version: 1,
         };
 
         actions::user::insert_user(&db, new_user)
@@ -71,7 +72,7 @@ async fn create_user(
     .await?;
 
     let (token, expires) = create_normal_jwt(user.id, &key)?;
-    let refresh_token = create_refresh_jwt(user.id, &key)?;
+    let refresh_token = create_refresh_jwt(user.id, &key, 1)?;
 
     Ok(HttpResponse::Created()
         .header("Token", format!("Bearer {}", token))
@@ -135,6 +136,7 @@ async fn delete_own_user(claims: Claims, db: Data<Pool>) -> HttpResult {
 async fn change_password(
     claims: Claims,
     db: Data<Pool>,
+    e_key: Data<EncodingKey>,
     password: Json<ChangePasswordReq>,
 ) -> HttpResult {
     debug!(uid = %claims.uid, "change user password");
@@ -156,13 +158,19 @@ async fn change_password(
                 password: password.into_inner().password,
                 description: "".to_string(),
                 discord_id: None,
+                token_version: 0,
             },
-        )
-    })
-    .await?
-    .into_dto()?;
+        )?;
 
-    Ok(HttpResponse::Ok().json(user))
+        actions::user::increment_token_version(&db, claims.uid)
+    })
+    .await?;
+
+    let refresh_token = create_refresh_jwt(user.id, &e_key, user.token_version)?;
+
+    Ok(HttpResponse::Ok()
+        .header("Refresh-Token", format!("Bearer {}", refresh_token))
+        .json(user.into_dto()?))
 }
 
 async fn link_user_with_discord(

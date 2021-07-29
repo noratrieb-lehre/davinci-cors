@@ -9,6 +9,7 @@ pub struct User {
     pub password: String,
     pub description: String,
     pub discord_id: Option<String>,
+    pub token_version: i32,
 }
 
 #[derive(Debug, Insertable)]
@@ -19,6 +20,7 @@ pub struct NewUser<'a> {
     pub password: &'a str,
     pub description: &'a str,
     pub discord_id: Option<&'a str>,
+    pub token_version: i32,
 }
 
 #[derive(Debug, Clone, Queryable, Identifiable)]
@@ -326,6 +328,7 @@ pub mod conversion {
                 password: "".to_string(),
                 description: user.description,
                 discord_id: None,
+                token_version: 0,
             }
         }
     }
