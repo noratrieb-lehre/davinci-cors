@@ -36,6 +36,12 @@ export default class MemberRequest {
         });
     }
 
+    public async getBannedMembers(classId: string): Promise<Array<Member>> {
+        return await this.axios.axios.get<Array<Member>>(`/classes/${classId}/bans`).then(r => r.data).catch((err) => {
+            throw new Error(err.response.data)
+        });
+    }
+
     public async getMembers(classId: string): Promise<Array<Member>> {
         return await this.axios.axios.get<Class>(`/classes/${classId}`).then(r => r.data.members).catch((err) => {
             throw new Error(err.response.data)

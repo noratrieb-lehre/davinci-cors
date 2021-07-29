@@ -160,6 +160,10 @@ export default class UserService {
         return await this.memberRequest.getPendingMembers(classId);
     }
 
+    public async getBannedMembers(classId: string): Promise<Array<Member>> {
+        return await this.memberRequest.getBannedMembers(classId);
+    }
+
     public async getMembers(classId: string): Promise<Array<Member>> {
         return await this.memberRequest.getMembers(classId);
     }

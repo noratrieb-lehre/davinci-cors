@@ -58,11 +58,13 @@ pub fn get_pending_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Membe
         .load(&conn)?)
 }
 
-pub fn get_banned_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Member>> {
+pub fn get_banned_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<(Member, User)>> {
     use crate::schema::members::dsl::{class, members, role};
+    use crate::schema::users::dsl::users;
     let conn = db.get()?;
 
     Ok(members
+        .inner_join(users)
         .filter(class.eq(class_id).and(role.eq(BANNED)))
         .load(&conn)?)
 }

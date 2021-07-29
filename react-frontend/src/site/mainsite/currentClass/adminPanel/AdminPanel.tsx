@@ -5,6 +5,7 @@ import NewLesson from "./NewLesson";
 import PendingMembers from "./PendingMembers";
 import Members from "./edituser/Members";
 import {Tab, Tabs} from "react-bootstrap";
+import BannedMembers from "./BannedMembers";
 
 const AdminPanel = () => {
     return (
@@ -14,6 +15,7 @@ const AdminPanel = () => {
             <Tab eventKey={'newLesson'} title={'Lektionverwaltung'}><NewLesson/></Tab>
             <Tab eventKey={'members'} title={'Mitgliederverwaltung'}><Members/></Tab>
             <Tab eventKey={'pendingMembers'} title={'Beitrittsanfragen'}><PendingMembers/></Tab>
+            <Tab eventKey={'bans'} title={'Banns'}><BannedMembers/></Tab>
         </Tabs>
     );
 };
