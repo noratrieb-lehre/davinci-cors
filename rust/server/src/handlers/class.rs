@@ -153,27 +153,22 @@ async fn get_member(path: Path<(Uuid, Uuid)>, _role: Role, db: Data<Pool>) -> Ht
 
 async fn edit_member(
     path: Path<(Uuid, Uuid)>,
-    role: Role,
+    own_role: Role,
     member: Json<Member>,
     db: Data<Pool>,
     claims: Claims,
 ) -> HttpResult {
     let (class_id, member_id) = path.into_inner();
 
-    debug!(%class_id, %member_id, ?role, userid = %claims.uid, ?member, "edit member");
+    debug!(%class_id, %member_id, ?own_role, userid = %claims.uid, ?member, "edit member");
 
     // Only admins can edit others
-    if claims.uid != member_id && !role.has_rights() {
+    if claims.uid != member_id && !own_role.has_rights() {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
-    // Cannot edit self
-    if claims.uid == member.user {
-        return Err(ServiceErr::Unauthorized("edit-own-permission"));
-    }
-
     // Can only set target permissions lower than own
-    if member.role <= *role {
+    if member.role <= *own_role {
         return Err(ServiceErr::Unauthorized("not-enough-permissions"));
     }
 
@@ -181,15 +176,22 @@ async fn edit_member(
         let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
 
         // Can only edit members lower than self
-        if old_member.role <= role.0 as i32 {
+        if old_member.role <= own_role.0 as i32 {
             return Err(ServiceErr::Unauthorized("not-enough-permissions"));
         }
+
+        // Cannot edit own roles
+        let new_role = if claims.uid == member.user {
+            old_member.role
+        } else {
+            crate::models::conversion::member_role_dto_to_int(&member.role)
+        };
 
         let member = NewMember {
             user: member_id,
             class: class_id,
             display_name: &member.display_name,
-            role: crate::models::conversion::member_role_dto_to_int(&member.role),
+            role: new_role,
         };
         actions::class::update_member(&db, member)
     })
@@ -484,9 +486,8 @@ async fn edit_timetable(
         .into_inner()
         .iter_mut()
         .map(|day| {
-            // this clone is not really needed, but i don't know what to do else
             day.sort_unstable();
-            day.clone()
+            day.clone() // todo oh
         })
         .collect::<Vec<_>>();
 

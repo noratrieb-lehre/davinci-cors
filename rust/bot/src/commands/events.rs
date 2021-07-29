@@ -117,8 +117,8 @@ async fn send_events(
     let mut events = events
         .iter()
         .take(10)
-        .map(|event| event.clone())
-        .collect::<Vec<_>>(); // todo oh
+        .map(|event| event.clone()) // todo oh
+        .collect::<Vec<_>>();
 
     events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 

@@ -13,6 +13,7 @@ use std::future;
 use std::future::Future;
 use std::ops::Deref;
 use std::pin::Pin;
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// Extract the role of a member in a class
@@ -43,7 +44,7 @@ impl Claims {
     /// The body of the fromRequest implementation, so it can be reused. (non-blocking, since it doesn't do any io)
     fn from_request_sync(req: &HttpRequest) -> Result<Self, ServiceErr> {
         let key = req
-            .app_data::<DecodingKey>()
+            .app_data::<web::Data<DecodingKey>>()
             .expect("no decoding key found");
 
         match authorization::Authorization::<Bearer>::parse(req) {
@@ -51,9 +52,7 @@ impl Claims {
             Err(_) => Err(ServiceErr::Unauthorized("no-token")),
         }
         .and_then(|claims| match claims.refresh {
-            true => Err(ServiceErr::Unauthorized(
-                "A refresh token can't be used for authentication",
-            )),
+            true => Err(ServiceErr::Unauthorized("wrong-token-kind")),
             false => Ok(claims),
         })
     }
@@ -65,7 +64,11 @@ impl FromRequest for Role {
     type Config = ();
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let db = req.app_data::<Pool>().expect("db pool in app data").clone();
+        let db = req
+            .app_data::<web::Data<Pool>>()
+            .expect("db pool in app data")
+            .clone()
+            .into_inner();
 
         let class_id = req
             .match_info()
@@ -87,7 +90,7 @@ impl FromRequest for Role {
 }
 
 async fn get_member_role(
-    db: Pool,
+    db: Arc<Pool>,
     class_id: Result<Uuid, ServiceErr>,
     claims: Result<Claims, ServiceErr>,
 ) -> Result<Role, ServiceErr> {
