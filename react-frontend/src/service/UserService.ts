@@ -44,6 +44,7 @@ export default class UserService {
                 }
             }).then(val => {
                 this.setToken(val.headers);
+                this.updateToken(val.data.expires);
                 this.getCurrentUser().then(value => {
                     this._currentUserID = value.id;
                     this.triggerOnAuthStateChange(value)
