@@ -11,7 +11,7 @@ import EventRequest from "./EventRequest";
 import ClassRequest from "./ClassRequest";
 import MemberRequest, {ErrorMessage} from "./MemberRequest";
 import Axios from "./AxiosInstance";
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 import DiscordRequest from "./DiscordRequest";
 
 const memberRoles: Array<MemberRole> = ['owner', "member", "admin"]
@@ -67,7 +67,7 @@ export default class UserService {
         window.location.href = `${window.location.protocol}//${window.location.host}/`;
     }
 
-    public async requestToJoinClass(classID: string): Promise<ErrorMessage> {
+    public async requestToJoinClass(classID: string): Promise<void> {
         return await this.memberRequest.requestToJoinClass(classID)
     }
 
@@ -198,16 +198,23 @@ export default class UserService {
         if (this.refreshToken) {
             const then = new Date(expireDate);
             setTimeout(async () => {
-                console.log('Requesting new Token')
-                const response = await axios.get('http://localhost:8080/api/token', {
-                    headers: {
-                        'Authorization': this.refreshToken
-                    }
-                })
-                this.setToken(response.headers)
-                this.updateToken(response.data.expires);
+                this.updateToken((await this.updateAuthToken()).data.expires);
             }, then.getTime() - Date.now())
         }
+    }
+
+    public async forceUpdate() {
+        await this.updateAuthToken();
+    }
+
+    private async updateAuthToken(): Promise<AxiosResponse> {
+        const response = await axios.get('http://localhost:8080/api/token', {
+            headers: {
+                'Authorization': this.refreshToken
+            }
+        })
+        this.setToken(response.headers)
+        return response;
     }
 
     private setToken(header: any) {

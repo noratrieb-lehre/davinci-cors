@@ -10,13 +10,17 @@ export default class ClassRequest {
     }
 
     public async getClass(id: string): Promise<Class> {
-        return await this.axios.axios.get<Class>(`/classes/${id}`).then(r => r.data)
+        return await this.axios.axios.get<Class>(`/classes/${id}`).then(r => r.data).catch((err) => {
+            throw new Error(err.response.data)
+        })
     }
 
     public async createClass(name: string, description: string): Promise<void> {
         await this.axios.axios.post('/classes', {
             name,
             description
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
@@ -25,6 +29,8 @@ export default class ClassRequest {
         await this.axios.axios.put(`/classes/${classId}`, {
             ...response,
             name
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
@@ -33,14 +39,20 @@ export default class ClassRequest {
         await this.axios.axios.put(`/classes/${classId}`, {
             ...response,
             description
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
     public async deleteClass(classId: string) {
-        await this.axios.axios.delete(`/classes/${classId}`);
+        await this.axios.axios.delete(`/classes/${classId}`).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 
     public async getClasses(): Promise<Array<Class> | undefined> {
-        return this.axios.axios.get<User>('/users/me').then(r => r.data.classes);
+        return this.axios.axios.get<User>('/users/me').then(r => r.data.classes).catch((err) => {
+            throw new Error(err.response.data)
+        });
     }
 }

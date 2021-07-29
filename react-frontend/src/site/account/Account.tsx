@@ -4,12 +4,19 @@ import {UserServiceContext} from "../Router";
 import ChangeEmail from "./ChangeEmail";
 import ChangePassword from "./ChangePassword";
 import User from "../../data/user/User";
+import LinkDiscord from "./LinkDiscord";
 
 const Account = () => {
     const userService = useContext(UserServiceContext);
     const [currentUser, setCurrentUser] = useState<User | undefined>();
     useEffect(() => {
-        userService.getCurrentUser().then(setCurrentUser)
+        userService.getCurrentUser().then(setCurrentUser).catch(err => {
+            switch (err.message) {
+                case 'token-expired':
+                    window.location.reload();
+                    break;
+            }
+        })
         userService.onUserChange(user => setCurrentUser(user))
         // eslint-disable-next-line
     }, [])
@@ -21,6 +28,8 @@ const Account = () => {
             <ChangeEmail/>
             <hr/>
             <ChangePassword/>
+            <hr/>
+            <LinkDiscord/>
         </Container>
     );
 };

@@ -8,7 +8,10 @@ const CreateClass = () => {
     const userService = useContext(UserServiceContext);
 
     const handleSubmit = ({name, description}: { name: string, description: string }) => {
-        userService.createClass(name, description).then(() => setShowPopUp(false));
+        userService.createClass(name, description).then(() => setShowPopUp(false)).catch(err => {
+            if (err.message === 'token-expired')
+                userService.forceUpdate().then(() => handleSubmit({name, description}));
+        });
     }
 
     return (
