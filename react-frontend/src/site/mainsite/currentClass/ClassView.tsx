@@ -8,6 +8,7 @@ import {UserServiceContext} from "../../Router";
 import Class from "../../../data/class/Class";
 import WieLangeNoch from "./wielangenoch/WieLangeNoch";
 import AdminPanel from "./adminPanel/AdminPanel";
+import Settings from "../../settings/Settings";
 
 const CurrentClass = React.createContext<Class | undefined>(undefined)
 
@@ -55,6 +56,7 @@ const ClassView = () => {
                                 <Tab eventKey={"timetable"} title={'Stundenplan'}/>
                                 <Tab eventKey={'calendar'} title={'Kalender'}/>
                                 <Tab title={'Wie Lange Noch'} eventKey={'wielangenoch'}/>
+                                <Tab title={'Einstellungen'} eventKey={'settings'}/>
                                 {
                                     isAdmin && <Tab title={'Admin'} eventKey={'admin'}/>
                                 }
@@ -65,6 +67,7 @@ const ClassView = () => {
                                 <Route path={'/class/:id/calendar'} component={Calendar}/>
                                 <Route path={'/class/:id/timetable'} component={Timetable}/>
                                 <Route path={'/class/:id/wielangenoch'} component={WieLangeNoch}/>
+                                <Route path={'/class/:id/settings'} component={Settings}/>
                                 {
                                     isAdmin &&
                                     <Route path={'/class/:id/admin'} component={AdminPanel}/>

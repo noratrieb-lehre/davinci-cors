@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
     Alert,
     Button,
@@ -27,10 +27,14 @@ const LoginSchema = Yup.object().shape({
 })
 
 const Login = () => {
-    const history = useHistory()
-    const userService = useContext<UserService>(UserServiceContext)
+    const history = useHistory();
+    const userService = useContext<UserService>(UserServiceContext);
+    const [error, setError] = useState<string>();
     const handleSumbit = ({email, password}: { email: string, password: string }) => {
-        userService.login(email, password).then(() => history.push('/class'));
+        userService.login(email, password).then(() => history.push('/class')).catch(err => {
+            if (err.message === 'invalid-email-password')
+                setError('Email oder Passwort ungültig')
+        });
     }
     const formik = useFormik({
         initialValues: {
@@ -53,20 +57,22 @@ const Login = () => {
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'text'} name={'email'} onChange={formik.handleChange}
-                                 value={formik.values.email} isInvalid={!!formik.errors.email}
+                                 value={formik.values.email} isInvalid={!!formik.errors.email || !!error}
                                  placeholder={'E-Mail Adresse'}/>
+                    <Alert variant={'danger'}
+                           show={!!formik.errors.email || !!error}>{formik.errors.email || error}</Alert>
                     <br/>
-                    <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                 </FormGroup>
                 <FormGroup>
                     <FormLabel>Passwort</FormLabel>
                     <FormControl type={'password'} name={'password'} onChange={formik.handleChange}
                                  value={formik.values.password}
-                                 isInvalid={!!formik.errors.password}
+                                 isInvalid={!!formik.errors.password || !!error}
                                  placeholder={'Passwort'}
                     />
+                    <Alert variant={'danger'}
+                           show={!!formik.errors.password || !!error}>{formik.errors.password || error}</Alert>
                     <br/>
-                    <Alert variant={'danger'} show={!!formik.errors.password}>{formik.errors.password}</Alert>
                 </FormGroup>
                 <br/>
                 <Button type={'submit'}>Login</Button>

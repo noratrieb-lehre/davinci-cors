@@ -13,11 +13,15 @@ export default class MemberRequest {
     public async replyToRequest(classID: string, userID: string, accept: boolean): Promise<void> {
         await this.axios.axios.post(`/classes/${classID}/requests/${userID}`, {
             accept
+        }).catch((err) => {
+            throw new Error(err.response.data)
         })
     }
 
     public async deleteClassMember(classId: string, memberId: string): Promise<void> {
-        await this.axios.axios.delete(`/classes/${classId}/members/${memberId}`)
+        await this.axios.axios.delete(`/classes/${classId}/members/${memberId}`).catch((err) => {
+            throw new Error(err.response.data)
+        })
     }
 
     public async requestToJoinClass(classId: string): Promise<void> {
@@ -43,6 +47,14 @@ export default class MemberRequest {
             throw new Error(err.response.data)
         })
         return;
+    }
+
+    public async updateDisplayName(classId: string, userId: string, displayName: string) {
+        const member = await this.axios.axios.get<Member>(`/classes/${classId}/members/${userId}`).then(val => val.data);
+        await this.axios.axios.put(`/classes/${classId}/members/${userId}`, {
+            ...member,
+            displayName
+        })
     }
 }
 

@@ -2,9 +2,8 @@ import React, {useContext, useEffect, useState} from 'react';
 import {Container, ModalBody, ModalTitle} from "react-bootstrap";
 import {UserServiceContext} from "../Router";
 import {useParams} from "react-router-dom";
-import {ErrorMessage} from "../../service/MemberRequest";
 
-const possibleMessage: { [key in ErrorMessage]: { title: string, body: string } } = {
+const possibleMessage: { [key: string]: { title: string, body: string } } = {
     'success': {
         title: 'Deine Anfrage wurde verschickt',
         body: 'Jetzt musst du nur noch warten bis ein Admin deine Anfrage annimmt'
@@ -34,12 +33,24 @@ const RequestToJoin = () => {
         title: '',
         body: ''
     });
-    useEffect(() => {
-        userService.requestToJoinClass(id).then(val => {
-            setMessage(possibleMessage[val])
+
+    const effect = () => {
+        userService.requestToJoinClass(id).then(() => {
+            setMessage(possibleMessage['success'])
+        }).catch(err => {
+            if (possibleMessage[err.message as string])
+                setMessage(possibleMessage[err.message as string])
+            else {
+                switch (err.message) {
+                    case 'token-expired':
+                        userService.forceUpdate().then(() => effect())
+                }
+            }
         })
-        // eslint-disable-next-line
-    }, [id])
+    }
+
+    // eslint-disable-next-line
+    useEffect(effect, [id])
     return (
         <Container>
             <ModalTitle>{message.title}</ModalTitle>

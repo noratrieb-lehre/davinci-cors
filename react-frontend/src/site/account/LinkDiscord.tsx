@@ -14,7 +14,12 @@ const LinkDiscord = () => {
     const userService = useContext(UserServiceContext);
 
     const handleSubmit = ({snowflake}: { snowflake: string }) => {
-        userService.linkAccountToDiscord(snowflake);
+        userService.linkAccountToDiscord(snowflake).catch(err => {
+            switch (err.message) {
+                case 'token-expired':
+                    userService.forceUpdate().then(() => handleSubmit({snowflake}))
+            }
+        });
     }
 
     const formik = useFormik({
@@ -29,8 +34,10 @@ const LinkDiscord = () => {
     return (
         <Container>
             <ModalTitle>Discord Account mit CORS Account verbinden</ModalTitle>
-            <ModalBody>Die Discord ID wird benötigt, um Benutzer zu authentifizeren, damit der Discord Bot weiss, wer welche Einstellungen vornehmen kann. Wenn du nicht weisst wie man
-                eine Discord ID bekommt, kannst du <a href={'https://discordzoom.com/blog/discord-user-id/'}>diesem Link</a> folgen</ModalBody>
+            <ModalBody>Die Discord ID wird benötigt, um Benutzer zu authentifizeren, damit der Discord Bot weiss, wer
+                welche Einstellungen vornehmen kann. Wenn du nicht weisst wie man
+                eine Discord ID bekommt, kannst du <a href={'https://discordzoom.com/blog/discord-user-id/'}>diesem
+                    Link</a> folgen</ModalBody>
             <Form onSubmit={(e) => {
                 e.preventDefault();
                 formik.handleSubmit(e);

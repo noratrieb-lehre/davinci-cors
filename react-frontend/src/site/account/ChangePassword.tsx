@@ -1,7 +1,8 @@
-import React from 'react';
-import {Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
+import React, {useContext, useState} from 'react';
+import {Alert, Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import * as Yup from 'yup';
 import {useFormik} from "formik";
+import {UserServiceContext} from "../Router";
 
 const validationScheme = Yup.object().shape({
     'password': Yup.string()
@@ -15,9 +16,22 @@ const validationScheme = Yup.object().shape({
 })
 
 const ChangePassword = () => {
-    const onSubmit = ({oldPassword, password}: { oldPassword: string, password: string }) => {
+    const userService = useContext(UserServiceContext);
+    const [error, setError] = useState<string>();
 
+    const onSubmit = ({oldPassword, password}: { oldPassword: string, password: string }) => {
+        userService.changePassword(password, oldPassword).catch(err => {
+            switch (err.message) {
+                case 'token-expired':
+                    userService.forceUpdate().then(() => onSubmit({oldPassword, password}))
+                    break;
+                case 'wrong-password':
+                    setError('Das Passwort ist nicht korrekt');
+                    break;
+            }
+        })
     }
+
     const formik = useFormik({
         validationSchema: validationScheme,
         onSubmit: onSubmit,
@@ -43,7 +57,10 @@ const ChangePassword = () => {
                         <FormGroup>
                             <FormLabel>Altes Passwort</FormLabel>
                             <FormControl name={'oldPassword'} placeholder={'Altes Passwort'}
-                                         onChange={formik.handleChange}/>
+                                         onChange={formik.handleChange}
+                                         isInvalid={!!formik.errors.oldPassword || !!error}/>
+                            <Alert variant={'danger'}
+                                   show={!!formik.errors.oldPassword || !!error}>{formik.errors.oldPassword || error}</Alert>
                         </FormGroup>
                     </Col>
                 </Row>
@@ -53,20 +70,23 @@ const ChangePassword = () => {
                         <FormGroup>
                             <FormLabel>Neues Passwort</FormLabel>
                             <FormControl name={'password'} placeholder={'Neues Passwort'}
-                                         onChange={formik.handleChange}/>
+                                         onChange={formik.handleChange} isInvalid={!!formik.errors.password}/>
+                            <Alert variant={'danger'} show={!!formik.errors.password}>{formik.errors.password}</Alert>
                         </FormGroup>
                     </Col>
                     <Col>
                         <FormGroup>
                             <FormLabel>Neues Passwort bestätigen</FormLabel>
                             <FormControl name={'confirmPassword'} placeholder={'Passwort bestätigen'}
-                                         onChange={formik.handleChange}/>
+                                         onChange={formik.handleChange} isInvalid={!!formik.errors.confirmPassword}/>
+                            <Alert variant={'danger'}
+                                   show={!!formik.errors.confirmPassword}>{formik.errors.confirmPassword}</Alert>
                         </FormGroup>
                     </Col>
                 </Row>
                 <br/>
                 <Row>
-                    <Col><Button>Passwort ändern</Button></Col>
+                    <Col><Button type={'submit'}>Passwort ändern</Button></Col>
                 </Row>
             </Form>
         </Container>

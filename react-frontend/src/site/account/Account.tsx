@@ -9,17 +9,19 @@ import LinkDiscord from "./LinkDiscord";
 const Account = () => {
     const userService = useContext(UserServiceContext);
     const [currentUser, setCurrentUser] = useState<User | undefined>();
-    useEffect(() => {
+
+    const effect = () => {
         userService.getCurrentUser().then(setCurrentUser).catch(err => {
             switch (err.message) {
                 case 'token-expired':
-                    window.location.reload();
+                    userService.forceUpdate().then(() => effect());
                     break;
             }
         })
         userService.onUserChange(user => setCurrentUser(user))
-        // eslint-disable-next-line
-    }, [])
+    }
+    // eslint-disable-next-line
+    useEffect(effect, [])
     return (
         <Container className={'text-center'}>
             <ModalTitle>Account von {currentUser?.email}</ModalTitle>

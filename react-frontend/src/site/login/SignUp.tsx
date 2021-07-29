@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {Alert, Button, Container, Form, FormControl, FormGroup, FormLabel, ModalTitle} from "react-bootstrap";
 import {useFormik} from "formik";
 import * as Yup from 'yup'
@@ -20,6 +20,7 @@ const ValidationScheme = Yup.object().shape({
 
 const SignUp = () => {
     const userService = useContext(UserServiceContext);
+    const [error, setError] = useState<string>();
     const history = useHistory();
 
     const onSubmit = ({email, password}: { email: string, password: string }) => {
@@ -28,7 +29,10 @@ const SignUp = () => {
             id: '',
             email,
             password
-        }).then(() => history.push('/classview'))
+        }).then(() => history.push('/classview')).catch(err => {
+            if (err.message === 'already-exists')
+                setError('Die E-Mail wird schon verwendet')
+        })
     }
 
     const formik = useFormik({
@@ -50,9 +54,10 @@ const SignUp = () => {
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'email'} placeholder={'E-Mail Adresse eingeben'} name={'email'}
-                                 isInvalid={!!formik.errors.email} value={formik.values.email}
+                                 isInvalid={!!formik.errors.email || !!error} value={formik.values.email}
                                  onChange={formik.handleChange}/>
-                    <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
+                    <Alert variant={'danger'}
+                           show={!!formik.errors.email || !!error}>{formik.errors.email || error}</Alert>
                 </FormGroup>
                 <br/>
                 <FormGroup>

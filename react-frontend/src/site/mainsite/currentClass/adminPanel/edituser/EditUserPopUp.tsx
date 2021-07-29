@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Button, Dropdown, Form, FormControl, FormGroup, FormLabel, Modal} from "react-bootstrap";
 import Member from "../../../../../data/user/Member";
 import {UserServiceContext} from "../../../../Router";
@@ -15,9 +15,10 @@ const validationScheme = Yup.object().shape({
         .required('Die Rolle muss ausgefült sein')
 })
 
-const EditUserPopUp = ({member, onClose}: { member: Member, onClose: () => void }) => {
+const EditUserPopUp = ({member, onClose, selfRole}: { member: Member, selfRole: MemberRole, onClose: () => void }) => {
     const userService = useContext(UserServiceContext);
-    const currentClass = useContext(CurrentClass)
+    const currentClass = useContext(CurrentClass);
+    const [roles, setRoles] = useState<Array<MemberRole>>([]);
 
     const handleSubmit = ({displayName, role}: { displayName: string, role: string }) => {
         userService.updateClassMember(currentClass!.id, {
@@ -26,6 +27,11 @@ const EditUserPopUp = ({member, onClose}: { member: Member, onClose: () => void 
             role: role as MemberRole
         }).then(onClose)
     }
+
+    useEffect(() => {
+        setRoles(userService.getRolesBelow(selfRole));
+        //eslint-disable-next-line
+    }, [])
 
     const formik = useFormik({
         initialValues: {
@@ -48,20 +54,19 @@ const EditUserPopUp = ({member, onClose}: { member: Member, onClose: () => void 
                                      onChange={formik.handleChange}/>
                     </FormGroup>
                     <br/>
-                    <FormGroup>
-                        <Dropdown onSelect={(e) => formik.setFieldValue('role', e!)}>
-                            <Dropdown.Toggle>Rolle ändern</Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                {
-                                    userService.getRolesBelow(member.role).map(val => (
-                                        <Dropdown.Item key={val}
-                                                       eventKey={val}>{userService.getMemberRole(val)}</Dropdown.Item>
-                                    ))
-                                }
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </FormGroup>
+                    <Dropdown onSelect={(e) => formik.setFieldValue('role', e!)}>
+                        <Dropdown.Toggle>Rolle ändern</Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {
+                                roles.map(val => (
+                                    <Dropdown.Item key={val}
+                                                   eventKey={val}>{userService.getMemberRole(val)}</Dropdown.Item>
+                                ))
+                            }
+                        </Dropdown.Menu>
+                    </Dropdown>
                 </Form>
+                <br/><br/><br/>
             </Modal.Body>
             <Modal.Footer>
                 <Button variant={'secondary'} onClick={onClose}>Schliessen</Button>

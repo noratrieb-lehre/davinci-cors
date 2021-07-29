@@ -4,7 +4,7 @@ import {ListGroup} from "react-bootstrap";
 import {useHistory, useParams} from "react-router-dom";
 
 const ClassList = () => {
-    const {id} = useParams<{id: string}>();
+    const {id} = useParams<{ id: string }>();
     const [allClasses, setAllClasses] = useState<Array<{ name: string, id: string }>>([]);
     const userService = useContext(UserServiceContext);
     const history = useHistory();

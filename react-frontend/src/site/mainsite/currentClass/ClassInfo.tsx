@@ -15,6 +15,7 @@ const ClassInfo = () => {
                 <thead>
                 <tr>
                     <th>Name</th>
+                    <th>E-Mail</th>
                     <th>Rolle</th>
                 </tr>
                 </thead>
@@ -23,6 +24,7 @@ const ClassInfo = () => {
                     currentClass?.members.map(val => (
                         <tr key={val.user}>
                             <td>{val.displayName}</td>
+                            <td>{val.email}</td>
                             <td>{userService.getMemberRole(val.role)}</td>
                         </tr>
                     ))

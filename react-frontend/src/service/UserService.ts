@@ -9,7 +9,7 @@ import TimetableRequest from "./TimetableRequest";
 import UserRequest from "./UserRequest";
 import EventRequest from "./EventRequest";
 import ClassRequest from "./ClassRequest";
-import MemberRequest, {ErrorMessage} from "./MemberRequest";
+import MemberRequest from "./MemberRequest";
 import Axios from "./AxiosInstance";
 import axios, {AxiosResponse} from "axios";
 import DiscordRequest from "./DiscordRequest";
@@ -128,7 +128,7 @@ export default class UserService {
     }
 
     public async createTimetable(classID: string): Promise<void> {
-        return this.timetableRequest.createTimetable(classID).then(() =>  window.location.reload());
+        return this.timetableRequest.createTimetable(classID).then(() => window.location.reload());
     }
 
     public async updateTimetable(classId: string, timetableDay: TimeTableDay, day: number): Promise<void> {
@@ -167,6 +167,14 @@ export default class UserService {
         await this.memberRequest.deleteClassMember(classId, memberId).then(() => window.location.reload())
     }
 
+    public async updateOwnDisplayName(classId: string, displayName: string) {
+        await this.updateDisplayName(classId, this.currentUserID!, displayName);
+    }
+
+    public async updateDisplayName(classId: string, userId: string, displayName: string) {
+        await this.memberRequest.updateDisplayName(classId, userId, displayName);
+    }
+
     public async linkClassToGuild(classId: string, snowflake: string) {
         await this.discordRequest.linkClassToGuild(classId, snowflake)
     }
@@ -190,6 +198,10 @@ export default class UserService {
         return [...memberRoles].slice(memberRoles.indexOf(role) + 1)
     }
 
+    public async forceUpdate() {
+        await this.updateAuthToken();
+    }
+
     private triggerOnAuthStateChange(user?: User) {
         this.onUserChangeHandler.forEach(handler => handler(user))
     }
@@ -201,10 +213,6 @@ export default class UserService {
                 this.updateToken((await this.updateAuthToken()).data.expires);
             }, then.getTime() - Date.now())
         }
-    }
-
-    public async forceUpdate() {
-        await this.updateAuthToken();
     }
 
     private async updateAuthToken(): Promise<AxiosResponse> {

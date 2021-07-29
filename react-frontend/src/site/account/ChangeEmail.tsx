@@ -9,13 +9,23 @@ const ChangeEmail = () => {
     const userService = useContext(UserServiceContext);
     const [currentUser, setCurrentUser] = useState<User>();
 
-    useEffect(() => {
-        userService.getCurrentUser().then(setCurrentUser);
-        // eslint-disable-next-line
-    }, [])
+    const effect = () => {
+        userService.getCurrentUser().then(setCurrentUser).catch((err) => {
+            if (err.message === 'token-expired')
+                userService.forceUpdate().then(() => effect())
+        });
+    }
+
+    // eslint-disable-next-line
+    useEffect(effect, [])
 
     const handleSubmit = ({email}: { email: string }) => {
-        userService.changeEmail(email);
+        userService.changeEmail(email).catch(err => {
+            switch (err.message) {
+                case 'token-expired':
+                    userService.forceUpdate().then(() => handleSubmit({email}));
+            }
+        });
     }
 
 
@@ -48,6 +58,7 @@ const ChangeEmail = () => {
                             <FormLabel>E-Mail Adresse</FormLabel>
                             <FormControl name={'email'} placeholder={'E-Mail Adresse ändern'}
                                          onChange={formik.handleChange} isInvalid={!!formik.errors.email}/>
+                            <Alert variant={'danger'} show={!!formik.errors.email}></Alert>
                         </FormGroup>
                         <Alert variant={'danger'} show={!!formik.errors.email}>{formik.errors.email}</Alert>
                     </Col>
