@@ -119,7 +119,8 @@ On every Route:
 Routes that require admin        
 `401 no-admin`  on a request where the user is not admin in that class    
 Routes that require owner        
-`401 no-owner`  on a request where the user is not the owner in that class    
+`401 no-owner`  on a request where the user is not the owner in that class 
+`401 banned`  when the member has been banned
     
 Routes that insert/edit something  
 `409 already-exists` (on Unique Violation)  
