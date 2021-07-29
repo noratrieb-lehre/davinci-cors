@@ -67,6 +67,7 @@
 {
   "user?": "uuid",
   "displayName": "string",
+  "email??": "string",
   "role": "owner | admin | member"
 }
 ```  
@@ -150,6 +151,9 @@ Others: See routes
   "password": "string"
 }
 ```
+  
+Errors:
+`403 invalid-email-password`
 
 *Response*
 
