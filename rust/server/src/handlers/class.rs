@@ -482,11 +482,11 @@ async fn edit_timetable(
 
     let table = table
         .into_inner()
-        .iter()
-        // this clone is not really needed, but i don't know what to do else
+        .iter_mut()
         .map(|day| {
-            day.clone().sort_unstable();
-            day
+            // this clone is not really needed, but i don't know what to do else
+            day.sort_unstable();
+            day.clone()
         })
         .collect::<Vec<_>>();
 
