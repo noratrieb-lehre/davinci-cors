@@ -41,11 +41,11 @@ const Members = () => {
                                 </Col>
                                 <Col sm={2}><Button variant={'outline-primary'}
                                                     onClick={() => setSelectedMember(member)}
-                                                    disabled={userService.getRolesBelow(self!.role).indexOf(member.role) === -1}>Editieren</Button></Col>
+                                                    disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Editieren</Button></Col>
                                 <Col sm={2}>
                                     <Button variant={'outline-danger'}
                                             onClick={() => userService.deleteClassMember(currentClass!.id, member.user)}
-                                            disabled={userService.getRolesBelow(self!.role).indexOf(member.role) === -1}>Kicken</Button>
+                                            disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Kicken</Button>
                                 </Col>
                             </Row>
                         </ListGroup.Item>

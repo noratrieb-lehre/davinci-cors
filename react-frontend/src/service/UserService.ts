@@ -14,7 +14,7 @@ import Axios from "./AxiosInstance";
 import axios, {AxiosResponse} from "axios";
 import DiscordRequest from "./DiscordRequest";
 
-const memberRoles: Array<MemberRole> = ['owner', "member", "admin"]
+const memberRoles: Array<MemberRole> = ['owner', "admin", "member"];
 
 export default class UserService {
     private onUserChangeHandler: Array<(user?: User) => void> = [];

@@ -227,7 +227,7 @@ async fn delete_member(
         let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
 
         // Can only edit members lower than self
-        if old_member.role >= role.0 as i32 {
+        if old_member.role <= role.0 as i32 {
             return Err(ServiceErr::Unauthorized("not-enough-permissions"));
         }
 
