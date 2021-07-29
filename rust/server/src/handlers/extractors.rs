@@ -82,8 +82,11 @@ async fn get_member_role(
                 .0
                 .role
                 .into_dto()?;
-        if MemberRole::Member < role {
+        if let MemberRole::Banned = role {
             return Err(ServiceErr::Unauthorized("banned"));
+        }
+        if MemberRole::Member < role {
+            return Err(ServiceErr::Unauthorized("no-access"));
         }
         role
     }))
