@@ -9,6 +9,7 @@ pub struct User {
     pub password: String,
     pub description: String,
     pub discord_id: Option<String>,
+    pub token_version: i32,
 }
 
 #[derive(Debug, Insertable)]
@@ -19,6 +20,7 @@ pub struct NewUser<'a> {
     pub password: &'a str,
     pub description: &'a str,
     pub discord_id: Option<&'a str>,
+    pub token_version: i32,
 }
 
 #[derive(Debug, Clone, Queryable, Identifiable)]
@@ -148,13 +150,13 @@ pub mod conversion {
         }
     }
 
-    impl IntoDto<dto::Class> for (Class, Vec<(Member, MemberRole)>) {
+    impl IntoDto<dto::Class> for (Class, Vec<(Member, User)>) {
         fn into_dto(self) -> ServiceResult<dto::Class> {
             let (class, members) = self;
 
             let actual_members = members
                 .into_iter()
-                .filter(|(_, role)| role.id != PENDING)
+                .filter(|(member, _)| member.role != PENDING)
                 .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 
@@ -168,13 +170,25 @@ pub mod conversion {
         }
     }
 
-    impl IntoDto<dto::Member> for (Member, MemberRole) {
+    impl IntoDto<dto::Member> for Member {
         fn into_dto(self) -> ServiceResult<dto::Member> {
-            let (member, role) = self;
+            Ok(dto::Member {
+                user: self.user,
+                display_name: self.display_name,
+                email: None,
+                role: self.role.into_dto()?,
+            })
+        }
+    }
+
+    impl IntoDto<dto::Member> for (Member, User) {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
+            let (member, user) = self;
             Ok(dto::Member {
                 user: member.user,
                 display_name: member.display_name,
-                role: role.into_dto()?,
+                email: Some(user.email),
+                role: member.role.into_dto()?,
             })
         }
     }
@@ -252,16 +266,6 @@ pub mod conversion {
         }
     }
 
-    impl IntoDto<dto::Member> for Member {
-        fn into_dto(self) -> ServiceResult<dto::Member> {
-            Ok(dto::Member {
-                user: self.user,
-                display_name: self.display_name,
-                role: self.role.into_dto()?,
-            })
-        }
-    }
-
     impl IntoDto<dto::Event> for Event {
         fn into_dto(self) -> ServiceResult<dto::Event> {
             let end = self.end.map(|dt| dt.timestamp_millis());
@@ -324,6 +328,7 @@ pub mod conversion {
                 password: "".to_string(),
                 description: user.description,
                 discord_id: None,
+                token_version: 0,
             }
         }
     }

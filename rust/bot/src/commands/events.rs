@@ -3,7 +3,7 @@ use serenity::prelude::*;
 
 use crate::commands::format_datetime;
 use crate::error::{BotError, BotResult};
-use crate::functions::{from_utc_timestamp, from_utc_to_cest, limit_length};
+use crate::functions::{format_date, limit_length};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
@@ -117,8 +117,8 @@ async fn send_events(
     let mut events = events
         .iter()
         .take(10)
-        .map(|event| event.clone())
-        .collect::<Vec<_>>(); // todo oh
+        .map(|event| event.clone()) // todo oh
+        .collect::<Vec<_>>();
 
     events.sort_unstable_by(|e1, e2| e1.start.cmp(&e2.start));
 
@@ -180,8 +180,4 @@ fn event_embed<'a>(embed: &'a mut CreateEmbed, events: &[dto::Event]) -> &'a mut
     embed.title("Events").fields(fields).footer(|f| {
         f.text("CORS - Es werden maximal 10 Events angezeigt - Nutz 'filter' oder 'search'")
     })
-}
-
-fn format_date(time: i64) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m")
 }

@@ -23,6 +23,9 @@ pub struct Claims {
     pub uid: Uuid,
     /// If the field is true, the token can only be used to get another token
     pub refresh: bool,
+    /// 0 on Refresh tokens, non-null on normal tokens  
+    /// The version of the token, must match the current version
+    pub version: i32,
 }
 
 pub fn auth_config(cfg: &mut web::ServiceConfig) {
@@ -34,20 +37,29 @@ pub fn auth_config(cfg: &mut web::ServiceConfig) {
         );
 }
 
+/// `/token`
 async fn refresh_token(
     req: HttpRequest,
     e_key: web::Data<EncodingKey>,
+    db: web::Data<Pool>,
     d_key: web::Data<DecodingKey<'static>>,
 ) -> HttpResult {
     let auth = authorization::Authorization::<Bearer>::parse(&req)
         .map_err(|_| ServiceErr::Unauthorized("no-token"))?;
 
     let claims = validate_token(auth.into_scheme().token(), &d_key)?;
+    let uid = claims.uid;
 
-    debug!(uid = %claims.uid, "refresh token");
+    debug!(%uid, "refresh token");
+
+    let user = web::block(move || actions::user::get_user_by_id(&db, uid)).await?;
+
+    if claims.version != user.token_version {
+        return Err(ServiceErr::Unauthorized("old-token"));
+    }
 
     if claims.refresh {
-        let new_token = create_normal_jwt(claims.uid, &e_key)?;
+        let new_token = create_normal_jwt(uid, &e_key)?;
         Ok(HttpResponse::Ok()
             .header("token", format!("Bearer {}", new_token.0))
             .json(dto::RefreshResponse {
@@ -73,7 +85,7 @@ async fn login(
 
     match user {
         Some(user) => {
-            let refresh_token = create_refresh_jwt(user.id, &key)?;
+            let refresh_token = create_refresh_jwt(user.id, &key, user.token_version)?;
             let (token, expires) = create_normal_jwt(user.id, &key)?;
             Ok(HttpResponse::Ok()
                 .header("token", format!("Bearer {}", token))
@@ -83,7 +95,7 @@ async fn login(
                     expires,
                 }))
         }
-        None => Ok(HttpResponse::Forbidden().body("Incorrect email or password")),
+        None => Ok(HttpResponse::Forbidden().body("invalid-email-password")),
     }
 }
 
@@ -102,7 +114,7 @@ async fn secret_get_bot_user_token(
                 "Token",
                 format!(
                     "Bearer {}",
-                    create_other_jwt(uuid, &e_key, chrono::Duration::weeks(10000))?
+                    create_bot_jwt(uuid, &e_key, chrono::Duration::weeks(10000))?
                 ),
             )
             .finish())
@@ -126,7 +138,7 @@ pub fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceE
 /// Returns the token and the expiration date
 /// Create a JWT
 pub fn create_normal_jwt(user: Uuid, key: &EncodingKey) -> Result<(String, i64), ServiceErr> {
-    let lifetime; // several years, kind of a hack but ok
+    let lifetime;
 
     // make the token last 24 hours for debugging
     #[cfg(debug_assertions)]
@@ -137,25 +149,29 @@ pub fn create_normal_jwt(user: Uuid, key: &EncodingKey) -> Result<(String, i64),
     {
         lifetime = chrono::Duration::hours(1);
     }
-    create_jwt(user, false, key, lifetime)
+    create_jwt(user, false, key, lifetime, 0)
 }
 
 /// Create a refresh JWT
 /// Returns the token and the expiration date
-pub fn create_refresh_jwt(user: Uuid, key: &EncodingKey) -> Result<String, ServiceErr> {
+pub fn create_refresh_jwt(
+    user: Uuid,
+    key: &EncodingKey,
+    version: i32,
+) -> Result<String, ServiceErr> {
     let lifetime = chrono::Duration::weeks(1000); // several years, kind of a hack but ok
 
-    create_jwt(user, true, key, lifetime).map(|(token, _)| token)
+    create_jwt(user, true, key, lifetime, version).map(|(token, _)| token)
 }
 
 /// Create a custom expiration date jwt
 /// Returns the token and the expiration date
-pub fn create_other_jwt(
+pub fn create_bot_jwt(
     user: Uuid,
     key: &EncodingKey,
     time: chrono::Duration,
 ) -> Result<String, ServiceErr> {
-    create_jwt(user, false, key, time).map(|(token, _)| token)
+    create_jwt(user, false, key, time, 0).map(|(token, _)| token)
 }
 
 fn create_jwt(
@@ -163,13 +179,19 @@ fn create_jwt(
     refresh: bool,
     key: &EncodingKey,
     lifetime: chrono::Duration,
+    version: i32,
 ) -> Result<(String, i64), ServiceErr> {
     let exp = Utc::now()
         .checked_add_signed(lifetime)
         .expect("valid timestamp")
         .timestamp_millis();
 
-    let claims = Claims { exp, uid, refresh };
+    let claims = Claims {
+        exp,
+        uid,
+        refresh,
+        version,
+    };
 
     let header = jsonwebtoken::Header::new(Algorithm::HS512);
     jsonwebtoken::encode(&header, &claims, key)

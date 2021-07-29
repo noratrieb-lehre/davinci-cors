@@ -67,6 +67,7 @@ table! {
         password -> Text,
         description -> Varchar,
         discord_id -> Nullable<Varchar>,
+        token_version -> Int4,
     }
 }
 

@@ -4,6 +4,7 @@ extern crate diesel;
 use crate::actions::Pool;
 use crate::handlers::config;
 use actix_cors::Cors;
+use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use color_eyre::Report;
 use diesel::prelude::*;
@@ -44,12 +45,9 @@ async fn main() -> Result<(), Report> {
 
         App::new()
             .wrap(cors)
-            .app_data(pool.clone())
-            .data(pool.clone())
-            .app_data(encoding_key.clone())
+            .app_data(Data::new(pool.clone()))
             .data(encoding_key.clone())
-            .app_data(decoding_key.clone())
-            .data(decoding_key.clone())
+            .app_data(Data::new(decoding_key.clone()))
             .service(web::scope("/api").configure(config))
     })
     .bind("127.0.0.1:8080")?

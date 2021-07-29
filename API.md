@@ -67,6 +67,7 @@
 {
   "user?": "uuid",
   "displayName": "string",
+  "email??": "string",
   "role": "owner | admin | member"
 }
 ```  
@@ -112,6 +113,7 @@
 On every Route:        
 `400 invalid-uuid`  on a request with an invalid uuid (cannot be parsed to a uuid)    
 `401 token-expired`  on a request with an expired token    
+`401` wrong-token-kind`  on a request with a refresh token
 `401 no-access`  on a request to a guild that the user is not part of    
 `500 Internal Server Error` all the time    
 Routes that require admin        
@@ -150,6 +152,9 @@ Others: See routes
   "password": "string"
 }
 ```
+  
+Errors:  
+`403 invalid-email-password`
 
 *Response*
 
@@ -166,7 +171,11 @@ Token: Bearer token
 #### Token
 
 `GET /token`
-
+  
+Errors:  
+`401 wrong-token-kind`
+`401 old-token`
+ 
 *Request*
 
 Authorization: Bearer token
@@ -210,6 +219,8 @@ Requires Token
 }
 ```  
 *Response*  
+  
+Refresh-Token: Bearer token   
 `User`  
 
 Error:
@@ -293,7 +304,6 @@ Requires Token & Admin
 `Member`
 
 Errors:  
-`401 edit-own-permission` on editing the own permissions  
 `401 not-enough-permissions` on editing a member with a role higher/equal role to own  
 `401 not-enough-permissions` on editing a member to have a higher/equal role than the own  
 

@@ -29,6 +29,13 @@ pub struct Event {
 }
 
 /// The type of a class event
+///
+/// ```
+/// use dto::EventType;
+///
+/// let homework = EventType::Homework;
+/// assert_eq!("homework", homework.as_str())
+/// ```
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum EventType {
@@ -96,10 +103,22 @@ pub struct Member {
     #[serde(default)]
     pub user: Uuid,
     pub display_name: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
     pub role: MemberRole,
 }
 
 /// The role of a member
+/// ```
+/// use dto::MemberRole;
+///
+/// let role_with_rights = vec![MemberRole::Owner, MemberRole::Admin];
+/// assert_eq!(true, role_with_rights.iter().all(MemberRole::has_rights));
+///
+/// let role_without_rights = vec![MemberRole::Member, MemberRole::Pending];
+/// assert_eq!(false, role_without_rights.iter().all(MemberRole::has_rights));
+/// ```
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum MemberRole {
@@ -112,10 +131,7 @@ pub enum MemberRole {
 
 impl MemberRole {
     pub fn has_rights(&self) -> bool {
-        matches!(
-            self,
-            MemberRole::Owner | MemberRole::Admin | MemberRole::CORS
-        )
+        *self as i32 <= 1
     }
 }
 
