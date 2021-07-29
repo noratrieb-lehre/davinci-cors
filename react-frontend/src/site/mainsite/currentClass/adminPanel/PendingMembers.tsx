@@ -28,7 +28,7 @@ const PendingMembers = () => {
             <ListGroup>
                 {
                     pendingMembers?.map(val =>
-                        <ListGroup.Item>
+                        <ListGroup.Item key={val.user}>
                             <Row>
                                 <Col sm={8} className={'d-flex align-items-center'}>{val.displayName}</Col>
                                 <Col sm={2}><Button variant={'outline-success'}

@@ -24,6 +24,7 @@ const Calendar = () => {
 
     const handleEventClick = (event: EventClickArg) => {
         setSelectedEvent({
+            id: event.event.extendedProps.id,
             name: event.event.title,
             start: event.event.start!.getTime(),
             end: event.event.end?.getTime(),
@@ -58,6 +59,7 @@ const Calendar = () => {
                     }}
                     events={events.map((val) => ({
                         ...val,
+                        extendedProps: {id: val.id},
                         title: val.name,
                         start: val.start,
                         end: (val.end) ? val.end : undefined,

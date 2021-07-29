@@ -1,16 +1,7 @@
 import React, {useContext} from 'react';
 import {
-    Alert,
-    Button,
-    Col,
-    Container,
-    Dropdown,
-    Form,
-    FormControl,
-    FormGroup,
-    FormLabel,
-    ModalTitle,
-    Row
+    Alert, Button, Col, Container, Dropdown, Form,
+    FormControl, FormGroup, FormLabel, ModalTitle, Row
 } from "react-bootstrap";
 import Datetime from 'react-datetime';
 import {Moment} from "moment";
@@ -26,7 +17,8 @@ type submitValues = {
     startDate: number,
     endDate?: number,
     description: string,
-    eventType: EventType
+    eventType: EventType,
+    notification: number | null
 }
 
 const validationSchema = Yup.object().shape({
@@ -42,19 +34,20 @@ const validationSchema = Yup.object().shape({
         .notRequired(),
     eventType: Yup.string()
         .oneOf(['homework', 'holidays', 'exam', 'other'])
-        .required('Der Typ muss ausgewählt sein')
+        .required('Der Typ muss ausgewählt sein'),
 })
 
 const NewEvent = () => {
     const userService = useContext(UserServiceContext);
     const currentClass = useContext(CurrentClass);
-    const onSubmit = ({eventName, startDate, endDate, description, eventType}: submitValues) => {
+    const onSubmit = ({eventName, startDate, endDate, description, eventType, notification}: submitValues) => {
         userService.createEvent(currentClass!.id, {
             name: eventName,
-            start: new Date(startDate * 1000).getTime(),
-            end: (endDate) ? new Date(endDate * 1000).getTime() : undefined,
+            start: startDate * 1000,
+            end: (endDate) ? endDate * 1000 : undefined,
             description: description,
             type: eventType,
+            notification: notification ? notification * 1000 : null
         })
     }
 
@@ -65,6 +58,7 @@ const NewEvent = () => {
             endDate: 0,
             description: '',
             eventType: 'other',
+            notification: null
         },
         onSubmit: onSubmit,
         validateOnBlur: true,
@@ -119,6 +113,16 @@ const NewEvent = () => {
                                      style={{resize: 'none', overflowY: 'auto'}} onChange={formik.handleChange}/>
                     </FormGroup>
                     <Alert variant={'danger'} show={!!formik.errors.description}>{formik.errors.description}</Alert>
+                </Row>
+                <Row>
+                    <FormGroup>
+                        <FormLabel>Benachrichtigung (optional)</FormLabel>
+                        <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
+                                  onChange={moment => {
+                                      if (typeof moment !== 'string')
+                                          formik.setFieldValue('notification', (moment as Moment).unix())
+                                  }}/>
+                    </FormGroup>
                 </Row>
                 <br/>
                 <Row className={'text-center'}>

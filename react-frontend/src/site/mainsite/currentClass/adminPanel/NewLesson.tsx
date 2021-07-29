@@ -1,16 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
-    Alert,
-    Button,
-    Col,
-    Container,
-    Dropdown,
-    Form,
-    FormControl,
-    FormGroup,
-    FormLabel,
-    ModalTitle,
-    Row
+    Alert, Button, Col, Container,
+    Dropdown, Form, FormControl, FormGroup, FormLabel, ModalTitle, Row
 } from "react-bootstrap";
 import Datetime from 'react-datetime';
 import {useFormik} from "formik";
@@ -46,8 +37,8 @@ const NewLesson = () => {
     }, [currentClass])
 
     const onSubmit = ({subject, start, end, description, day}: SubmitValues) => {
-
     }
+
     const formik = useFormik({
         initialValues: {
             subject: '',

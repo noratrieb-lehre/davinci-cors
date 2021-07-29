@@ -40,7 +40,7 @@ const AcceptPendingMembers = () => {
         <Container>
             <ListGroup>
                 {
-                    pendingMembers.map(val => (<ListGroup.Item>
+                    pendingMembers.map(val => (<ListGroup.Item key={val.user}>
                                 <Row>
                                     <Col sm={8} className={'d-flex align-items-center'}>{val.displayName}</Col>
                                     <Col sm={8}>

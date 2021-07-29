@@ -31,7 +31,7 @@ const Members = () => {
             <ListGroup>
                 {
                     members.map((member) => (
-                        <ListGroup.Item>
+                        <ListGroup.Item key={member.user}>
                             <Row>
                                 <Col sm={8} className={'d-flex align-items-center'}>
                                     <Col className={'d-flex align-items-center'} sm={2}>{member.displayName}</Col>

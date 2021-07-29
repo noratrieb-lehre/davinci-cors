@@ -112,6 +112,14 @@ export default class UserService {
         return await this.classRequest.createClass(name, description).then(() => window.location.reload())
     }
 
+    public async changeClassName(classId: string, name: string): Promise<void> {
+        return await this.classRequest.changeName(name, classId).then(() => window.location.reload());
+    }
+
+    public async changeClassDescription(classId: string, description: string): Promise<void> {
+        return await this.classRequest.changeDescription(description, classId).then(() => window.location.reload());
+    }
+
     public getMember(memberList: Array<Member>, userID: string): Member | undefined {
         return memberList.filter(val => val.user === userID)[0];
     }
@@ -142,6 +150,10 @@ export default class UserService {
 
     public async createEvent(classID: string, event: Event): Promise<void> {
         return await this.eventRequest.createEvent(classID, event).then(() => window.location.reload())
+    }
+
+    public async deleteEvent(classId: string, eventId: string): Promise<void> {
+        return await this.eventRequest.deleteEvent(classId, eventId);
     }
 
     public async getPendingMembers(classId: string): Promise<Array<Member>> {

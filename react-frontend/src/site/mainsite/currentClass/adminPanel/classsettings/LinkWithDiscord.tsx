@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {Button, Form, FormControl, FormGroup, FormLabel, ModalBody, ModalTitle} from "react-bootstrap";
+import {Alert, Button, Form, FormControl, FormGroup, FormLabel, ModalBody, ModalTitle} from "react-bootstrap";
 import {useFormik} from "formik";
 import {CurrentClass} from "../../ClassView";
 import {UserServiceContext} from "../../../../Router";
@@ -30,6 +30,10 @@ const LinkWithDiscord = () => {
     return (
         <>
             <ModalTitle>Klasse mit Discord-Server verbinden</ModalTitle>
+            {
+                currentClass?.discordId &&
+                <b>Diese Klasse ist bereits mit einem Server verbunden. ({currentClass.discordId})</b>
+            }
             <ModalBody>Damit die Mitglieder der Klasse Benachrichtigungen bekommen können, kann hier ein Discord-Server
                 verbunden werden. Falls du nicht weisst, wie man eine Discord-Server ID bekommt, kannst
                 du <a href={'https://support.discord.com/hc/de/articles/206346498-Wie-finde-ich-meine-Server-ID-'}>diesem
@@ -37,10 +41,12 @@ const LinkWithDiscord = () => {
             <Form onSubmit={(e) => {
                 e.preventDefault();
                 formik.handleSubmit(e);
+                alert("did submit")
             }}>
                 <FormGroup>
                     <FormLabel>Discord-Server ID</FormLabel>
-                    <FormControl type={'text'} name={'snowflake'}/>
+                    <FormControl type={'text'} name={'snowflake'} onChange={formik.handleChange}/>
+                    <Alert show={!!formik.errors.snowflake} variant={'danger'}>{!!formik.errors.snowflake}</Alert>
                 </FormGroup>
                 <br/>
                 <Button type={'submit'}>Discord Server verbinden</Button>

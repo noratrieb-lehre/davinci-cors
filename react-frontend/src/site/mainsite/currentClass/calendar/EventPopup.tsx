@@ -1,13 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Button, Modal} from "react-bootstrap";
 import Event from "../../../../data/event/Event";
 import {formatType} from "./Calendar";
 import EventType from "../../../../data/event/EventType";
+import {UserServiceContext} from "../../../Router";
+import {CurrentClass} from "../ClassView";
 
 const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => {
+    const userService = useContext(UserServiceContext);
+    const currentClass = useContext(CurrentClass);
 
     const deleteEvent = () => {
-
+        userService.deleteEvent(currentClass!.id, event.id!).then(onClose)
     }
 
     const handleClose = () => {

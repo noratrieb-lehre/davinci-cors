@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Alert, Button, Col, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import {useFormik} from "formik";
 import * as Yup from 'yup'
+import {UserServiceContext} from "../../../../Router";
+import {CurrentClass} from "../../ClassView";
 
 const validationScheme = Yup.object().shape({
     'name': Yup.string()
@@ -10,12 +12,16 @@ const validationScheme = Yup.object().shape({
 })
 
 const ChangeClassName = () => {
-    const handleSubmit = ({name}: { name: string }) => {
+    const currentClass = useContext(CurrentClass);
+    const userService = useContext(UserServiceContext);
 
+    const handleSubmit = ({name}: { name: string }) => {
+        userService.changeClassName(currentClass!.id, name);
     }
+
     const formik = useFormik({
         initialValues: {
-            'name': ''
+            'name': currentClass?.name || ''
         },
         onSubmit: handleSubmit,
         validateOnChange: false,
@@ -33,7 +39,7 @@ const ChangeClassName = () => {
             <Row>
                 <Col>
                     <FormGroup>
-                        <FormControl type={'text'} name={'name'} onChange={formik.handleChange}/>
+                        <FormControl type={'text'} value={formik.values.name} name={'name'}  onChange={formik.handleChange}/>
                         <Alert show={!!formik.errors.name} variant={'danger'}>{!!formik.errors.name}</Alert>
                     </FormGroup>
                 </Col>

@@ -6,5 +6,6 @@ export default interface Event {
     "name": string,
     "start": number,
     "end"?: number | null,
-    "description": string
+    "description": string,
+    "notification"?: number | null
 }
