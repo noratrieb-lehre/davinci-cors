@@ -1,4 +1,5 @@
 use crate::error::{BotError, BotResult};
+use crate::functions::format_day_time;
 use crate::requests::CorsClient;
 use dto::Timetable;
 use serenity::client::Context;
@@ -66,12 +67,19 @@ fn show_timetable(timetable: Timetable) -> Embed {
     let fields = timetable
         .iter()
         .zip(DAY_NAMES.iter())
-        .filter(|(day, _)| day.is_empty())
+        .filter(|(day, _)| !day.is_empty())
         .map(|(day, name)| {
             (
                 name.to_string(),
                 day.iter()
-                    .map(|lesson| format!("{}-{} {}", lesson.start, lesson.end, lesson.subject))
+                    .map(|lesson| {
+                        format!(
+                            "`{}-{}` {}",
+                            format_day_time(lesson.start),
+                            format_day_time(lesson.end),
+                            lesson.subject
+                        )
+                    })
                     .collect::<Vec<_>>()
                     .join("\n"),
                 true,

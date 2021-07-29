@@ -101,10 +101,8 @@ mod test {
         assert_eq!(full_class.name, class.name);
         assert_eq!(full_class.description, class.description);
         assert_eq!(members.len(), 1);
-        let (member, role) = members.into_iter().next().unwrap();
+        let (member, _) = members.into_iter().next().unwrap();
         assert_eq!(member.user, user.id);
-        assert_eq!(member.role, role.id);
-        assert_eq!(&*role.display, "owner");
 
         delete_member(&db, user.id, class.id).unwrap();
         delete_class(&db, class.id).unwrap();

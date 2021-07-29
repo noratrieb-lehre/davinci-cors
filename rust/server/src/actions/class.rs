@@ -2,7 +2,7 @@ use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
 use crate::error::{ServiceErr, ServiceResult};
 use crate::models::{
-    Class, Guild, Member, MemberRole, NewClass, NewGuild, NewMember, Timetable, PENDING,
+    Class, Guild, Member, NewClass, NewGuild, NewMember, Timetable, User, PENDING,
 };
 use crate::schema::classes::dsl::*;
 use diesel::{
@@ -16,15 +16,15 @@ pub fn insert_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
     Ok(insert_into(classes).values(&new_class).get_result(&conn)?)
 }
 
-pub type ClassMemberData = (Class, Vec<(Member, MemberRole)>);
+pub type ClassMemberData = (Class, Vec<(Member, User)>);
 
 pub fn get_class(db: &Pool, class_id: Uuid) -> ServiceResult<Option<ClassMemberData>> {
-    use crate::schema::member_roles::dsl::member_roles;
     use crate::schema::members::dsl::{display_name, members, role};
+    use crate::schema::users::dsl::users;
     let conn = db.get()?;
 
-    let vec: Vec<(Class, (Member, MemberRole))> = classes
-        .inner_join(members.inner_join(member_roles))
+    let vec = classes
+        .inner_join(members.inner_join(users))
         .filter(id.eq(class_id).and(role.ne(PENDING)))
         .order_by((role, display_name))
         .load(&conn)?;
@@ -102,15 +102,15 @@ pub fn get_class_by_discord(db: &Pool, class_id: &str) -> ServiceResult<Class> {
         .ok_or(ServiceErr::NotFound)
 }
 
-pub fn get_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<(Member, MemberRole)> {
-    use crate::schema::member_roles::dsl::member_roles;
+pub fn get_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<(Member, User)> {
     use crate::schema::members::dsl::{class, members, user};
+    use crate::schema::users::dsl::users;
     let conn = db.get()?;
 
     Ok(members
+        .inner_join(users)
         .filter(class.eq(class_id).and(user.eq(user_id)))
-        .inner_join(member_roles)
-        .get_result::<(Member, MemberRole)>(&conn)?)
+        .get_result(&conn)?)
 }
 
 pub fn delete_member(db: &Pool, user_id: Uuid, class_id: Uuid) -> ServiceResult<usize> {
@@ -173,7 +173,7 @@ pub fn get_guild_settings(db: &Pool, guild_id: &str) -> ServiceResult<Guild> {
     Ok(guilds.find(guild_id).get_result(&conn)?)
 }
 
-pub fn map_class_join_members(vec: Vec<(Class, (Member, MemberRole))>) -> Option<ClassMemberData> {
+pub fn map_class_join_members(vec: Vec<(Class, (Member, User))>) -> Option<ClassMemberData> {
     match vec
         .into_iter()
         .fold((None, vec![]), |(_, mut vec), (class, member)| {

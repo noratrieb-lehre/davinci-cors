@@ -83,7 +83,7 @@ async fn login(
                     expires,
                 }))
         }
-        None => Ok(HttpResponse::Forbidden().body("Incorrect email or password")),
+        None => Ok(HttpResponse::Forbidden().body("invalid-email-password")),
     }
 }
 

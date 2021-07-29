@@ -1,21 +1,24 @@
 //! This module contains *pure* functions handling command logic.
 //! This makes parts of this bot easily testable
 
+use chrono::format::{DelayedFormat, StrftimeItems};
 use chrono::{DateTime, Datelike, FixedOffset, NaiveDateTime, TimeZone, Utc, Weekday};
 use dto::Timetable;
 
-pub fn from_utc_timestamp(time: i64) -> DateTime<Utc> {
-    Utc.from_utc_datetime(&NaiveDateTime::from_timestamp(time / 1000, 0))
+pub fn from_utc_timestamp(ms: i64) -> DateTime<Utc> {
+    Utc.from_utc_datetime(&NaiveDateTime::from_timestamp(ms / 1000, 0))
 }
 
 pub fn from_utc_to_cest(utc: DateTime<Utc>) -> DateTime<FixedOffset> {
     chrono::FixedOffset::east(2 * 3600).from_utc_datetime(&utc.naive_utc())
 }
 
-pub fn format_date(
-    time: i64,
-) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
-    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m")
+pub fn format_date(ms: i64) -> DelayedFormat<StrftimeItems<'static>> {
+    from_utc_to_cest(from_utc_timestamp(ms)).format("%d.%m")
+}
+
+pub fn format_day_time(ms: i64) -> DelayedFormat<StrftimeItems<'static>> {
+    NaiveDateTime::from_timestamp(ms / 1000, 0).format("%H:%M")
 }
 
 pub fn absolute_time_as_weekday(now: chrono::DateTime<Utc>) -> (i64, Weekday) {

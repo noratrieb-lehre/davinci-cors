@@ -148,13 +148,13 @@ pub mod conversion {
         }
     }
 
-    impl IntoDto<dto::Class> for (Class, Vec<(Member, MemberRole)>) {
+    impl IntoDto<dto::Class> for (Class, Vec<(Member, User)>) {
         fn into_dto(self) -> ServiceResult<dto::Class> {
             let (class, members) = self;
 
             let actual_members = members
                 .into_iter()
-                .filter(|(_, role)| role.id != PENDING)
+                .filter(|(member, _)| member.role != PENDING)
                 .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 
@@ -168,13 +168,25 @@ pub mod conversion {
         }
     }
 
-    impl IntoDto<dto::Member> for (Member, MemberRole) {
+    impl IntoDto<dto::Member> for Member {
         fn into_dto(self) -> ServiceResult<dto::Member> {
-            let (member, role) = self;
+            Ok(dto::Member {
+                user: self.user,
+                display_name: self.display_name,
+                email: None,
+                role: self.role.into_dto()?,
+            })
+        }
+    }
+
+    impl IntoDto<dto::Member> for (Member, User) {
+        fn into_dto(self) -> ServiceResult<dto::Member> {
+            let (member, user) = self;
             Ok(dto::Member {
                 user: member.user,
                 display_name: member.display_name,
-                role: role.into_dto()?,
+                email: Some(user.email),
+                role: member.role.into_dto()?,
             })
         }
     }
@@ -248,16 +260,6 @@ pub mod conversion {
                 email: user.email,
                 description: user.description,
                 classes: Some(classes),
-            })
-        }
-    }
-
-    impl IntoDto<dto::Member> for Member {
-        fn into_dto(self) -> ServiceResult<dto::Member> {
-            Ok(dto::Member {
-                user: self.user,
-                display_name: self.display_name,
-                role: self.role.into_dto()?,
             })
         }
     }

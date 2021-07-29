@@ -97,7 +97,8 @@ async fn get_member_role(
     } else {
         web::block(move || crate::actions::class::get_member(&db, claims.uid, class_id?))
             .await?
-            .into_dto()?
+            .0
             .role
+            .into_dto()?
     }))
 }

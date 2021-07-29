@@ -3,7 +3,7 @@ use serenity::prelude::*;
 
 use crate::commands::format_datetime;
 use crate::error::{BotError, BotResult};
-use crate::functions::{format_date, from_utc_timestamp, from_utc_to_cest, limit_length};
+use crate::functions::{format_date, limit_length};
 use crate::requests::CorsClient;
 use chrono::Utc;
 use serenity::builder::CreateEmbed;
