@@ -150,6 +150,9 @@ Others: See routes
   "password": "string"
 }
 ```
+  
+Errors:
+`403 invalid-email-password`
 
 *Response*
 
