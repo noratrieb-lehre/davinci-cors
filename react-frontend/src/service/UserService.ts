@@ -204,6 +204,8 @@ export default class UserService {
                 return 'Mitglied';
             case "owner":
                 return 'Eigentümer'
+            case "banned":
+                return 'Gebannt'
         }
     }
 

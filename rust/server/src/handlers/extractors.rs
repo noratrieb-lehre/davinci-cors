@@ -76,10 +76,15 @@ async fn get_member_role(
     Ok(Role(if claims.uid.is_nil() {
         MemberRole::CORS
     } else {
-        web::block(move || crate::actions::class::get_member(&db, claims.uid, class_id?))
-            .await?
-            .0
-            .role
-            .into_dto()?
+        let role =
+            web::block(move || crate::actions::class::get_member(&db, claims.uid, class_id?))
+                .await?
+                .0
+                .role
+                .into_dto()?;
+        if let MemberRole::Banned = role {
+            return Err(ServiceErr::Unauthorized("banned"));
+        }
+        role
     }))
 }

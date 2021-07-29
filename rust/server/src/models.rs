@@ -129,6 +129,7 @@ pub struct NewGuild<'a> {
 }
 
 pub const PENDING: i32 = 3;
+pub const BANNED: i32 = 4;
 
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
@@ -156,7 +157,7 @@ pub mod conversion {
 
             let actual_members = members
                 .into_iter()
-                .filter(|(member, _)| member.role != PENDING)
+                .filter(|(member, _)| member.role < PENDING)
                 .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 
@@ -199,6 +200,7 @@ pub mod conversion {
                 "owner" => dto::MemberRole::Owner,
                 "admin" => dto::MemberRole::Admin,
                 "member" => dto::MemberRole::Member,
+                "banned" => dto::MemberRole::Banned,
                 role => {
                     return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",
@@ -216,6 +218,7 @@ pub mod conversion {
                 1 => dto::MemberRole::Admin,
                 2 => dto::MemberRole::Member,
                 3 => dto::MemberRole::Pending,
+                4 => dto::MemberRole::Banned,
                 role => {
                     return Err(ServiceErr::IntoDTOError(format!(
                         "Invalid member role {}",

@@ -1,0 +1,1 @@
+INSERT INTO member_roles (id, display) VALUES (4, 'banned')

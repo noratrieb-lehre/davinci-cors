@@ -34,6 +34,7 @@ pub(super) fn class_config(cfg: &mut ServiceConfig) {
                 .route("/members/{uuid}", get().to(get_member))
                 .route("/members/{uuid}", put().to(edit_member))
                 .route("/members/{uuid}", delete().to(delete_member))
+                .route("/bans", get().to(get_bans))
                 .route("/join", post().to(request_join))
                 .route("/requests", get().to(get_join_requests))
                 .route("/requests/{uuid}", post().to(accept_member))
@@ -240,6 +241,20 @@ async fn delete_member(
         1 => Ok(HttpResponse::Ok().body("Deleted member")),
         _ => unreachable!(),
     }
+}
+
+async fn get_bans(class_id: Path<Uuid>, role: Role, db: Data<Pool>) -> HttpResult {
+    debug!(%class_id, ?role, "get ban requests");
+
+    if !role.has_rights() {
+        return Err(ServiceErr::NoAdminPermissions);
+    }
+
+    let bans = block(move || actions::class::get_banned_members(&db, class_id.into_inner()))
+        .await?
+        .into_dto()?;
+
+    Ok(HttpResponse::Ok().json(bans))
 }
 
 async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> HttpResult {

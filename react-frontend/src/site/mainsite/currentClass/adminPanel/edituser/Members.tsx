@@ -42,10 +42,18 @@ const Members = () => {
                                 <Col sm={2}><Button variant={'outline-primary'}
                                                     onClick={() => setSelectedMember(member)}
                                                     disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Editieren</Button></Col>
-                                <Col sm={2}>
+                                <Col sm={1}>
                                     <Button variant={'outline-danger'}
                                             onClick={() => userService.deleteClassMember(currentClass!.id, member.user)}
                                             disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Kicken</Button>
+                                </Col>
+                                <Col sm={1}>
+                                    <Button variant={'outline-danger'}
+                                            onClick={() => {
+                                                member.role = "banned";
+                                                userService.updateClassMember(currentClass!.id, member)
+                                            }}
+                                            disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Bannen</Button>
                                 </Col>
                             </Row>
                         </ListGroup.Item>

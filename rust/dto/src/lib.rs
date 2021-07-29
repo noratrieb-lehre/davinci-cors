@@ -127,6 +127,7 @@ pub enum MemberRole {
     Admin = 1,
     Member = 2,
     Pending = 3,
+    Banned = 4,
 }
 
 impl MemberRole {
