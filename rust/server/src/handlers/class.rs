@@ -484,7 +484,10 @@ async fn edit_timetable(
         .into_inner()
         .iter()
         // this clone is not really needed, but i don't know what to do else
-        .map(|day| day.clone().sort_unstable())
+        .map(|day| {
+            day.clone().sort_unstable();
+            day
+        })
         .collect::<Vec<_>>();
 
     let timetable = block(move || {

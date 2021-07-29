@@ -12,6 +12,12 @@ pub fn from_utc_to_cest(utc: DateTime<Utc>) -> DateTime<FixedOffset> {
     chrono::FixedOffset::east(2 * 3600).from_utc_datetime(&utc.naive_utc())
 }
 
+pub fn format_date(
+    time: i64,
+) -> chrono::format::DelayedFormat<chrono::format::StrftimeItems<'static>> {
+    from_utc_to_cest(from_utc_timestamp(time)).format("%d.%m")
+}
+
 pub fn absolute_time_as_weekday(now: chrono::DateTime<Utc>) -> (i64, Weekday) {
     let day_0 = now.date().and_hms(0, 0, 0);
     let diff = (now - day_0).num_milliseconds();

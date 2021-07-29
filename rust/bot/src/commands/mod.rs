@@ -16,6 +16,7 @@ use crate::requests::CorsClient;
 mod events;
 mod settings;
 mod setup;
+mod stundenplan;
 
 pub async fn create_interaction_response<'a>(
     ctx: &Context,
@@ -27,6 +28,7 @@ pub async fn create_interaction_response<'a>(
         "event" => events::handle_event_command(ctx, &interaction, &data.options).await?,
         "wielangenoch" => wie_lange_noch(ctx, interaction).await?,
         "setting" => settings::handle_setup_command(ctx, interaction, &data.options).await?,
+        "stundenplan" => stundenplan::handle_timetable(ctx, interaction).await?,
         name => debug!("{}, {:#?}", name, data.options),
     }
     Ok(())
