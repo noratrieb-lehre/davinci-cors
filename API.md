@@ -67,7 +67,7 @@
 {
   "user?": "uuid",
   "displayName": "string",
-  "email": "string",
+  "email??": "string",
   "role": "owner | admin | member"
 }
 ```  
