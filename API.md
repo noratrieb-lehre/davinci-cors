@@ -113,6 +113,7 @@
 On every Route:        
 `400 invalid-uuid`  on a request with an invalid uuid (cannot be parsed to a uuid)    
 `401 token-expired`  on a request with an expired token    
+`401` wrong-token-kind`  on a request with a refresh token
 `401 no-access`  on a request to a guild that the user is not part of    
 `500 Internal Server Error` all the time    
 Routes that require admin        
@@ -152,7 +153,7 @@ Others: See routes
 }
 ```
   
-Errors:
+Errors:  
 `403 invalid-email-password`
 
 *Response*
@@ -170,6 +171,9 @@ Token: Bearer token
 #### Token
 
 `GET /token`
+  
+Errors:  
+`401` wrong-token-kind`
 
 *Request*
 
