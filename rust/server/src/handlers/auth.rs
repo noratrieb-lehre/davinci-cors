@@ -223,7 +223,7 @@ impl Claims {
 //////////
 
 fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceErr> {
-    let decoded = jsonwebtoken::decode::<Claims>(&token, key, &Validation::new(Algorithm::HS512))
+    let decoded = jsonwebtoken::decode::<Claims>(token, key, &Validation::new(Algorithm::HS512))
         .map_err(|_| ServiceErr::JWTokenError)?
         .claims;
 

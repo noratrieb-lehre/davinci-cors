@@ -24,8 +24,8 @@ pub async fn create_interaction_response<'a>(
     interaction: &Interaction,
 ) -> BotResult<()> {
     match data.name.as_str() {
-        "info" => info(ctx, &interaction).await?,
-        "event" => events::handle_event_command(ctx, &interaction, &data.options).await?,
+        "info" => info(ctx, interaction).await?,
+        "event" => events::handle_event_command(ctx, interaction, &data.options).await?,
         "wielangenoch" => wie_lange_noch(ctx, interaction).await?,
         "setting" => settings::handle_setup_command(ctx, interaction, &data.options).await?,
         "stundenplan" => stundenplan::handle_timetable(ctx, interaction).await?,
