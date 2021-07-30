@@ -55,6 +55,12 @@ export default class MemberRequest {
         return;
     }
 
+    public async getClassMember(classID: string, userID: string): Promise<Member> {
+        return this.axios.axios.get<Member>(`/classes/${classID}/members/${userID}`).then(r => r.data);
+    }
+
+
+
     public async updateDisplayName(classId: string, userId: string, displayName: string) {
         const member = await this.axios.axios.get<Member>(`/classes/${classId}/members/${userId}`).then(val => val.data);
         await this.axios.axios.put(`/classes/${classId}/members/${userId}`, {

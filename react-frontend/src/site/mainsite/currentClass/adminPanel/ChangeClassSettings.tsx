@@ -4,6 +4,7 @@ import ChangeClassName from "./classsettings/ChangeClassName";
 import ChangeClassDescription from "./classsettings/ChangeClassDescription";
 import CopyLink from "./classsettings/CopyLink";
 import LinkWithDiscord from "./classsettings/LinkWithDiscord";
+import DeleteClass from "./classsettings/deleteclass/DeleteClass";
 
 const ChangeClassSettings = () => {
     return (
@@ -17,6 +18,8 @@ const ChangeClassSettings = () => {
             <CopyLink/>
             <br/>
             <LinkWithDiscord/>
+            <br/>
+            <DeleteClass/>
         </Container>
     );
 };

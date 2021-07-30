@@ -14,10 +14,12 @@ const CopyLink = () => {
             <FormControl type={'text'}
                          value={`${window.location.protocol}//${window.location.host}/join/${currentClass!.id}`}
                          readOnly={false} ref={pointer} onClick={() => {
-                navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/join/${currentClass!.id}`).then(() => {
-                    setShow(true)
-                    setTimeout(() => setShow(false), 750);
-                })
+                             if(navigator.clipboard) {
+                                 navigator.clipboard.writeText(`${window.location.protocol}//${window.location.host}/join/${currentClass!.id}`).then(() => {
+                                     setShow(true)
+                                     setTimeout(() => setShow(false), 750);
+                                 })
+                             }
             }} isValid={show}/>
             <Overlay target={pointer.current} show={show} placement={'top'}>
                 <Tooltip id={"copy-message"}>Link wurde kopiert!</Tooltip>

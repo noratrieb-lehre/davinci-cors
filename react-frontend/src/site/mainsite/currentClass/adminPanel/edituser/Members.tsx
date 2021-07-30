@@ -33,27 +33,32 @@ const Members = () => {
                     members.map((member) => (
                         <ListGroup.Item key={member.user}>
                             <Row>
-                                <Col sm={6} className={'d-flex align-items-center'}>
-                                    <Col className={'d-flex align-items-center'} sm={2}>{member.displayName}</Col>
-                                    <Col className={'d-flex align-items-center text-muted'} sm={6}>{member.email}</Col>
-                                    <Col className={'d-flex align-items-center text-muted'}
-                                         sm={4}>{userService.getMemberRole(member.role)}</Col>
+                                <Col sm={9} className={'d-flex align-items-center'}>
+                                    <Col className={'d-flex align-items-center'}>{member.displayName}</Col>
+                                    <Col className={'d-flex align-items-center text-muted'}>{member.email}</Col>
+                                    <Col className={'d-flex align-items-center text-muted'}>{userService.getMemberRole(member.role)}</Col>
                                 </Col>
-                                <Col><Button variant={'outline-primary'}
-                                                    onClick={() => setSelectedMember(member)}
-                                                    disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Editieren</Button></Col>
-                                <Col>
-                                    <Button variant={'outline-danger'}
-                                            onClick={() => userService.deleteClassMember(currentClass!.id, member.user)}
-                                            disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Kicken</Button>
-                                </Col>
-                                <Col>
-                                    <Button variant={'outline-danger'}
-                                            onClick={() => {
-                                                member.role = "banned";
-                                                userService.updateClassMember(currentClass!.id, member)
-                                            }}
-                                            disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Bannen</Button>
+                                <Col sm={3}>
+                                    <Row>
+                                        <Col><Button variant={'outline-primary'}
+                                                     onClick={() => setSelectedMember(member)}
+                                                     disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Editieren</Button></Col>
+                                        <Col>
+                                            <Button variant={'outline-danger'}
+                                                    onClick={() => userService.deleteClassMember(currentClass!.id, member.user)}
+                                                    disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Kicken</Button>
+                                        </Col>
+                                        <Col>
+                                            <Button variant={'outline-danger'}
+                                                    onClick={() => {
+                                                        member.role = "banned";
+                                                        userService.updateClassMember(currentClass!.id, member)
+                                                    }}
+                                                    disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Bannen</Button>
+                                        </Col>
+
+                                    </Row>
+
                                 </Col>
                             </Row>
                         </ListGroup.Item>

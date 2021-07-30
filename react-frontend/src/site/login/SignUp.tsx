@@ -50,7 +50,10 @@ const SignUp = () => {
         <Container>
             <ModalTitle>Registrieren</ModalTitle>
             <br/>
-            <Form>
+            <Form onSubmit={(e) => {
+                e.preventDefault();
+                formik.handleSubmit(e);
+            }}>
                 <FormGroup>
                     <FormLabel>E-Mail Adresse</FormLabel>
                     <FormControl type={'email'} placeholder={'E-Mail Adresse eingeben'} name={'email'}
@@ -77,7 +80,7 @@ const SignUp = () => {
                            show={!!formik.errors.confirmPassword}>{formik.errors.confirmPassword}</Alert>
                 </FormGroup>
                 <br/><br/>
-                <Button onClick={() => formik.handleSubmit()}>Registrieren</Button>
+                <Button type={'submit'}>Registrieren</Button>
             </Form>
         </Container>
     );

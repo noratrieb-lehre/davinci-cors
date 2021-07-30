@@ -1,7 +1,16 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
-    Alert, Button, Col, Container,
-    Dropdown, Form, FormControl, FormGroup, FormLabel, ModalTitle, Row
+    Alert,
+    Button,
+    Col,
+    Container,
+    Dropdown,
+    Form,
+    FormControl,
+    FormGroup,
+    FormLabel,
+    ModalTitle,
+    Row
 } from "react-bootstrap";
 import Datetime from 'react-datetime';
 import {useFormik} from "formik";
@@ -9,6 +18,7 @@ import {UserServiceContext} from "../../../Router";
 import TimeTable from "../../../../data/timetable/TimeTable";
 import {CurrentClass} from "../ClassView";
 import * as Yup from 'yup';
+import {Moment} from "moment";
 
 const validationSchema = Yup.object().shape({
     'subject': Yup.string()
@@ -24,12 +34,13 @@ const validationSchema = Yup.object().shape({
 
 })
 
-type SubmitValues = { subject: string, start: string, end: string, description: string, day: number }
+type SubmitValues = { subject: string, start: number, end: number, description: string, day: number }
 
 const NewLesson = () => {
     const userService = useContext(UserServiceContext);
     const currentClass = useContext(CurrentClass);
     const [timetable, setTimetable] = useState<TimeTable | undefined>();
+    const [success, setSuccess] = useState(false);
 
     useEffect(() => {
         userService.getTimeTable(currentClass!.id).then(setTimetable);
@@ -37,13 +48,29 @@ const NewLesson = () => {
     }, [currentClass])
 
     const onSubmit = ({subject, start, end, description, day}: SubmitValues) => {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        const startMs = new Date(start).getTime() - date.getTime();
+        const endMs = new Date(end).getTime() - date.getTime();
+
+        userService.addLesson(currentClass!.id, {
+            subject,
+            start: startMs,
+            end: endMs,
+            description
+        }, day).then(() => {
+            setSuccess(true);
+            setTimeout(() => {
+                setSuccess(false)
+            }, 1500)
+        })
     }
 
     const formik = useFormik({
         initialValues: {
             subject: '',
-            start: '',
-            end: '',
+            start: 0,
+            end: 0,
             description: '',
             day: 0
         },
@@ -60,7 +87,10 @@ const NewLesson = () => {
                     <>
                         <ModalTitle>Neue Lektion hinzufügen</ModalTitle>
                         <br/>
-                        <Form>
+                        <Form onSubmit={(e) => {
+                            e.preventDefault();
+                            formik.handleSubmit(e)
+                        }}>
                             <Row>
                                 <Col>
                                     <FormGroup>
@@ -76,7 +106,11 @@ const NewLesson = () => {
                                 <Col>
                                     <FormGroup>
                                         <FormLabel>Start der Lektion</FormLabel>
-                                        <Datetime dateFormat={false} timeFormat={true}/>
+                                        <Datetime dateFormat={false} timeFormat={true} locale={'de-ch'}  onChange={(e) => {
+                                            if(typeof e !== 'string') {
+                                                formik.setFieldValue('start', (e as Moment).unix() * 1000)
+                                            }
+                                        }}/>
                                         <Alert variant={'danger'}
                                                show={!!formik.errors.start}>{formik.errors.start}</Alert>
                                     </FormGroup>
@@ -84,8 +118,12 @@ const NewLesson = () => {
                                 <Col>
                                     <FormGroup>
                                         <FormLabel>Ende der Lektion</FormLabel>
-                                        <Datetime dateFormat={false} timeFormat={true}
-                                                  onChange={(e) => console.log(e)}/>
+                                        <Datetime dateFormat={false} timeFormat={true} locale={'de-ch'}
+                                                  onChange={(e) => {
+                                                      if(typeof e !== 'string') {
+                                                          formik.setFieldValue('end', (e as Moment).unix() * 1000)
+                                                      }
+                                                  }}/>
                                         <Alert variant={'danger'} show={!!formik.errors.end}>{formik.errors.end}</Alert>
 
                                     </FormGroup>
@@ -126,10 +164,11 @@ const NewLesson = () => {
                             <br/>
                             <Row className={'text-center'}>
                                 <Col>
-                                    <Button>Neue Lektion</Button>
+                                    <Button type={'submit'}>Neue Lektion</Button>
                                 </Col>
                             </Row>
                         </Form>
+                        <Alert variant={'success'} show={success}>Lektion erfolgreich erstellt</Alert>
                     </>
                 )
             }

@@ -13,6 +13,7 @@ import MemberRequest from "./MemberRequest";
 import Axios from "./AxiosInstance";
 import axios, {AxiosResponse} from "axios";
 import DiscordRequest from "./DiscordRequest";
+import Lesson from "../data/timetable/Lesson";
 
 const memberRoles: Array<MemberRole> = ['owner', "admin", "member"];
 
@@ -108,6 +109,10 @@ export default class UserService {
         return await this.classRequest.getClass(id);
     }
 
+    public async deleteClass(classId: string) {
+        return this.classRequest.deleteClass(classId).then(() => window.location.href = `${window.location.protocol}//${window.location.host}/class`);
+    }
+
     public async createClass(name: string, description: string): Promise<void> {
         return await this.classRequest.createClass(name, description).then(() => window.location.reload())
     }
@@ -122,6 +127,14 @@ export default class UserService {
 
     public getMember(memberList: Array<Member>, userID: string): Member | undefined {
         return memberList.filter(val => val.user === userID)[0];
+    }
+
+    public async getClassMember(classId: string, userID: string): Promise<Member> {
+        return await this.memberRequest.getClassMember(classId, userID);
+    }
+
+    public async getSelfInClass(classID: string): Promise<Member> {
+        return this.getClassMember(classID, this.currentUserID!);
     }
 
     public onUserChange(handler: (user?: User) => void) {
@@ -142,6 +155,10 @@ export default class UserService {
 
     public async updateTimetable(classId: string, timetableDay: TimeTableDay, day: number): Promise<void> {
         this.timetableRequest.updateTimetable(classId, timetableDay, day).then(() => window.location.reload());
+    }
+
+    public async addLesson(classId: string, lesson: Lesson, day: number): Promise<void> {
+        await this.timetableRequest.addLesson(classId, lesson, day);
     }
 
     public async getCalendar(classId: string): Promise<Array<Event>> {
@@ -181,7 +198,11 @@ export default class UserService {
     }
 
     public async deleteClassMember(classId: string, memberId: string): Promise<void> {
-        await this.memberRequest.deleteClassMember(classId, memberId).then(() => window.location.reload())
+        await this.memberRequest.deleteClassMember(classId, memberId).then(() => window.location.href = `${window.location.protocol}//${window.location.host}/class`)
+    }
+
+    public async deleteSelfInClass(classID: string) {
+        await this.deleteClassMember(classID, this.currentUserID!);
     }
 
     public async updateOwnDisplayName(classId: string, displayName: string) {
