@@ -19,7 +19,6 @@ pub async fn setup_slash_commands(ctx: &Context) {
 
 fn create_commands(commands: &mut CreateApplicationCommands) -> &mut CreateApplicationCommands {
     commands
-        .create_application_command(|command| command.name("events").description("Zeigt Events an"))
         .create_application_command(|command| {
             command
                 .name("wielangenoch")
