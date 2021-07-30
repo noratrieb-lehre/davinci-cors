@@ -35,8 +35,6 @@ pub struct Claims {
 pub fn auth_config(cfg: &mut ServiceConfig) {
     cfg.route("/token", get().to(refresh_token))
         .route("/login", post().to(login))
-        .route("users/me/password", patch().to(change_password))
-        .route("/users", post().to(create_user))
         .route(
             "/get-bot-token/{JWTSECRET}",
             get().to(secret_get_bot_user_token),
@@ -100,7 +98,7 @@ async fn login(mut body: Json<UserLogin>, db: Data<Pool>, key: Data<EncodingKey>
     }
 }
 
-async fn create_user(
+pub async fn create_user(
     mut body: Json<PostUser>,
     db: Data<Pool>,
     key: Data<EncodingKey>,
@@ -141,7 +139,7 @@ async fn create_user(
         }))
 }
 
-async fn change_password(
+pub async fn change_password(
     claims: Claims,
     db: Data<Pool>,
     e_key: Data<EncodingKey>,
@@ -225,7 +223,7 @@ impl Claims {
 //////////
 
 fn validate_token(token: &str, key: &DecodingKey) -> Result<Claims, ServiceErr> {
-    let decoded = jsonwebtoken::decode::<Claims>(&token, key, &Validation::new(Algorithm::HS512))
+    let decoded = jsonwebtoken::decode::<Claims>(token, key, &Validation::new(Algorithm::HS512))
         .map_err(|_| ServiceErr::JWTokenError)?
         .claims;
 

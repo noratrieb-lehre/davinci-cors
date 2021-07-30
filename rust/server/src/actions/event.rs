@@ -93,10 +93,9 @@ pub fn delete_event(db: &Pool, event_id: Uuid) -> ServiceResult<usize> {
     Ok(delete(events).filter(id.eq(event_id)).execute(&conn)?)
 }
 
-pub fn get_notifications(
-    db: &Pool,
-    since: chrono::NaiveDateTime,
-) -> ServiceResult<(chrono::NaiveDateTime, Vec<(Event, (Class, Guild))>)> {
+pub type Notifications = (chrono::NaiveDateTime, Vec<(Event, (Class, Guild))>);
+
+pub fn get_notifications(db: &Pool, since: chrono::NaiveDateTime) -> ServiceResult<Notifications> {
     use crate::schema::classes::dsl::{classes, discord_id};
     use crate::schema::guilds::dsl::{guilds, id as gid, notif_channel};
 

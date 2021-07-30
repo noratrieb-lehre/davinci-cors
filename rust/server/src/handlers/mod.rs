@@ -1,9 +1,9 @@
 use crate::actions::{self, Pool};
 use crate::error::ServiceErr;
-use crate::handlers::auth::Claims;
+use crate::handlers::auth::{change_password, create_user, Claims};
 use crate::models::conversion::IntoDto;
-use actix_web::web::ServiceConfig;
 use actix_web::web::{block, delete, get, post, put, scope, Data, Json, Path, Query};
+use actix_web::web::{patch, ServiceConfig};
 use actix_web::HttpResponse;
 use dto::{NotificationQueryParams, NotificationRes, SingleSnowflake, User};
 use tracing::debug;
@@ -25,9 +25,11 @@ pub fn other_config(cfg: &mut ServiceConfig) {
         .route("/bot/notifications", get().to(get_notifications))
         .service(
             scope("/users")
+                .route("", post().to(create_user))
                 .route("/me", get().to(get_own_user))
                 .route("/me", put().to(edit_own_user))
                 .route("/me", delete().to(delete_own_user))
+                .route("/me/password", patch().to(change_password))
                 .route("/me/link", post().to(link_user_with_discord))
                 .route("/discord/{snowflake}", get().to(get_user_by_discord)),
         );

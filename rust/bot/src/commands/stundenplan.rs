@@ -53,7 +53,7 @@ fn not_found() -> Embed {
 }
 
 fn show_timetable(timetable: Timetable) -> Embed {
-    const DAY_NAMES: [&'static str; 7] = [
+    const DAY_NAMES: [&str; 7] = [
         "Montag",
         "Dienstag",
         "Mittwoch",
