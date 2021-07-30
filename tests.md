@@ -125,23 +125,23 @@ Server benötigt. Dieser sollte separat erstellt werden.
     - Die Discord-Server ID einfügen und Verbinden.
     - Zu den Accounteinstellungen gehen
     - Die Discord-User ID einfügen und Verbinden.
-    
+
 2. Notifications einrichten
     - Auf den Discord gehen
     - `/settings notification_channel` einen Channel auswählen
     - `/settings notification_role_ping` eine Rolle auswählen
     - `/settings notification_everyone_ping True`
-    
+
 3. Event erstellen
     - Mit user2 zu Admin/Eventverwaltung gehen
     - Name: `testen`
     - Start: Übernächste volle Stunde
     - Ende: Aktueller Tag: 23:00
     - Beschreibung: `ganz viel testen`
-    - Benachrichtigung: In 5 Minuten
+    - Benachrichtigung: In 7 Minuten
     - Prüfung
     - Das Event kann nun im Kalender gefunden werden
-    
+
 4. Events suchen auf Discord
     - `/events all`
     - Das Event wird angezeigt
@@ -151,5 +151,9 @@ Server benötigt. Dieser sollte separat erstellt werden.
     - Das Event wird angezeigt
     - `/events search tEstEn`
     - Das Event wird angezeigt
-    
+
 5. Auf Notification warten
+    - Warten, bis die Notification kommt
+    - Sie sollte innerhalb einer Minute auf den Zeitpunkt kommen (In der Backend-Konsole kann, wenn das RUST_LOG Level debug
+      ist, nachgeschaut werden, um welche Zeit jeweils die Benachrichtigungen verschickt werden.)
+    - Die Rolle und @everyone sollte gepingt werden, und die Beschreibung, Titel und Zeit sollten übereinstimmen  
