@@ -591,10 +591,21 @@ async fn link_class_with_discord(
         .parse::<u64>()
         .map_err(|_| ServiceErr::BadRequest("invalid-snowflake"))?;
 
-    let class =
-        block(move || actions::class::set_discord_id_class(&db, *class_id, Some(snowflake)))
-            .await?
-            .into_dto()?;
+    let class = block::<_, _, ServiceErr>(move || {
+        let class = actions::class::set_discord_id_class(&db, *class_id, Some(&snowflake))?;
+        actions::class::insert_guild(
+            &db,
+            NewGuild {
+                id: &snowflake,
+                notif_channel: None,
+                notif_ping_role: None,
+                notif_ping_everyone: false,
+            },
+        )?;
+        Ok(class)
+    })
+    .await?
+    .into_dto()?;
 
     Ok(HttpResponse::Ok().json(class))
 }

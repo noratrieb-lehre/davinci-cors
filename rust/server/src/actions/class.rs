@@ -94,11 +94,7 @@ pub fn update_class(db: &Pool, new_class: NewClass) -> ServiceResult<Class> {
         .get_result(&conn)?)
 }
 
-pub fn set_discord_id_class(
-    db: &Pool,
-    class_id: Uuid,
-    d_id: Option<String>,
-) -> ServiceResult<Class> {
+pub fn set_discord_id_class(db: &Pool, class_id: Uuid, d_id: Option<&str>) -> ServiceResult<Class> {
     let conn = db.get()?;
 
     Ok(update(classes)
@@ -175,6 +171,12 @@ pub fn delete_timetable(db: &Pool, class_id: Uuid) -> ServiceResult<usize> {
     Ok(delete(timetables)
         .filter(class.eq(class_id))
         .execute(&conn)?)
+}
+
+pub fn insert_guild(db: &Pool, guild: NewGuild) -> ServiceResult<Guild> {
+    use crate::schema::guilds::dsl::guilds;
+    let conn = db.get()?;
+    Ok(insert_into(guilds).values(guild).get_result(&conn)?)
 }
 
 pub fn change_guild_settings(db: &Pool, guild: NewGuild) -> ServiceResult<Guild> {

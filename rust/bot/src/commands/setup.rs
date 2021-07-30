@@ -5,9 +5,9 @@ use serenity::prelude::*;
 use tracing::info;
 
 pub async fn setup_slash_commands(ctx: &Context) {
-    //ApplicationCommand::create_global_application_commands(&ctx.http, create_commands)
-    //    .await
-    //    .expect("Could not create slash commands");
+    ApplicationCommand::create_global_application_commands(&ctx.http, create_commands)
+        .await
+        .expect("Could not create slash commands");
 
     GuildId(865480040682749982)
         .create_application_commands(&ctx.http, create_commands)
