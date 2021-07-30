@@ -31,11 +31,10 @@ const BannedMembers = () => {
                     bannedMembers?.map(val =>
                         <ListGroup.Item key={val.user}>
                             <Row>
-                                <Col sm={5} className={'d-flex align-items-center'}>{val.displayName}</Col>
-                                <Col sm={5} className={'d-flex align-items-center'}>{val.email}</Col>
-                                <Col sm={1}>Entbannen</Col>
-                                <Col sm={1}><Button variant={'outline-success'}
-                                                    onClick={() => sendUnban(val)}><Icon.Check
+                                <Col className={'d-flex align-items-center'}>{val.displayName}</Col>
+                                <Col className={'d-flex align-items-center'}>{val.email}</Col>
+                                <Col><Button variant={'outline-success'}
+                                                    onClick={() => sendUnban(val)}><Icon.X
                                     color={'green'} size={30}/></Button></Col>
                             </Row>
                         </ListGroup.Item>

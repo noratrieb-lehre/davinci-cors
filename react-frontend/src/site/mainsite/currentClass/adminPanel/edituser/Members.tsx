@@ -33,21 +33,21 @@ const Members = () => {
                     members.map((member) => (
                         <ListGroup.Item key={member.user}>
                             <Row>
-                                <Col sm={8} className={'d-flex align-items-center'}>
+                                <Col sm={6} className={'d-flex align-items-center'}>
                                     <Col className={'d-flex align-items-center'} sm={2}>{member.displayName}</Col>
                                     <Col className={'d-flex align-items-center text-muted'} sm={6}>{member.email}</Col>
                                     <Col className={'d-flex align-items-center text-muted'}
                                          sm={4}>{userService.getMemberRole(member.role)}</Col>
                                 </Col>
-                                <Col sm={2}><Button variant={'outline-primary'}
+                                <Col><Button variant={'outline-primary'}
                                                     onClick={() => setSelectedMember(member)}
                                                     disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Editieren</Button></Col>
-                                <Col sm={1}>
+                                <Col>
                                     <Button variant={'outline-danger'}
                                             onClick={() => userService.deleteClassMember(currentClass!.id, member.user)}
                                             disabled={!userService.getRolesBelow(self!.role).includes(member.role)}>Kicken</Button>
                                 </Col>
-                                <Col sm={1}>
+                                <Col>
                                     <Button variant={'outline-danger'}
                                             onClick={() => {
                                                 member.role = "banned";

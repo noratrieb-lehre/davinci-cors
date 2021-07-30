@@ -15,7 +15,7 @@ const MainSite = () => {
             </Row>
             <Row>
                 <Col sm={2}><ClassList/></Col>
-                <Col sm={8}><ClassView/></Col>
+                <Col sm={10}><ClassView/></Col>
             </Row>
         </Container>
     );
