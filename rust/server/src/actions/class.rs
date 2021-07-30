@@ -2,7 +2,7 @@ use crate::actions::Pool;
 use crate::diesel::{QueryDsl, RunQueryDsl};
 use crate::error::{ServiceErr, ServiceResult};
 use crate::models::{
-    Class, Guild, Member, NewClass, NewGuild, NewMember, Timetable, User, BANNED, PENDING,
+    Class, Guild, Member, MemberRole, NewClass, NewGuild, NewMember, Timetable, User,
 };
 use crate::schema::classes::dsl::*;
 use diesel::{
@@ -25,7 +25,7 @@ pub fn get_class(db: &Pool, class_id: Uuid) -> ServiceResult<Option<ClassMemberD
 
     let vec = classes
         .inner_join(members.inner_join(users))
-        .filter(id.eq(class_id).and(role.ne(PENDING)))
+        .filter(id.eq(class_id).and(role.ne(MemberRole::PENDING)))
         .order_by((role, display_name))
         .load(&conn)?;
 
@@ -41,8 +41,8 @@ pub fn get_classes_by_user(db: &Pool, user_id: Uuid) -> ServiceResult<Vec<Class>
         .filter(
             member_user
                 .eq(user_id)
-                .and(role.ne(BANNED))
-                .and(role.ne(PENDING)),
+                .and(role.ne(MemberRole::BANNED))
+                .and(role.ne(MemberRole::PENDING)),
         )
         .load(&conn)?;
 
@@ -54,7 +54,7 @@ pub fn get_pending_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<Membe
     let conn = db.get()?;
 
     Ok(members
-        .filter(class.eq(class_id).and(role.eq(PENDING)))
+        .filter(class.eq(class_id).and(role.eq(MemberRole::PENDING)))
         .load(&conn)?)
 }
 
@@ -65,7 +65,7 @@ pub fn get_banned_members(db: &Pool, class_id: Uuid) -> ServiceResult<Vec<(Membe
 
     Ok(members
         .inner_join(users)
-        .filter(class.eq(class_id).and(role.eq(BANNED)))
+        .filter(class.eq(class_id).and(role.eq(MemberRole::BANNED)))
         .load(&conn)?)
 }
 

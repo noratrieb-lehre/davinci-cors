@@ -29,6 +29,14 @@ pub struct MemberRole {
     pub display: String,
 }
 
+impl MemberRole {
+    pub const OWNER: i32 = 0;
+    pub const ADMIN: i32 = 1;
+    pub const MEMBER: i32 = 2;
+    pub const PENDING: i32 = 3;
+    pub const BANNED: i32 = 4;
+}
+
 #[derive(Debug, Clone, Queryable, Identifiable)]
 #[table_name = "classes"]
 pub struct Class {
@@ -128,12 +136,9 @@ pub struct NewGuild<'a> {
     pub notif_ping_everyone: bool,
 }
 
-pub const PENDING: i32 = 3;
-pub const BANNED: i32 = 4;
-
 pub mod conversion {
     use crate::error::{ServiceErr, ServiceResult};
-    use crate::models::{Class, Event, Guild, Member, MemberRole, User, PENDING};
+    use crate::models::{Class, Event, Guild, Member, MemberRole, User};
 
     pub trait IntoDto<T> {
         fn into_dto(self) -> ServiceResult<T>;
@@ -157,7 +162,7 @@ pub mod conversion {
 
             let actual_members = members
                 .into_iter()
-                .filter(|(member, _)| member.role < PENDING)
+                .filter(|(member, _)| member.role < MemberRole::PENDING)
                 .map(IntoDto::into_dto)
                 .collect::<Result<Vec<_>, _>>()?;
 

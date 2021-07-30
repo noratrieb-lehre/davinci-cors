@@ -5,7 +5,7 @@ use crate::handlers::extractors::Role;
 use crate::handlers::HttpResult;
 use crate::models;
 use crate::models::conversion::IntoDto;
-use crate::models::{NewClass, NewEvent, NewGuild, NewMember, PENDING};
+use crate::models::{NewClass, NewEvent, NewGuild, NewMember};
 use actix_web::web::{
     block, delete, get, post, put, scope, Data, Json, Path, Query, ServiceConfig,
 };
@@ -173,13 +173,27 @@ async fn edit_member(
                 return Err(ServiceErr::NoAdminPermissions);
             }
 
-            // Can only set target permissions lower than own
-            if member.role <= *own_role {
-                return Err(ServiceErr::Unauthorized("not-enough-permissions"));
-            }
-            // Can only edit members lower than self
-            if old_member.role <= own_role.0 as i32 {
-                return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+            // Transfer ownership
+            if *own_role == MemberRole::Owner && member.role == MemberRole::Owner {
+                let (own_member, _) = actions::class::get_member(&db, claims.uid, class_id)?;
+                actions::class::update_member(
+                    &db,
+                    NewMember {
+                        user: claims.uid,
+                        class: class_id,
+                        display_name: &own_member.display_name,
+                        role: models::MemberRole::ADMIN,
+                    },
+                )?;
+            } else {
+                // Can only set target permissions lower than own
+                if member.role <= *own_role {
+                    return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+                }
+                // Can only edit members lower than self
+                if old_member.role <= own_role.0 as i32 {
+                    return Err(ServiceErr::Unauthorized("not-enough-permissions"));
+                }
             }
         }
 
@@ -266,7 +280,7 @@ async fn request_join(class_id: Path<Uuid>, claims: Claims, db: Data<Pool>) -> H
             user: claims.uid,
             class: *class_id,
             display_name: &user.email,
-            role: PENDING,
+            role: models::MemberRole::PENDING,
         };
 
         actions::class::create_member(&db, member)
@@ -307,7 +321,7 @@ async fn accept_member(
     let response = block(move || {
         if accept.accept {
             let (member, _) = actions::class::get_member(&db, member_id, class_id)?;
-            if member.role != PENDING {
+            if member.role != models::MemberRole::PENDING {
                 return Err(ServiceErr::BadRequest("member-not-pending"));
             }
             let new_member = NewMember {
