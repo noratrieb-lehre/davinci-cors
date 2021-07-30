@@ -228,21 +228,23 @@ async fn delete_member(
 
     debug!(%class_id, %member_id, ?role, userid = %claims.uid, "delete member");
 
+    let delete_other = claims.uid != member_id;
+
     // Must be admin to delete others
-    if !role.has_rights() && claims.uid != member_id {
+    if !role.has_rights() && delete_other {
         return Err(ServiceErr::NoAdminPermissions);
     }
 
     // Class must always have an owner
-    if claims.uid == member_id && *role == MemberRole::Owner {
+    if !delete_other && *role == MemberRole::Owner {
         return Err(ServiceErr::BadRequest("must-have-owner"));
     }
 
     let deleted_amount = block(move || {
         let (old_member, _) = actions::class::get_member(&db, member_id, class_id)?;
 
-        // Can only edit members lower than self
-        if old_member.role <= role.0 as i32 {
+        // Can only edit other members lower than self
+        if delete_other && old_member.role <= role.0 as i32 {
             return Err(ServiceErr::Unauthorized("not-enough-permissions"));
         }
 
