@@ -256,7 +256,7 @@ export default class UserService {
     }
 
     private async updateAuthToken(): Promise<AxiosResponse> {
-        const response = await axios.get('http://localhost:8080/api/token', {
+        const response = await axios.get(`${window.location.protocol}//${window.location.host}:8080/api/token`, {
             headers: {
                 'Authorization': this.refreshToken
             }
