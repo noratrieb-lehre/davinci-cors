@@ -303,6 +303,8 @@ Requires Token & Admin
 `Member`    
 *Response*  
 `Member`
+  
+If the own role is 'owner', and the target role is 'owner', ownership will be transferred.
 
 Errors:  
 `401 not-enough-permissions` on editing a member with a role higher/equal role to own  
