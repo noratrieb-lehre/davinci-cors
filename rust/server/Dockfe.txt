@@ -1,0 +1,9 @@
+FROM rust as build
+WORKDIR /app
+COPY ../../rust .
+WORKDIR /app/server
+RUN cargo build --quiet
+
+FROM ubuntu
+COPY --from=build /app/target/release/server /usr/local/bin
+CMD ["/user/local/bin/server"]
