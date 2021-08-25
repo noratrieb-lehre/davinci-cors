@@ -562,6 +562,7 @@ dependencies = [
  "dotenv",
  "dto",
  "futures",
+ "once_cell",
  "rand 0.8.4",
  "reqwest",
  "serde",

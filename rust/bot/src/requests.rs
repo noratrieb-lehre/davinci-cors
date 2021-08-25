@@ -1,12 +1,15 @@
-use crate::error::BotResult;
-use dto::{Class, Event, GetEventQueryParams, NotificationRes, Timetable};
-use reqwest::header::HeaderMap;
 use reqwest::{Client, StatusCode};
+use reqwest::header::HeaderMap;
 use serenity::model::id::UserId;
 use tracing::debug;
 use uuid::Uuid;
+use once_cell::sync::Lazy;
 
-const BASE_URL: &str = "http://localhost:8080/api";
+use dto::{Class, Event, GetEventQueryParams, NotificationRes, Timetable};
+
+use crate::error::BotResult;
+
+static BASE_URL: Lazy<String> = Lazy::new(|| std::env::var("BACKEND_URL").unwrap_or("http://localhost:8080/api".to_string()));
 
 pub struct CorsClient {
     client: reqwest::Client,
@@ -36,7 +39,7 @@ impl CorsClient {
             .client
             .get(format!(
                 "{}/bot/notifications?since={}",
-                BASE_URL, old_timestamp
+                *BASE_URL, old_timestamp
             ))
             .send()
             .await?;
@@ -61,7 +64,7 @@ impl CorsClient {
             .client
             .get(format!(
                 "{}/classes/{}/events?{}",
-                BASE_URL, class_id, params
+                *BASE_URL, class_id, params
             ))
             .send()
             .await?;
@@ -78,7 +81,7 @@ impl CorsClient {
 
         let res = self
             .client
-            .get(format!("{}/classes/{}/timetable", BASE_URL, class_id))
+            .get(format!("{}/classes/{}/timetable", *BASE_URL, class_id))
             .send()
             .await?;
 
@@ -93,7 +96,7 @@ impl CorsClient {
     pub async fn edit_guild_settings(&self, guild: &dto::Guild) -> BotResult<()> {
         let res = self
             .client
-            .put(format!("{}/bot/guilds", BASE_URL))
+            .put(format!("{}/bot/guilds", *BASE_URL))
             .json(guild)
             .send()
             .await?;
@@ -106,7 +109,7 @@ impl CorsClient {
     pub async fn get_guild(&self, guild_id: u64) -> BotResult<Option<dto::Guild>> {
         let res = self
             .client
-            .get(format!("{}/bot/guilds/{}", BASE_URL, guild_id))
+            .get(format!("{}/bot/guilds/{}", *BASE_URL, guild_id))
             .send()
             .await?;
 
@@ -122,7 +125,7 @@ impl CorsClient {
         debug!("gettings member...");
         let res = self
             .client
-            .get(format!("{}/users/discord/{}", BASE_URL, id.0))
+            .get(format!("{}/users/discord/{}", *BASE_URL, id.0))
             .send()
             .await?;
 
@@ -136,7 +139,7 @@ impl CorsClient {
             .client
             .get(format!(
                 "{}/classes/{}/members/{}",
-                BASE_URL, class_id, user.id
+                *BASE_URL, class_id, user.id
             ))
             .send()
             .await?;
@@ -153,7 +156,7 @@ impl CorsClient {
     pub async fn get_class(&self, guild_id: u64) -> BotResult<Class> {
         let res = self
             .client
-            .get(format!("{}/classes/discord/{}", BASE_URL, guild_id))
+            .get(format!("{}/classes/discord/{}", *BASE_URL, guild_id))
             .send()
             .await?;
         debug!(status = %res.status());
