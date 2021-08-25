@@ -24,14 +24,14 @@ export default class Axios {
     public setAxios(auth?: string) {
         if (auth) {
             this._axios = axios.create({
-                baseURL: `${window.location.protocol}//${window.location.host}:8080/api`,
+                baseURL: process.env.REACT_APP_BACKEND_URL || `${window.location.protocol}//${window.location.host}:8080/api`,
                 headers: {
                     Authorization: auth
                 }
             })
         } else {
             this._axios = axios.create({
-                baseURL: `${window.location.protocol}//${window.location.host}:8080/api`
+                baseURL: process.env.REACT_APP_BACKEND_URL || `${window.location.protocol}//${window.location.host}:8080/api`
             })
         }
     }
