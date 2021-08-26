@@ -5,7 +5,7 @@ export default class Axios {
 
     private constructor() {
         this._axios = axios.create({
-            baseURL: `${window.location.protocol}//${window.location.host}:8080/api`
+            baseURL: `${window.location.protocol}//${window.location.host}/api`
         })
     }
 
@@ -24,14 +24,14 @@ export default class Axios {
     public setAxios(auth?: string) {
         if (auth) {
             this._axios = axios.create({
-                baseURL: `${window.location.protocol}//${window.location.host}:8080/api`,
+                baseURL: `${window.location.protocol}//${window.location.host}/api`,
                 headers: {
                     Authorization: auth
                 }
             })
         } else {
             this._axios = axios.create({
-                baseURL: `${window.location.protocol}//${window.location.host}:8080/api`
+                baseURL: `${window.location.protocol}//${window.location.host}/api`
             })
         }
     }

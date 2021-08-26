@@ -39,7 +39,7 @@ export default class UserService {
         const refreshToken = localStorage.getItem('refresh-token') as string
         if (refreshToken) {
             this.refreshToken = refreshToken;
-            axios.get('http://localhost:8080/api/token', {
+            axios.get(`${window.location.protocol}//${window.location.host}/api/token`, {
                 headers: {
                     Authorization: refreshToken
                 }
@@ -256,7 +256,7 @@ export default class UserService {
     }
 
     private async updateAuthToken(): Promise<AxiosResponse> {
-        const response = await axios.get(`${window.location.protocol}//${window.location.host}:8080/api/token`, {
+        const response = await axios.get(`${window.location.protocol}//${window.location.host}/api/token`, {
             headers: {
                 'Authorization': this.refreshToken
             }
