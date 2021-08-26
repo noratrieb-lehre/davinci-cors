@@ -1,15 +1,16 @@
-use reqwest::{Client, StatusCode};
+use once_cell::sync::Lazy;
 use reqwest::header::HeaderMap;
+use reqwest::{Client, StatusCode};
 use serenity::model::id::UserId;
 use tracing::debug;
 use uuid::Uuid;
-use once_cell::sync::Lazy;
 
 use dto::{Class, Event, GetEventQueryParams, NotificationRes, Timetable};
 
 use crate::error::BotResult;
 
-static BASE_URL: Lazy<String> = Lazy::new(|| std::env::var("BACKEND_URL").unwrap_or("http://localhost:8080/api".to_string()));
+static BASE_URL: Lazy<String> =
+    Lazy::new(|| std::env::var("BACKEND_URL").unwrap_or("http://localhost:8080/api".to_string()));
 
 pub struct CorsClient {
     client: reqwest::Client,

@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate diesel;
 
-use crate::actions::Pool;
-use crate::handlers::config;
+use std::env;
+
 use actix_cors::Cors;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
@@ -11,9 +11,11 @@ use diesel::prelude::*;
 use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use jsonwebtoken::{DecodingKey, EncodingKey};
-use std::env;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+
+use crate::actions::Pool;
+use crate::handlers::config;
 
 pub mod actions;
 mod error;
@@ -41,7 +43,10 @@ async fn main() -> Result<(), Report> {
     info!("Starting Server");
 
     HttpServer::new(move || {
-        let cors = Cors::permissive().expose_headers(["token", "refresh-token"]);
+        let cors = Cors::default()
+            .allow_any_method()
+            .allowed_origin("cors-school.com")
+            .expose_headers(["token", "refresh-token"]);
 
         App::new()
             .wrap(cors)
