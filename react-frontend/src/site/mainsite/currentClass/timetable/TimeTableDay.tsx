@@ -40,7 +40,7 @@ const formatTime = (time: number): string => {
 const toLocaleDate = (time: number): Date => {
     const date = new Date();
     date.setHours(0, 0, 0);
-    date.setMilliseconds(time + -(date.getTimezoneOffset() * 60 * 1000))
+    date.setMilliseconds(time -(date.getTimezoneOffset() * 60 * 1000))
     return date;
 }
 

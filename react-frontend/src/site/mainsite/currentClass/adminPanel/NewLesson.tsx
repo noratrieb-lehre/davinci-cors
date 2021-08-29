@@ -50,8 +50,8 @@ const NewLesson = () => {
     const onSubmit = ({subject, start, end, description, day}: SubmitValues) => {
         const date = new Date();
         date.setHours(0, 0, 0, 0);
-        const startMs = new Date(start).getTime() - date.getTime();
-        const endMs = new Date(end).getTime() - date.getTime();
+        const startMs = (new Date(start).getTime() - date.getTime()) + (date.getTimezoneOffset() * 60 * 1000);
+        const endMs = (new Date(end).getTime() - date.getTime()) + (date.getTimezoneOffset() * 60 * 1000);
 
         userService.addLesson(currentClass!.id, {
             subject,
@@ -60,9 +60,7 @@ const NewLesson = () => {
             description
         }, day).then(() => {
             setSuccess(true);
-            setTimeout(() => {
-                setSuccess(false)
-            }, 1500)
+            setTimeout(() => setSuccess(false), 1500)
         })
     }
 
