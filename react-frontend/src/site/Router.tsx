@@ -3,7 +3,7 @@ import {Container} from 'react-bootstrap';
 import SiteNav from "./SiteNav";
 import UserService from "../service/UserService";
 import Login from "./login/Login";
-import {Route, Switch} from 'react-router-dom';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import Account from "./account/Account";
 import MainSite from "./mainsite/MainSite";
 import SignUp from "./login/SignUp";
@@ -35,6 +35,7 @@ const Router = () => {
                             <Route path={'/class/:id/admin'} component={MainSite}/>
                             <Route path={'/join/:id'} component={RequestToJoin}/>
                             <Route path={'/account'} component={Account}/>
+                            <Route exact path={'/'} component={() => (<Redirect to={'/class'}/>)}/>
                         </Switch>
                     ) : (
                         <Switch>

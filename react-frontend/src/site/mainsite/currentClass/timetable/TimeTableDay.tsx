@@ -2,7 +2,9 @@ import React from 'react';
 import Lesson from "../../../../data/timetable/Lesson";
 import {Container, ModalTitle, Table} from "react-bootstrap";
 
-const TimeTableDay = ({name, lessons}: { name: string, lessons: Array<Lesson> }) => {
+type Props = { name: string, lessons: Array<Lesson>, onLessonDelete: (start: number, end: number, subject: string, idx: number) => void}
+
+const TimeTableDay = ({name, lessons, onLessonDelete}: Props) => {
     return (
         <Container>
             <ModalTitle>{name}</ModalTitle>

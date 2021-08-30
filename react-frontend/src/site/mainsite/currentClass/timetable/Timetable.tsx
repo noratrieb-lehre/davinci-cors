@@ -17,6 +17,14 @@ const Timetable = () => {
         }
         // eslint-disable-next-line
     }, [currentClass])
+
+    const onLessonDelete = (start: number, end: number, subject: string, idx: number) => {
+        if (timeTable) {
+            const newDay = timeTable[idx].filter((val) => val.subject !== subject && val.start !== start && val.end !== end)
+            userService.updateTimetable(currentClass!.id, newDay, idx)
+                .then(() => setTimeTable([...timeTable.filter((val, valIdx) => valIdx !== idx), newDay] as TimeTable))
+        }
+    }
     return (
         <Container>
             {
