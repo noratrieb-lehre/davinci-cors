@@ -48,12 +48,18 @@ const WieLangeNoch = () => {
 
     useEffect(() => {
         if (currentTimeTable) {
+            const timetable = currentTimeTable.map(val => ({
+                ...val,
+                start: toLocaleDate(val.start),
+                end: toLocaleDate(val.end)
+            }))
+
             const interval = setInterval(() => {
                 const date = new Date();
                 const index = getIndex(date)
                 const currentTime = `${formatTime(date.getHours())}:${formatTime(date.getMinutes())}:${formatTime(date.getSeconds())}`
                 const currentDay = getNameOfDay(index);
-                const currentLesson: ReturnValue = getLessonAndTimes(date)
+                const currentLesson: ReturnValue = getLessonAndTimes(date, timetable)
                 setValue({
                     currentTime,
                     currentDay,
@@ -68,35 +74,35 @@ const WieLangeNoch = () => {
     }, [currentTimeTable])
 
 
-    const getLessonAndTimes = (date: Date): ReturnValue => {
+    const getLessonAndTimes = (date: Date, currentTimeTable: Array<{ start: Date, end: Date, subject: string }>): ReturnValue => {
         if (currentTimeTable) {
             if (currentTimeTable.length > 0) {
-                if (date.getTime() < toLocaleDate(currentTimeTable![0]!.start).getTime() ||
-                    date.getTime() > toLocaleDate(currentTimeTable![currentTimeTable!.length - 1].end).getTime())
-                    return {
-                        subject: 'Keine Schule!',
-                        timeTillLessonFinish: '00:00',
-                        timeTillSchoolFinish: '00:00:00'
-                    }
+                if (date.getTime() < currentTimeTable![0]!.start.getTime() ||
+                    date.getTime() > currentTimeTable![currentTimeTable!.length - 1].end.getTime())
+                return {
+                    subject: 'Keine Schule!',
+                    timeTillLessonFinish: '00:00',
+                    timeTillSchoolFinish: '00:00:00'
+                }
                 const currentLesson = currentTimeTable!.filter((val) => {
-                    const start = toLocaleDate(val.start);
-                    const end = toLocaleDate(val.end);
+                    const start = val.start;
+                    const end = val.end;
                     return date.getTime() >= start.getTime() && date.getTime() < end.getTime()
                 })
                 if (currentLesson[0]) {
                     return {
                         subject: currentLesson[0].subject,
-                        timeTillLessonFinish: getDateDiff(date, currentLesson[0].end),
-                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
+                        timeTillLessonFinish: getDateDiff(date, currentLesson[0].end.getTime()),
+                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end.getTime())
                     }
                 }
 
-                const nextLesson = currentTimeTable!.find((val) => date.getTime() < toLocaleDate(val.start).getTime())
+                const nextLesson = currentTimeTable!.find((val) => date.getTime() < val.start.getTime())
                 if (nextLesson) {
                     return {
                         subject: `Pause (Nächste Lektion: ${nextLesson!.subject})`,
-                        timeTillLessonFinish: getDateDiff(date, nextLesson!.start),
-                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end)
+                        timeTillLessonFinish: getDateDiff(date, nextLesson!.start.getTime()),
+                        timeTillSchoolFinish: getDateDiff(date, currentTimeTable![currentTimeTable!.length - 1].end.getTime())
                     }
                 }
             }
@@ -122,7 +128,7 @@ const WieLangeNoch = () => {
 const getDateDiff = (date1: Date, date2: number): string => {
     let date = new Date();
     date.setHours(0, 0, 0)
-    date.setMilliseconds(toLocaleDate(date2).getTime() - date1.getTime())
+    date.setMilliseconds(date2 - date1.getTime())
     const hours = date.getHours()
     const minutes = date.getMinutes()
     const seconds = date.getSeconds()

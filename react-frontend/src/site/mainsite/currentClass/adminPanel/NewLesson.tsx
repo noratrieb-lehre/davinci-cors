@@ -48,10 +48,10 @@ const NewLesson = () => {
     }, [currentClass])
 
     const onSubmit = ({subject, start, end, description, day}: SubmitValues) => {
-        const date = new Date();
-        date.setHours(0, 0, 0, 0);
-        const startMs = (new Date(start).getTime() - date.getTime()) + (date.getTimezoneOffset() * 60 * 1000);
-        const endMs = (new Date(end).getTime() - date.getTime()) + (date.getTimezoneOffset() * 60 * 1000);
+        const todayZero = new Date();
+        todayZero.setHours(0, 0, 0, 0);
+        const startMs = (new Date(start).getTime() - todayZero.getTime());
+        const endMs = (new Date(end).getTime() - todayZero.getTime());
 
         userService.addLesson(currentClass!.id, {
             subject,

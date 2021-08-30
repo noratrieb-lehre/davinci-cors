@@ -39,7 +39,7 @@ export default class UserService {
         const refreshToken = localStorage.getItem('refresh-token') as string
         if (refreshToken) {
             this.refreshToken = refreshToken;
-            axios.get(`${window.location.protocol}//${window.location.host}/api/token`, {
+            axios.get(`https://api.cors-school.com/api/token`, {
                 headers: {
                     Authorization: refreshToken
                 }
@@ -256,7 +256,7 @@ export default class UserService {
     }
 
     private async updateAuthToken(): Promise<AxiosResponse> {
-        const response = await axios.get(`${window.location.protocol}//${window.location.host}/api/token`, {
+        const response = await axios.get(`https://api.cors-school.com/api/token`, {
             headers: {
                 'Authorization': this.refreshToken
             }
