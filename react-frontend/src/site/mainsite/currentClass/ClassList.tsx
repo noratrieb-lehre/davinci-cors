@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {UserServiceContext} from "../../Router";
-import {ListGroup} from "react-bootstrap";
+import ListGroup from 'react-bootstrap/ListGroup';
 import {useHistory, useParams} from "react-router-dom";
 
 const ClassList = () => {

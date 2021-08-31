@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, Tab, Tabs} from "react-bootstrap";
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
+import Container from 'react-bootstrap/Container';
 import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
 import ClassInfo from "./ClassInfo";
 import Timetable from "./timetable/Timetable";

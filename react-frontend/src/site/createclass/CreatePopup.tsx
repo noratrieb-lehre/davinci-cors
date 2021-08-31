@@ -1,5 +1,11 @@
 import React from 'react';
-import {Alert, Button, Form, FormControl, FormGroup, FormLabel, Modal} from "react-bootstrap";
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormControl from "react-bootstrap/FormControl";
+import FormLabel from 'react-bootstrap/FormLabel';
+import Modal from 'react-bootstrap/Modal'
 import {useFormik} from "formik";
 import * as Yup from 'yup';
 

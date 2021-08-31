@@ -4,7 +4,8 @@ import NewEvent from "./NewEvent";
 import NewLesson from "./NewLesson";
 import PendingMembers from "./PendingMembers";
 import Members from "./edituser/Members";
-import {Tab, Tabs} from "react-bootstrap";
+import Tab from 'react-bootstrap/Tab';
+import Tabs from 'react-bootstrap/Tabs';
 import BannedMembers from "./BannedMembers";
 
 const AdminPanel = () => {

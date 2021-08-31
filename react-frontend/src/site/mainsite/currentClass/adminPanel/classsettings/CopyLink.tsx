@@ -1,5 +1,8 @@
 import React, {useContext, useRef, useState} from 'react';
-import {FormControl, ModalBody, ModalTitle, Overlay, Tooltip} from "react-bootstrap";
+import {Overlay, Tooltip} from "react-bootstrap";
+import FormControl from "react-bootstrap/FormControl";
+import ModalBody from 'react-bootstrap/ModalBody';
+import ModalTitle from 'react-bootstrap/ModalTitle'
 import {CurrentClass} from "../../ClassView";
 
 const CopyLink = () => {

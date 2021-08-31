@@ -1,5 +1,6 @@
 import React from 'react';
-import {Container, ModalTitle} from "react-bootstrap";
+import ModalTitle from 'react-bootstrap/ModalTitle';
+import Container from 'react-bootstrap/Container';
 import ChangeClassName from "./classsettings/ChangeClassName";
 import ChangeClassDescription from "./classsettings/ChangeClassDescription";
 import CopyLink from "./classsettings/CopyLink";

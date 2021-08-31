@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Button, Nav, Navbar} from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import Nav  from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
 import {Link, NavLink} from "react-router-dom";
 import {UserServiceContext} from "./Router";
 import UserService from "../service/UserService";

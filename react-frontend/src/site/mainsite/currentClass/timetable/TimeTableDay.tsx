@@ -1,6 +1,8 @@
 import React from 'react';
 import Lesson from "../../../../data/timetable/Lesson";
-import {Container, ModalTitle, Table} from "react-bootstrap";
+import Table from 'react-bootstrap/Table';
+import ModalTitle from 'react-bootstrap/ModalTitle';
+import Container from 'react-bootstrap/Container';
 
 type Props = { name: string, lessons: Array<Lesson>, onLessonDelete: (start: number, end: number, subject: string, idx: number) => void}
 

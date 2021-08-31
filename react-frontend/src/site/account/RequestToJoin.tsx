@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, ModalBody, ModalTitle} from "react-bootstrap";
+import Container from 'react-bootstrap/Container';
+import ModalBody from 'react-bootstrap/ModalBody';
+import ModalTitle from 'react-bootstrap/ModalTitle'
 import {UserServiceContext} from "../Router";
 import {useParams} from "react-router-dom";
 

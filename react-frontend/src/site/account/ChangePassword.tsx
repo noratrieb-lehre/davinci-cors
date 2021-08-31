@@ -1,5 +1,13 @@
 import React, {useContext, useState} from 'react';
-import {Alert, Button, Col, Container, Form, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormControl from "react-bootstrap/FormControl";
+import FormLabel from 'react-bootstrap/FormLabel';
+import Row from 'react-bootstrap/Row';
 import * as Yup from 'yup';
 import {useFormik} from "formik";
 import {UserServiceContext} from "../Router";

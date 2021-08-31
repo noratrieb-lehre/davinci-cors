@@ -1,5 +1,11 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Button, Dropdown, Form, FormControl, FormGroup, FormLabel, Modal} from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import FormGroup from 'react-bootstrap/FormGroup';
+import FormControl from "react-bootstrap/FormControl";
+import FormLabel from 'react-bootstrap/FormLabel';
+import Modal from 'react-bootstrap/Modal';
+import Dropdown from 'react-bootstrap/Dropdown';
 import Member from "../../../../../data/user/Member";
 import {UserServiceContext} from "../../../../Router";
 import {useFormik} from "formik";

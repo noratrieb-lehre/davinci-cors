@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Button, Modal} from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 import Event from "../../../../data/event/Event";
 import {formatType} from "./Calendar";
 import EventType from "../../../../data/event/EventType";

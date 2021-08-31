@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, ModalTitle} from "react-bootstrap";
+import Container from 'react-bootstrap/Container';
+import ModalTitle from 'react-bootstrap/ModalTitle';
 import {UserServiceContext} from "../Router";
 import ChangeEmail from "./ChangeEmail";
 import ChangePassword from "./ChangePassword";

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Container} from 'react-bootstrap';
+import Container from 'react-bootstrap/Container';
 import SiteNav from "./SiteNav";
 import UserService from "../service/UserService";
 import Login from "./login/Login";

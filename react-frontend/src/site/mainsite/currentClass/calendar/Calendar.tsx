@@ -11,7 +11,7 @@ import EventType from "../../../../data/event/EventType";
 import EventPopup from "./EventPopup";
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 
-import '@fortawesome/fontawesome-free/css/all.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Calendar = () => {
     const currentClass = useContext(CurrentClass);

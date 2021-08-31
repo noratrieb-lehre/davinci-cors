@@ -1,5 +1,9 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Button, Col, Container, ListGroup, Row} from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
+import Row from 'react-bootstrap/Row';
+import Container from 'react-bootstrap/Container';
+import ListGroup from 'react-bootstrap/ListGroup';
 import * as Icon from 'react-bootstrap-icons';
 import Member from "../../data/user/Member";
 import {UserServiceContext} from "../Router";

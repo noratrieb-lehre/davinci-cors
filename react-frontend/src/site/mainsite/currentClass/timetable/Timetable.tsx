@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, ModalTitle} from "react-bootstrap";
+import ModalTitle from 'react-bootstrap/ModalTitle';
+import Container from 'react-bootstrap/Container';
 import {CurrentClass} from "../ClassView";
 import {UserServiceContext} from "../../../Router";
 import TimeTable from "../../../../data/timetable/TimeTable";
@@ -31,7 +32,7 @@ const Timetable = () => {
                 timeTable && timeTable.map((val, idx) => {
                     if (val.length > 0) {
                         return (
-                            <TimeTableDay key={idx} name={getNameOfDay(idx)} lessons={val}/>
+                            <TimeTableDay key={idx} name={getNameOfDay(idx)} lessons={val} onLessonDelete={onLessonDelete}/>
                         )
                     } else {
                         return (<Container key={idx}/>)

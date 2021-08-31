@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container} from "react-bootstrap";
+import Container from 'react-bootstrap/Container';
 import {CurrentClass} from "../ClassView";
 import {UserServiceContext} from "../../../Router";
 import {getNameOfDay} from "../timetable/Timetable";

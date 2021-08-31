@@ -1,5 +1,8 @@
 import React, {useContext} from 'react';
-import {Container, ModalBody, ModalTitle, Table} from "react-bootstrap";
+import Table from 'react-bootstrap/Table';
+import ModalBody from 'react-bootstrap/ModalBody';
+import ModalTitle from 'react-bootstrap/ModalTitle';
+import Container from 'react-bootstrap/Container';
 import {UserServiceContext} from "../../Router";
 import {CurrentClass} from "./ClassView";
 

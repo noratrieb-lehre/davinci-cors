@@ -1,5 +1,6 @@
 import React, {useContext, useState} from 'react';
-import {Button, Container} from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import Container from 'react-bootstrap/Container';
 import CreatePopup from "./CreatePopup";
 import {UserServiceContext} from "../Router";
 
