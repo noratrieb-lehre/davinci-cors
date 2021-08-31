@@ -32,7 +32,7 @@ const Timetable = () => {
                 timeTable && timeTable.map((val, idx) => {
                     if (val.length > 0) {
                         return (
-                            <TimeTableDay key={idx} name={getNameOfDay(idx)} lessons={val} onLessonDelete={onLessonDelete}/>
+                            <TimeTableDay key={idx} name={getNameOfDay(idx)} idx={idx} lessons={val} onLessonDelete={onLessonDelete}/>
                         )
                     } else {
                         return (<Container key={idx}/>)

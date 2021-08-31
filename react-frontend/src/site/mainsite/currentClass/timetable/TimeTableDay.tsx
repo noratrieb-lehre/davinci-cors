@@ -1,32 +1,41 @@
 import React from 'react';
 import Lesson from "../../../../data/timetable/Lesson";
 import Table from 'react-bootstrap/Table';
+import Button from 'react-bootstrap/Button';
 import ModalTitle from 'react-bootstrap/ModalTitle';
 import Container from 'react-bootstrap/Container';
 
-type Props = { name: string, lessons: Array<Lesson>, onLessonDelete: (start: number, end: number, subject: string, idx: number) => void}
+type Props = { idx: number, name: string, lessons: Array<Lesson>, onLessonDelete: (start: number, end: number, subject: string, idx: number) => void }
 
-const TimeTableDay = ({name, lessons, onLessonDelete}: Props) => {
+const TimeTableDay = ({name, lessons, onLessonDelete, idx}: Props) => {
     return (
         <Container>
             <ModalTitle>{name}</ModalTitle>
-            <Table>
+            <Table responsive={'xl'}>
                 <thead>
                 <tr>
                     <th>Von - Bis</th>
                     <th>Lektion</th>
                     <th>Beschreibung</th>
+                    <th/>
                 </tr>
                 </thead>
                 <tbody>
                 {
-                    lessons.map((val, idx) => (
-                        <tr key={idx}>
-                            <td>{formatTime(val.start)}-{formatTime(val.end)}</td>
-                            <td>{val.subject}</td>
-                            <td>{val.description}</td>
-                        </tr>
-                    ))
+                    lessons.map((val, index) => {
+                        return (
+                            <tr key={index}>
+                                <td>{formatTime(val.start)}-{formatTime(val.end)}</td>
+                                <td colSpan={1}>{val.subject}</td>
+                                <td colSpan={2}>{val.description}</td>
+                                <td colSpan={0.5}>
+                                    <Button
+                                        onClick={() => onLessonDelete(lessons[index].start, lessons[index].end, lessons[index].subject, idx)}
+                                        variant={'outline-danger'}>Klasse löschen</Button>
+                                </td>
+                            </tr>
+                        )
+                    })
                 }
                 </tbody>
             </Table>
