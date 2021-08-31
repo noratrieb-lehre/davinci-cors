@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -20,9 +20,13 @@ const validationScheme = Yup.object().shape({
 const LinkWithDiscord = () => {
     const currentClass = useContext(CurrentClass);
     const userService = useContext(UserServiceContext);
+    const [success, setSuccess] = useState(false);
 
     const handleSubmit = ({snowflake}: { snowflake: string }) => {
-        userService.linkClassToGuild(currentClass!.id, snowflake);
+        userService.linkClassToGuild(currentClass!.id, snowflake).then(() => {
+            setSuccess(true);
+            new Promise((res) => setTimeout(res, 400)).then(() => setSuccess(false));
+        });
     }
 
     const formik = useFormik({
@@ -48,7 +52,6 @@ const LinkWithDiscord = () => {
             <Form onSubmit={(e) => {
                 e.preventDefault();
                 formik.handleSubmit(e);
-                alert("did submit")
             }}>
                 <FormGroup>
                     <FormLabel>Discord-Server ID</FormLabel>
@@ -57,6 +60,7 @@ const LinkWithDiscord = () => {
                 </FormGroup>
                 <br/>
                 <Button type={'submit'}>Discord Server verbinden</Button>
+                <Alert show={success} variant={'success'}>Klasse erfolgreich mit Discord verbunden</Alert>
             </Form>
         </>
     );
