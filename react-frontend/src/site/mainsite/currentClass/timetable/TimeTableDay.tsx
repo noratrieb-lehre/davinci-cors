@@ -31,7 +31,7 @@ const TimeTableDay = ({name, lessons, onLessonDelete, idx}: Props) => {
                                 <td colSpan={0.5}>
                                     <Button
                                         onClick={() => onLessonDelete(lessons[index].start, lessons[index].end, lessons[index].subject, idx)}
-                                        variant={'outline-danger'}>Klasse löschen</Button>
+                                        variant={'outline-danger'}>Lektion löschen</Button>
                                 </td>
                             </tr>
                         )
