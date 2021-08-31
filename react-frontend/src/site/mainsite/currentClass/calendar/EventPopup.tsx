@@ -42,7 +42,9 @@ const EventPopup = ({event, onClose}: { event: Event, onClose: () => void }) => 
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={handleClose}>Schliessen</Button>
-                <Button onClick={deleteEvent} variant={'danger'}>Event löschen</Button>
+                {
+                    userService.isAdmin(currentClass!) && <Button onClick={deleteEvent} variant={'danger'}>Event löschen</Button>
+                }
             </Modal.Footer>
         </Modal>
     );
