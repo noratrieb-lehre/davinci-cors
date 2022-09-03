@@ -45,7 +45,8 @@ async fn main() -> Result<(), Report> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_method()
-            .allowed_origin("cors-school.com")
+            .allow_any_origin() // FIXME Please
+            // .allowed_origin("cors-school.nilstrieb.dev")
             .expose_headers(["token", "refresh-token"]);
 
         App::new()

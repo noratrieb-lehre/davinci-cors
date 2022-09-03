@@ -2,9 +2,9 @@ FROM node:18 as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./
-RUN npm install --silent
-COPY . ./
-RUN npm run build
+RUN NODE_OPTIONS=--openssl-legacy-provider npm install
+COPY package.json yarn.lock tsconfig.json src public ./
+RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
 
 FROM nginx:stable-alpine
 COPY ./nginx/nginx.conf /etc/nginx/templates/default.conf.template
