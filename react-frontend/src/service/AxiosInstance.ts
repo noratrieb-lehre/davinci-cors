@@ -5,7 +5,7 @@ export default class Axios {
 
     private constructor() {
         this._axios = axios.create({
-            baseURL: `https://api.cors-school.com/api`
+            baseURL: `https://api.cors-school.nilstrieb.dev/api`
         })
     }
 
@@ -24,17 +24,15 @@ export default class Axios {
     public setAxios(auth?: string) {
         if (auth) {
             this._axios = axios.create({
-                baseURL: `https://api.cors-school.com/api`,
+                baseURL: `https://api.cors-school.nilstrieb.dev/api`,
                 headers: {
                     Authorization: auth
                 }
             })
         } else {
             this._axios = axios.create({
-                baseURL: `https://api.cors-school.com/api`
+                baseURL: `https://api.cors-school.nilstrieb.dev/api`
             })
         }
     }
-
-
 }
