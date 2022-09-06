@@ -3,7 +3,7 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./
 RUN NODE_OPTIONS=--openssl-legacy-provider npm install
-COPY package.json yarn.lock tsconfig.json src public ./
+COPY . .
 RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
 
 FROM nginx:stable-alpine

@@ -39,7 +39,7 @@ export default class UserService {
         const refreshToken = localStorage.getItem('refresh-token') as string
         if (refreshToken) {
             this.refreshToken = refreshToken;
-            axios.get(`api.cors-school.nilstrieb.dev/api/token`, {
+            axios.get(`https://api.cors-school.nilstrieb.dev/api/token`, {
                 headers: {
                     Authorization: refreshToken
                 }
