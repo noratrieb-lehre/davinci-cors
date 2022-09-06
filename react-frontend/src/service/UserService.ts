@@ -256,7 +256,7 @@ export default class UserService {
     }
 
     private async updateAuthToken(): Promise<AxiosResponse> {
-        const response = await axios.get(`https://api.cors-school.com/api/token`, {
+        const response = await axios.get(`https://api.cors-school.nilstrieb.dev/api/token`, {
             headers: {
                 'Authorization': this.refreshToken
             }
