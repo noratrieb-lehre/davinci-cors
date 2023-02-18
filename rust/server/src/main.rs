@@ -1,3 +1,5 @@
+#![forbid(clippy::all, clippy::restriction, clippy::pedantic, clippy::nursery)]
+
 #[macro_use]
 extern crate diesel;
 
