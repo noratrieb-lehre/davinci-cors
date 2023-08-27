@@ -1,12 +1,17 @@
 FROM rust as build
+
+RUN apt-get update && apt-get install -y libpq-dev
+
 WORKDIR /app
 COPY . ./
 WORKDIR /app/server
 RUN cargo build --release
+RUN cargo install diesel_cli --no-default-features --features postgres --root /app
 
 
 FROM ubuntu:latest
 RUN apt-get update && apt-get install -y libpq-dev
 COPY --from=build /app/target/release/server /usr/local/bin/server
+COPY --from=build /app/bin/diesel /usr/local/bin/diesel
 ENV RUST_LOG=info
 CMD ["server"]
