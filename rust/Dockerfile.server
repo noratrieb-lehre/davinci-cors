@@ -13,5 +13,7 @@ FROM ubuntu:latest
 RUN apt-get update && apt-get install -y libpq-dev
 COPY --from=build /app/target/release/server /usr/local/bin/server
 COPY --from=build /app/bin/diesel /usr/local/bin/diesel
+# Copy the source code to the app for the migrations
+COPY . /app
 ENV RUST_LOG=info
 CMD ["server"]
