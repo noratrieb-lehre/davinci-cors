@@ -1,10 +1,10 @@
 FROM node:18 as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
-COPY package.json ./
-RUN NODE_OPTIONS=--openssl-legacy-provider npm install
+COPY package.json yarn.lock ./
+RUN NODE_OPTIONS=--openssl-legacy-provider yarn --locked
 COPY . .
-RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
+RUN NODE_OPTIONS=--openssl-legacy-provider yarn build
 
 FROM nginx:stable-alpine
 COPY ./nginx/nginx.conf /etc/nginx/templates/default.conf.template
