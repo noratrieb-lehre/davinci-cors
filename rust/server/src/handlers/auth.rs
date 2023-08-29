@@ -340,6 +340,7 @@ mod test {
         assert_eq!(claims.version, 1);
     }
 
+    #[cfg(FALSE)] // Doesn't compile because `r2de::ConnectionManager` doesn't exist.
     fn get_pool() -> Pool {
         dotenv::dotenv().ok();
         let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
