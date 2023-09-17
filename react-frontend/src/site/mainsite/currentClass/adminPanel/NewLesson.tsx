@@ -102,6 +102,7 @@ const NewLesson = () => {
                                 <Col>
                                     <FormGroup>
                                         <FormLabel>Start der Lektion</FormLabel>
+                                        {/* @ts-ignore */}
                                         <Datetime dateFormat={false} timeFormat={true} locale={'de-ch'}  onChange={(e) => {
                                             if(typeof e !== 'string') {
                                                 formik.setFieldValue('start', (e as Moment).unix() * 1000)
@@ -114,6 +115,7 @@ const NewLesson = () => {
                                 <Col>
                                     <FormGroup>
                                         <FormLabel>Ende der Lektion</FormLabel>
+                                        {/* @ts-ignore */}
                                         <Datetime dateFormat={false} timeFormat={true} locale={'de-ch'}
                                                   onChange={(e) => {
                                                       if(typeof e !== 'string') {

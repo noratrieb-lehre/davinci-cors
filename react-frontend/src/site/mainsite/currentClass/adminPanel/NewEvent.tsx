@@ -94,6 +94,7 @@ const NewEvent = () => {
                     <Col>
                         <FormGroup>
                             <FormLabel>Startdatum</FormLabel>
+                            {/* @ts-ignore */}
                             <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
                                       onChange={moment => {
                                           if (typeof moment !== 'string')
@@ -105,6 +106,7 @@ const NewEvent = () => {
                     <Col>
                         <FormGroup>
                             <FormLabel>Enddatum</FormLabel>
+                            {/* @ts-ignore */}
                             <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
                                       onChange={moment => {
                                           if (typeof moment !== 'string')
@@ -124,6 +126,7 @@ const NewEvent = () => {
                 <Row>
                     <FormGroup>
                         <FormLabel>Benachrichtigung (optional)</FormLabel>
+                        {/* @ts-ignore */}
                         <Datetime dateFormat={'DD.MM.YYYY'} timeFormat={'HH:mm'} locale={'de-ch'}
                                   onChange={moment => {
                                       if (typeof moment !== 'string')
