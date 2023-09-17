@@ -570,6 +570,7 @@ dependencies = [
  "futures",
  "once_cell",
  "rand 0.8.5",
+ "regex-syntax 0.7.5",
  "reqwest",
  "serde",
  "serde_json",
