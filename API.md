@@ -38,7 +38,6 @@
 ```json
 {
   "id?": "uuid",
-  "owner": "User",
   "members??": [
     "Member"
   ],
